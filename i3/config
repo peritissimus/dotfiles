@@ -33,7 +33,7 @@ bindsym $mod+Return exec alacritty
 bindsym $mod+Shift+q kill
 
 # start program launcher
-bindsym $mod+d exec --no-startup-id dmenu_run -nb '#0d0d0d' -sf '#0d0d0d' -sb '#f2f2f2' -nf '#f2f2f2' -fn 'Cascadia Code-10'
+bindsym $mod+d exec --no-startup-id dmenu_run -nb '#2E3440' -sf '#2E3440' -sb '#81a1c1' -nf '#F8F9FB' -fn 'Cascadia Code-10'
 
 # launch categorized menu
 bindsym $mod+z exec --no-startup-id morc_menu
@@ -56,7 +56,7 @@ bindsym $mod+Ctrl+m exec terminal -e 'alsamixer'
 
 # Start Applications
 bindsym $mod+Ctrl+b exec terminal -e 'bmenu'
-bindsym $mod+F2 exec palemoon
+bindsym $mod+F2 exec firefox
 bindsym $mod+F3 exec pcmanfm
 # bindsym $mod+F3 exec ranger
 bindsym $mod+Shift+F3 exec pcmanfm_pkexec
@@ -281,7 +281,7 @@ exec --no-startup-id pamac-tray
 exec --no-startup-id clipit
 # exec --no-startup-id blueman-applet
 # exec_always --no-startup-id sbxkb
-exec --no-startup-id start_conky_maia
+# exec --no-startup-id start_conky_maia
 # exec --no-startup-id start_conky_green
 exec --no-startup-id xautolock -time 10 -locker blurlock
 exec_always --no-startup-id ff-theme-util
@@ -331,22 +331,16 @@ exec_always --no-startup-id fix_xcursor
 # hide/unhide i3status bar
 bindsym $mod+m bar mode toggle
 
-# colors
-set $bg-color             #0d0d0d 
-set $inactive-bg-color    #0d0d0d
-set $text-color           #f2f2f2
-set $inactive-text-color  #f2f2f2
-set $urgent-bg-color      #f2f2f2
 
+# Window color settings
+# class                 border  backgr. text    indicator
+client.focused          #81a1c1 #81a1c1 #ffffff #81a1c1
+client.unfocused        #2e3440 #2e3440 #888888 #2e3440
+client.focused_inactive #2e3440 #2e3440 #888888 #2e3440
+client.placeholder      #2e3440 #2e3440 #888888 #2e3440
+client.urgent           #900000 #900000 #ffffff #900000
 
-
-# Theme colors
-# class                   border              backgr.             text                 indic.   child_border
-  client.focused          #bg-color           #bg-color           #urgent-bg-color     #0198ff
-  client.focused_inactive #inactive-bg-color  #inactive-bg-color  #inactive-text-color #0198ff
-  client.unfocused        #inactive-bg-color  #inactive-bg-color  #inactive-text-color #0198ff
-  client.urgent           #urgent-bg-color    #urgent-bg-color    #urgent-bg-color     #0198ff
-
+client.background       #242424
 
 #############################
 ### settings for i3-gaps: ###

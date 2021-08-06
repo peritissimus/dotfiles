@@ -9,6 +9,10 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'ap/vim-css-color'
 Plugin 'itchyny/lightline.vim'
 Plugin 'arcticicestudio/nord-vim'
+Plugin 'mengelbrecht/lightline-bufferline'
+Plugin 'itchyny/vim-gitbranch'
+Plugin 'albertomontesg/lightline-asyncrun'
+Plugin 'ryanoasis/vim-devicons'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -22,9 +26,59 @@ filetype plugin indent on    " required
 
 set laststatus=2
 
-let g:lightline = {
-	      \ 'colorscheme': 'wombat',
-	      \ }
+set showtabline=2
+
+let g:lightline = {}
+let g:lightline.separator = { 'left': "", 'right': "" }
+let g:lightline.subseparator = { 'left': "", 'right': "" }
+let g:lightline.tabline_separator = { 'left': "", 'right': "" }
+let g:lightline.tabline_subseparator = { 'left': "", 'right': "" }
+let g:lightline#asyncrun#indicator_none = ''
+let g:lightline#asyncrun#indicator_run = 'Running...'
+let g:lightline.colorscheme = "nord"
+
+
+let g:lightline.active = {
+        \ 'left': [ [ 'mode', 'paste' ],
+        \           [ 'readonly', 'filename', 'modified', 'fileformat', 'devicons_filetype' ] ],
+        \ 'right': [ [ 'lineinfo' ],
+        \           [ 'asyncrun_status']]
+        \ }
+let g:lightline.inactive = {
+        \ 'left': [ [ 'filename' , 'modified', 'fileformat', 'devicons_filetype' ]],
+        \ 'right': [ [ 'lineinfo' ] ]
+        \ }
+let g:lightline.tabline = {
+        \ 'left': [ [ 'vim_logo', 'tabs' ] ],
+        \ 'right': [ [ 'git_global' ],
+        \ [ 'git_buffer' ]]
+        \ }
+let g:lightline.tab = {
+        \ 'active': [ 'tabnum', 'filename', 'modified' ],
+        \ 'inactive': [ 'tabnum', 'filename', 'modified' ] }
+
+
+let g:lightline.component = {
+      \ 'git_global' : '',
+      \ 'vim_logo': "\ue7c5",
+      \ 'mode': '%{lightline#mode()}',
+      \ 'filename': '%t',
+      \ 'fileformat': '%{&fenc!=#""?&fenc:&enc}[%{&ff}]',
+      \ 'modified': '%M',
+      \ 'paste': '%{&paste?"PASTE":""}',
+      \ 'readonly': '%R',
+      \ 'lineinfo': '%2p%% %3l:%-2v',
+      \ 'fun': 'nothing'
+      \ }
+let g:lightline.component_function = {
+      \ 'git_buffer' : 'gitbranch#name',
+      \ 'devicons_filetype': 'custom#lightline#devicons',
+      \ 'coc_status': 'custom#lightline#coc_status'
+      \ }
+let g:lightline.component_expand = {
+      \ 'asyncrun_status': 'lightline#asyncrun#status'
+      \ }
+
 
 set number relativenumber
 syntax enable

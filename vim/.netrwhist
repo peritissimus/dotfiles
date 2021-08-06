@@ -1,0 +1,12 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =6
+let g:netrw_dirhist_6='/home/peritissimus/.dotfiles/vim/autoload/lightline'
+let g:netrw_dirhist_5='/home/peritissimus/.dotfiles/vim/autoload'
+let g:netrw_dirhist_4='/home/peritissimus/.dotfiles/vim'
+let g:netrw_dirhist_3='/home/peritissimus'
+let g:netrw_dirhist_2='/home/peritissimus/Projects/port47'
+let g:netrw_dirhist_1='/home/peritissimus/Projects'
+let g:netrw_dirhist_0='/home/peritissimus'
+let g:netrw_dirhist_9='/home/peritissimus/.dotfiles'
+let g:netrw_dirhist_8='/home/peritissimus/.dotfiles/vifm'
+let g:netrw_dirhist_7='/home/peritissimus/.dotfiles/vifm/colors'

@@ -40,7 +40,7 @@ format-offset =
 
 [colors]
 ; Nord theme ============
-background = #282c34
+background = #2e3440
 foreground = #abb2bf
 alert = #bd2c40
 volume-min = #a3be8c
@@ -122,7 +122,7 @@ font-5 = "Source Sans Pro:size=10;1"
 
 modules-left = i3 xwindow
 modules-center = 
-modules-right = arrow0 networkspeeddown networkspeedup arrow1  memory2 arrow2 cpu2 arrow4 battery arrow3 date
+modules-right = arrow0 networkspeeddown networkspeedup arrow1  memory2 arrow1 cpu2 arrow1 battery arrow3 date
 
 separator = 
 
@@ -299,7 +299,7 @@ type = custom/text
 content = "%{T2} %{T-}"
 content-font = 2
 content-foreground = #88c0d0
-content-background = #282c34
+content-background = #2e3440
 
 [module/arrow4]
 ; grey to Blue
@@ -331,7 +331,7 @@ type = custom/text
 content = "%{T2} %{T-}"
 content-font = 2
 content-foreground = #5e81ac
-content-background = #81a1c1
+content-background = #88c0d0
 
 ################################################################################
 ###############################################################################
@@ -443,32 +443,32 @@ full-at = 100
 
 format-charging = <animation-charging> <label-charging>
 label-charging =  %percentage%%
-format-charging-foreground = #eceff4
-format-charging-background = #81a1c1
+format-charging-foreground = #3b4252
+format-charging-background = #88c0d0
 
 format-discharging = <ramp-capacity> <label-discharging>
 label-discharging =  %percentage%%
-format-discharging-foreground = #eceff4
-format-discharging-background = #81a1c1
+format-discharging-foreground = #3b4252
+format-discharging-background = #88c0d0
 
 format-full-prefix = " "
-format-full-prefix-foreground = #a3be8c
-format-full-foreground = #eceff4
-format-full-background = #81a1c1
+format-full-prefix-foreground = #434c5e
+format-full-foreground = #3b4252
+format-full-background = #88c0d0
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
 ramp-capacity-2 = 
 ramp-capacity-3 = 
 ramp-capacity-4 = 
-ramp-capacity-foreground = #ebcb8b
+ramp-capacity-foreground = #eceff4
 
 animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
 animation-charging-3 = 
 animation-charging-4 = 
-animation-charging-foreground = #a3be8c
+animation-charging-foreground = #434c5e
 animation-charging-framerate = 750
 
 ################################################################################
@@ -546,10 +546,10 @@ type = internal/cpu
 ; Seconds to sleep between updates
 ; Default: 1
 interval = 1
-format-foreground = #eceff4
-format-background = #81a1c1
+format-foreground = #3b4252
+format-background = #88c0d0
 format-prefix = " "
-format-prefix-foreground = #eceff4
+format-prefix-foreground = #3b4252
 
 label-font = 1
 

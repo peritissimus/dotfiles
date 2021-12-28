@@ -149,6 +149,21 @@ GIT_PS1_SHOWCOLORHINTS=true
 # Also configurable per repository via "bash.hideIfPwdIgnored".
 GIT_PS1_HIDE_IF_PWD_IGNORED=false
 
+function virtualenv_info(){
+    # Get Virtual Env
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        # Strip out the path and just leave the env name
+        venv="${VIRTUAL_ENV##*/}"
+    else
+        # In case you don't have one activated
+        venv='0'
+    fi
+    [[ -n "$venv" ]] && echo "$venv"
+}
+
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+VENV="\$(virtualenv_info)";
+
 compile_prompt () {
   local EXIT=$?
   local CONNECTBAR_DOWN=$'\u250C\u2500\u257C'
@@ -176,7 +191,7 @@ compile_prompt () {
   # > Jobs
   # Format:
   #   (bracket open)(jobs)(bracket close)(splitbar)
-  PS1+="[${c_blue}\j${c_gray}]"
+  PS1+="[${c_blue}${VENV}${c_gray}]"
 
   # > Exit Status
   # Format:
@@ -199,11 +214,11 @@ compile_prompt () {
   # Format:
   #   (gitsplitbar)(bracket open)(git branch)(bracket close)(splitbar)
   #   (bracket open)(HEAD-SHA)(bracket close)
-  PS1+="$(__git_ps1 " \\u2570\\u257C[${c_cyan}%s${c_gray}]\\u257E\\u2500\\u257C[${c_cyan}$(git rev-parse --short HEAD 2> /dev/null)${c_gray}]")"
+  #PS1+="$(__git_ps1 " \\u2570\\u257C[${c_cyan}%s${c_gray}]\\u257E\\u2500\\u257C[${c_cyan}$(git rev-parse --short HEAD 2> /dev/null)${c_gray}]")"
   # Append additional newline if in git repository
-  if [[ ! -z $(__git_ps1) ]]; then
-    PS1+='\n'
-  fi
+  #if [[ ! -z $(__git_ps1) ]]; then
+   # PS1+='\n'
+  #fi
 
   # > Arrow
   # NOTE: Color must be escaped with '\[\]' to fix the text overflow bug!
@@ -260,3 +275,8 @@ ex ()
 
 
 # [[ $TERM != "screen" ]] && exec tmux
+export GOROOT=/usr/lib/go
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+
+test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)

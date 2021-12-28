@@ -5,6 +5,7 @@ filetype off                  " required
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
+Plugin 'tiagofumo/vim-nerdtree-syntax-highlight'
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'ap/vim-css-color'
 Plugin 'itchyny/lightline.vim'
@@ -13,6 +14,7 @@ Plugin 'mengelbrecht/lightline-bufferline'
 Plugin 'itchyny/vim-gitbranch'
 Plugin 'albertomontesg/lightline-asyncrun'
 Plugin 'ryanoasis/vim-devicons'
+Plugin 'preservim/nerdtree'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -27,6 +29,14 @@ filetype plugin indent on    " required
 set laststatus=2
 
 set showtabline=2
+
+" NerdTree Setup
+nnoremap <leader>n :NERDTreeFocus<CR>
+nnoremap <C-n> :NERDTree<CR>
+nnoremap <C-t> :NERDTreeToggle<CR>
+nnoremap <C-f> :NERDTreeFind<CR>
+
+
 
 let g:lightline = {}
 let g:lightline.separator = { 'left': "", 'right': "" }
@@ -86,3 +96,5 @@ syntax enable
 colorscheme nord
 
 set noshowmode
+
+

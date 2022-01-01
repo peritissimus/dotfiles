@@ -15,6 +15,7 @@ Plugin 'itchyny/vim-gitbranch'
 Plugin 'albertomontesg/lightline-asyncrun'
 Plugin 'ryanoasis/vim-devicons'
 Plugin 'preservim/nerdtree'
+Plugin 'Xuyuanp/nerdtree-git-plugin'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -89,6 +90,13 @@ let g:lightline.component_expand = {
       \ 'asyncrun_status': 'lightline#asyncrun#status'
       \ }
 
+function! IsNERDTreeOpen()
+	return exists("t:NERDTreeBufName") && (bufwinnr(t:NERDTreeBufName) != -1)
+endfunction
+
+autocmd BufEnter * lcd %:p:h
+
+let NERDTreeShowHidden=1
 
 set number relativenumber
 syntax enable
@@ -97,4 +105,4 @@ colorscheme nord
 
 set noshowmode
 
-
+hi Directory guifg=#FF0000 ctermfg=blue

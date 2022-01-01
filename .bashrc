@@ -4,32 +4,32 @@
 
 [[ $- != *i* ]] && return
 
-colors() {
-	local fgc bgc vals seq0
+# colors() {
+# 	local fgc bgc vals seq0
 
-	printf "Color escapes are %s\n" '\e[${value};...;${value}m'
-	printf "Values 30..37 are \e[33mforeground colors\e[m\n"
-	printf "Values 40..47 are \e[43mbackground colors\e[m\n"
-	printf "Value  1 gives a  \e[1mbold-faced look\e[m\n\n"
+# 	printf "Color escapes are %s\n" '\e[${value};...;${value}m'
+# 	printf "Values 30..37 are \e[33mforeground colors\e[m\n"
+# 	printf "Values 40..47 are \e[43mbackground colors\e[m\n"
+# 	printf "Value  1 gives a  \e[1mbold-faced look\e[m\n\n"
 
-	# foreground colors
-	for fgc in {30..37}; do
-		# background colors
-		for bgc in {40..47}; do
-			fgc=${fgc#37} # white
-			bgc=${bgc#40} # black
+# 	# foreground colors
+# 	for fgc in {30..37}; do
+# 		# background colors
+# 		for bgc in {40..47}; do
+# 			fgc=${fgc#37} # white
+# 			bgc=${bgc#40} # black
 
-			vals="${fgc:+$fgc;}${bgc}"
-			vals=${vals%%;}
+# 			vals="${fgc:+$fgc;}${bgc}"
+# 			vals=${vals%%;}
 
-			seq0="${vals:+\e[${vals}m}"
-			printf "  %-9s" "${seq0:-(default)}"
-			printf " ${seq0}TEXT\e[m"
-			printf " \e[${vals:+${vals+$vals;}}1mBOLD\e[m"
-		done
-		echo; echo
-	done
-}
+# 			seq0="${vals:+\e[${vals}m}"
+# 			printf "  %-9s" "${seq0:-(default)}"
+# 			printf " ${seq0}TEXT\e[m"
+# 			printf " \e[${vals:+${vals+$vals;}}1mBOLD\e[m"
+# 		done
+# 		echo; echo
+# 	done
+# }
 
 [ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
 
@@ -40,47 +40,18 @@ use_color=true
 # instead of using /etc/DIR_COLORS.  Try to use the external file
 # first to take advantage of user additions.  Use internal bash
 # globbing instead of external grep binary.
-safe_term=${TERM//[^[:alnum:]]/?}   # sanitize TERM
-match_lhs=""
-[[ -f ~/.dir_colors   ]] && match_lhs="${match_lhs}$(<~/.dir_colors)"
-[[ -f /etc/DIR_COLORS ]] && match_lhs="${match_lhs}$(</etc/DIR_COLORS)"
-[[ -z ${match_lhs}    ]] \
-	&& type -P dircolors >/dev/null \
-	&& match_lhs=$(dircolors --print-database)
-[[ $'\n'${match_lhs} == *$'\n'"TERM "${safe_term}* ]] && use_color=true
-
-# if ${use_color} ; then
-# 	# Enable colors for ls, etc.  Prefer ~/.dir_colors #64489
-# 	if type -P dircolors >/dev/null ; then
-# 		if [[ -f ~/.dir_colors ]] ; then
-# 			eval $(dircolors -b ~/.dir_colors)
-# 		elif [[ -f /etc/DIR_COLORS ]] ; then
-# 			eval $(dircolors -b /etc/DIR_COLORS)
-# 		fi
-# 	fi
-
-# 	if [[ ${EUID} == 0 ]] ; then
-# 		PS1='\[\033[01;31m\][\h\[\033[01;36m\] \W\[\033[01;31m\]]\$\[\033[00m\] '
-# 	else
-# 		PS1='\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\]'
-# 	fi
-
-# 	alias ls='ls --color=auto'
-# 	alias grep='grep --colour=auto'
-# 	alias egrep='egrep --colour=auto'
-# 	alias fgrep='fgrep --colour=auto'
-# else
-# 	if [[ ${EUID} == 0 ]] ; then
-# 		# show root@ when we don't have colors
-# 		PS1='\u@\h \W \$ '
-# 	else
-# 		PS1='\u@\h \w \$ '
-# 	fi
-# fi
+# safe_term=${TERM//[^[:alnum:]]/?}   # sanitize TERM
+# match_lhs=""
+# [[ -f ~/.dir_colors   ]] && match_lhs="${match_lhs}$(<~/.dir_colors)"
+# [[ -f /etc/DIR_COLORS ]] && match_lhs="${match_lhs}$(</etc/DIR_COLORS)"
+# [[ -z ${match_lhs}    ]] \
+# 	&& type -P dircolors >/dev/null \
+# 	&& match_lhs=$(dircolors --print-database)
+# [[ $'\n'${match_lhs} == *$'\n'"TERM "${safe_term}* ]] && use_color=true
 
 
-
-unset use_color safe_term match_lhs sh
+unset use_color
+ # safe_term match_lhs sh
 
 alias cp="cp -i"                          # confirm before overwriting something
 alias df='df -h'                          # human-readable sizes
@@ -280,3 +251,33 @@ export GOPATH=$HOME/go
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 test -r "~/.dir_colors" && eval $(dircolors ~/.dir_colors)
+
+PATH="/home/peritissimus/perl5/bin${PATH:+:${PATH}}"; export PATH;
+PERL5LIB="/home/peritissimus/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
+PERL_LOCAL_LIB_ROOT="/home/peritissimus/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
+PERL_MB_OPT="--install_base \"/home/peritissimus/perl5\""; export PERL_MB_OPT;
+PERL_MM_OPT="INSTALL_BASE=/home/peritissimus/perl5"; export PERL_MM_OPT;
+
+#####################################################################################
+
+if ${use_color} ; then
+  # Enable colors for ls, etc.  Prefer ~/.dir_colors #64489
+  if type -P dircolors >/dev/null ; then
+    if [[ -f ~/.dir_colors ]] ; then
+      eval $(dircolors -b ~/.dir_colors)
+    fi
+  fi
+
+  alias ls='ls --color=auto'
+  alias grep='grep --colour=auto'
+  alias egrep='egrep --colour=auto'
+  alias fgrep='fgrep --colour=auto'
+else
+  if [[ ${EUID} == 0 ]] ; then
+    # show root@ when we don't have colors
+    PS1='\u@\h \W \$ '
+  else
+    PS1='\u@\h \w \$ '
+  fi
+fi
+

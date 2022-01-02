@@ -61,7 +61,7 @@ alias more=less
 
 #####################################################################################
 #include gitpropmpt 
-source ~/.git-prompt.sh
+#source ~/.git-prompt.sh
 
 # +-----------------+
 # + Git Integration +

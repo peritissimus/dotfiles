@@ -58,7 +58,11 @@ alias df='df -h'                          # human-readable sizes
 alias free='free -m'                      # show sizes in MB
 alias np='nano -w PKGBUILD'
 alias more=less
-
+alias ls="ls -p -G"
+alias la="ls -A"
+alias ll="ls -l"
+alias lla="ll -A"
+alias g="git"
 #####################################################################################
 #include gitpropmpt 
 source ~/.git-prompt.sh
@@ -135,6 +139,26 @@ function virtualenv_info(){
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 VENV="\$(virtualenv_info)";
 
+#nodejs version
+parse_git_branch() {
+  if [ -n "$(git rev-parse --git-dir 2> /dev/null)" ]; then
+    echo "$(git rev-parse --abbrev-ref HEAD)"
+  fi
+}
+
+sps() {
+    current_path=${PWD/#$HOME/'~'}
+    if [ "$current_path" = "~" ]; then
+       echo $current_path
+    else
+       path_parent=${current_path%\/*}
+       path_parent_short=`echo $path_parent | sed -r 's|/(.)[^/]*|/\1|g'`
+       directory=${current_path##*\/}
+       echo "$path_parent_short/$directory"
+    fi
+}
+
+
 compile_prompt () {
   local EXIT=$?
   local CONNECTBAR_DOWN=$'\u250C\u2500\u257C'
@@ -146,6 +170,17 @@ compile_prompt () {
   local c_blue='\e[0;34m'
   local c_cyan='\e[0;36m'
   local c_reset='\e[0m'
+  local c_yellow='\e[0;33m'
+  local c_red='\e[0;31m'
+  local c_green='\e[0;32m'
+  local c_magenta='\e[0;35m'
+  local c_white='\e[0;37m'
+
+  # PS1="\n${c_blue}${VENV}${c_yellow}"
+  # PS1+="$(sps)"
+  # # PS1+="${c_green}${c_magenta}"
+  # PS1+="${c_magenta}${c_red}${c_green} ${c_reset}"
+  # # PS1=$(printf "%*s\r%s\$ " "$(tput cols)" '${c_green}[$(parse_git_branch)]''${c_yellow}\w${c_green}${c_magenta}${c_green} ${c_red}${c_yellow} ${c_reset}' )
 
   # > Connectbar Down
   # Format:

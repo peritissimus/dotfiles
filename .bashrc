@@ -316,3 +316,4 @@ else
   fi
 fi
 
+exec zsh

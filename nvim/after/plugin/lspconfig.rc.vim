@@ -45,7 +45,6 @@ local on_attach = function(client, bufnr)
   if client.name == 'tsserver' then
     client.resolved_capabilities.document_formatting = false
   end
-  
 
   if client.resolved_capabilities.document_formatting then
     vim.api.nvim_command [[augroup Format]]
@@ -90,23 +89,22 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(
   vim.lsp.protocol.make_client_capabilities()
 )
 
--- nvim_lsp.flow.setup {
---  on_attach = on_attach,
---  capabilities = capabilities
--- }
-
-
-nvim_lsp.tsserver.setup {
+nvim_lsp.flow.setup {
   on_attach = on_attach,
-  filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" },
   capabilities = capabilities
 }
 
---nvim_lsp.pyright.setup{}
+nvim_lsp.tsserver.setup {
+  on_attach = on_attach,
+  filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
+  capabilities = capabilities
+}
+
+nvim_lsp.pyright.setup{}
 
 nvim_lsp.diagnosticls.setup {
   on_attach = on_attach,
-  filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'css', 'less', 'scss', 'markdown', 'pandoc' },
+  filetypes = { 'javascript', 'javascriptreact', 'json', 'typescript', 'typescriptreact', 'css', 'less', 'scss', 'pandoc' },
   init_options = {
     linters = {
       eslint = {
@@ -160,7 +158,6 @@ nvim_lsp.diagnosticls.setup {
       typescript = 'prettier',
       typescriptreact = 'prettier',
       json = 'prettier',
-      markdown = 'prettier',
     }
   }
 }

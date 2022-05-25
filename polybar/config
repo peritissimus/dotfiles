@@ -40,7 +40,7 @@ format-offset =
 
 [colors]
 ; Nord theme ============
-background = #2e3440
+background = #282a36
 foreground = #abb2bf
 alert = #bd2c40
 volume-min = #a3be8c
@@ -121,20 +121,21 @@ font-4 = "Font Awesome 6 Brands:pixelsize=8;1"
 font-5 = "Source Sans Pro:size=10;1"
 
 modules-left = i3 xwindow
-modules-center = 
-modules-right = arrow0 networkspeeddown networkspeedup arrow1  memory2 arrow1 cpu2 arrow1 battery arrow3 date
+modules-center = date
+modules-right = networkspeeddown networkspeedup memory2 cpu2 battery
+; modules-right = arrow0 networkspeeddown networkspeedup arrow1  memory2 arrow1 cpu2 arrow1 battery arrow3 date
 
-separator = 
+separator = ""
 
 ;dim-value = 1.0
 
 tray-position = right
 tray-detached = false
 tray-maxsize = 20
-tray-background = #5e81ac
+tray-background = #282a36
 tray-offset-x = 0
 tray-offset-y = 0
-tray-padding = 4
+tray-padding = 10
 tray-scale = 1.0
 
 #i3: Make the bar appear below windows
@@ -225,8 +226,8 @@ ws-icon-2 = 3;
 ws-icon-3 = 4;
 ws-icon-4 = 5;
 ws-icon-5 = 6;
-ws-icon-6 = 7;
-ws-icon-7 = 8;
+ws-icon-6 = 7;
+ws-icon-7 = 8;
 ws-icon-8 = 9;
 ws-icon-9 = 10;
 ws-icon-default = " "
@@ -418,7 +419,7 @@ full-at = 99
 
 ; Use the following command to list batteries and adapters:
 ; $ ls -1 /sys/class/power_supply/
-battery = BAT1
+battery = BAT0
 adapter = ACAD
 
 ; If an inotify event haven't been reported in this many
@@ -442,33 +443,34 @@ adapter = ACAD
 full-at = 100
 
 format-charging = <animation-charging> <label-charging>
-label-charging =  %percentage%%
-format-charging-foreground = #3b4252
-format-charging-background = #88c0d0
+label-charging =   %percentage%%
+format-charging-prefix = "  "
+format-charging-foreground = #d8dee9
+format-charging-background = #282a36
 
 format-discharging = <ramp-capacity> <label-discharging>
 label-discharging =  %percentage%%
-format-discharging-foreground = #3b4252
-format-discharging-background = #88c0d0
+format-discharging-foreground = #d8dee9
+format-discharging-background = #282a36
 
-format-full-prefix = " "
-format-full-prefix-foreground = #434c5e
-format-full-foreground = #3b4252
-format-full-background = #88c0d0
+format-full-prefix = "  "
+format-full-prefix-foreground = #d8dee9
+format-full-foreground = #d8dee9
+format-full-background = #282a36
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
 ramp-capacity-2 = 
 ramp-capacity-3 = 
 ramp-capacity-4 = 
-ramp-capacity-foreground = #eceff4
+ramp-capacity-foreground = #d8dee9
 
 animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
 animation-charging-3 = 
 animation-charging-4 = 
-animation-charging-foreground = #434c5e
+animation-charging-foreground = #d8dee9
 animation-charging-framerate = 750
 
 ################################################################################
@@ -546,10 +548,10 @@ type = internal/cpu
 ; Seconds to sleep between updates
 ; Default: 1
 interval = 1
-format-foreground = #3b4252
-format-background = #88c0d0
-format-prefix = " "
-format-prefix-foreground = #3b4252
+format-foreground = #d8dee9
+format-background = #282a36
+format-prefix = "  "
+format-prefix-foreground = #d8dee9
 
 label-font = 1
 
@@ -565,7 +567,7 @@ format = <label>
 ;   %percentage% (default) - total cpu load
 ;   %percentage-cores% - load percentage for each core
 ;   %percentage-core[1-9]% - load percentage for specific core
-label = Cpu%percentage:3%%
+label = %percentage:3%%
 
 ################################################################################
 
@@ -580,10 +582,10 @@ date = " %a %b %d, %Y"
 date-alt = " %a %b %d, %Y"
 time = %l:%M%p
 time-alt = %l:%M%p
-format-prefix = " "
-format-prefix-foreground = #eceff4
-format-foreground = #eceff4
-format-background = #5e81ac
+format-prefix = "  "
+format-prefix-foreground = #d8dee9
+format-foreground = #d8dee9
+format-background = #282a36
 label = "%date% %time% "
 
 #################################################################
@@ -779,11 +781,11 @@ interval = 1
 ;   %mb_total%
 label = %percentage_used%%
 
-format = Mem <label>
-format-prefix = " "
-format-prefix-foreground = #3b4252
-format-foreground = #3b4252
-format-background = #88c0d0
+format = <label>
+format-prefix = "   "
+format-prefix-foreground = #d8dee9
+format-foreground = #d8dee9
+format-background = #282a36
 
 ################################################################################
 
@@ -846,9 +848,9 @@ interface = wlp4s0
 label-connected = "%upspeed:7%"
 format-connected = <label-connected>
 format-connected-prefix = "  "
-format-connected-prefix-foreground = #3b4252
-format-connected-foreground = #3b4252
-format-connected-background = #88c0d0
+format-connected-prefix-foreground = #d8dee9
+format-connected-foreground = #d8dee9
+format-connected-background = #282a36
 
 ################################################################################
 
@@ -862,9 +864,9 @@ interface = wlp4s0
 label-connected = "%downspeed:7%"
 format-connected = <label-connected>
 format-connected-prefix = " "
-format-connected-prefix-foreground = #3b4252
-format-connected-foreground = #3b4252
-format-connected-background = #88c0d0
+format-connected-prefix-foreground = #d8dee9
+format-connected-foreground = #d8dee9
+format-connected-background = #282a36
 
 ################################################################################
 

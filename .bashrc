@@ -62,7 +62,9 @@ alias ls="ls -p -G"
 alias la="ls -A"
 alias ll="ls -l"
 alias lla="ll -A"
-alias g="git"
+alias gf="git fetch"
+alias gp="git pull"
+alias nrd="npm run dev"
 #####################################################################################
 #include gitpropmpt 
 #source ~/.git-prompt.sh

@@ -24,6 +24,7 @@ set laststatus=2
 set scrolloff=10
 set expandtab
 set noshowmode
+set modifiable
 "let loaded_matchparen = 1
 set backupskip=/tmp/*,/private/tmp/*
 
@@ -150,5 +151,7 @@ set exrc
 "}}}
 
 let g:python3_host_prog = "/usr/bin/python3"
+let g:prettier#autoformat = 1
+let g:prettier#autoformat_require_pragma = 0
 
 " vim: set foldmethod=marker foldlevel=0:

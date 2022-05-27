@@ -40,7 +40,7 @@ format-offset =
 
 [colors]
 ; Nord theme ============
-background = #282a36
+background = #181B1F
 foreground = #abb2bf
 alert = #bd2c40
 volume-min = #a3be8c
@@ -132,7 +132,7 @@ separator = ""
 tray-position = right
 tray-detached = false
 tray-maxsize = 20
-tray-background = #282a36
+tray-background = #181B1F
 tray-offset-x = 0
 tray-offset-y = 0
 tray-padding = 10
@@ -446,17 +446,18 @@ format-charging = <animation-charging> <label-charging>
 label-charging =   %percentage%%
 format-charging-prefix = "  "
 format-charging-foreground = #d8dee9
-format-charging-background = #282a36
+format-charging-background = #181B1F
 
 format-discharging = <ramp-capacity> <label-discharging>
 label-discharging =  %percentage%%
+format-discharging-prefix = "  "
 format-discharging-foreground = #d8dee9
-format-discharging-background = #282a36
+format-discharging-background = #181B1F
 
 format-full-prefix = "  "
 format-full-prefix-foreground = #d8dee9
 format-full-foreground = #d8dee9
-format-full-background = #282a36
+format-full-background = #181B1F
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
@@ -549,7 +550,7 @@ type = internal/cpu
 ; Default: 1
 interval = 1
 format-foreground = #d8dee9
-format-background = #282a36
+format-background = #181B1F
 format-prefix = "  "
 format-prefix-foreground = #d8dee9
 
@@ -585,7 +586,7 @@ time-alt = %l:%M%p
 format-prefix = "  "
 format-prefix-foreground = #d8dee9
 format-foreground = #d8dee9
-format-background = #282a36
+format-background = #181B1F
 label = "%date% %time% "
 
 #################################################################
@@ -785,7 +786,7 @@ format = <label>
 format-prefix = "   "
 format-prefix-foreground = #d8dee9
 format-foreground = #d8dee9
-format-background = #282a36
+format-background = #181B1F
 
 ################################################################################
 
@@ -850,7 +851,7 @@ format-connected = <label-connected>
 format-connected-prefix = "  "
 format-connected-prefix-foreground = #d8dee9
 format-connected-foreground = #d8dee9
-format-connected-background = #282a36
+format-connected-background = #181B1F
 
 ################################################################################
 
@@ -866,7 +867,7 @@ format-connected = <label-connected>
 format-connected-prefix = " "
 format-connected-prefix-foreground = #d8dee9
 format-connected-foreground = #d8dee9
-format-connected-background = #282a36
+format-connected-background = #181B1F
 
 ################################################################################
 

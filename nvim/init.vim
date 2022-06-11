@@ -23,9 +23,8 @@ set cmdheight=1
 set laststatus=2
 set scrolloff=10
 set expandtab
-set noshowmode
-set modifiable
 "let loaded_matchparen = 1
+set shell=fish
 set backupskip=/tmp/*,/private/tmp/*
 
 " incremental substitution (neovim)
@@ -101,6 +100,7 @@ au BufNewFile,BufRead *.mdx set filetype=markdown
 " Flow
 au BufNewFile,BufRead *.flow set filetype=javascript
 " Fish
+au BufNewFile,BufRead *.fish set filetype=fish
 
 set suffixesadd=.js,.es,.jsx,.json,.css,.less,.sass,.styl,.php,.py,.md
 
@@ -119,6 +119,9 @@ runtime ./plug.vim
 "  if s:uname == "Darwin\n"
 "    runtime ./macos.vim
 "  endif
+"endif
+"if has('win32')
+"  runtime ./windows.vim
 "endif
 
 runtime ./maps.vim
@@ -141,8 +144,6 @@ if exists("&termguicolors") && exists("&winblend")
   colorscheme nord
 endif
 
-" colorscheme nord
-
 "}}}
 
 " Extras "{{{
@@ -153,5 +154,4 @@ set exrc
 let g:python3_host_prog = "/usr/bin/python3"
 let g:prettier#autoformat = 1
 let g:prettier#autoformat_require_pragma = 0
-
 " vim: set foldmethod=marker foldlevel=0:

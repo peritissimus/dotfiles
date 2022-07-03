@@ -261,5 +261,7 @@ PERL_MM_OPT="INSTALL_BASE=/home/peritissimus/perl5"; export PERL_MM_OPT;
 
 
 export LC_ALL="en_US.UTF-8"
+export EDITOR='nvim'
 exec zsh
+
 

@@ -12,15 +12,11 @@ lua <<EOF
         require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
       end,
     },
-<<<<<<< HEAD
-    mapping = cmp.mapping.preset.insert({
-=======
     window = {
       -- completion = cmp.config.window.bordered(),
       -- documentation = cmp.config.window.bordered(),
     },
     mapping ={
->>>>>>> bfcd949 (nvim updates)
       ['<C-d>'] = cmp.mapping.scroll_docs(-4),
       ['<C-f>'] = cmp.mapping.scroll_docs(4),
       ['<C-Space>'] = cmp.mapping.complete(),
@@ -29,7 +25,7 @@ lua <<EOF
         behavior = cmp.ConfirmBehavior.Replace,
         select = true
       }),
-    }),
+    },
     sources = cmp.config.sources({
       { name = 'nvim_lsp' },
       { name = 'luasnip' }, -- For luasnip users.

@@ -40,8 +40,10 @@ format-offset =
 
 [colors]
 ; Nord theme ============
-background = #181B1F
-foreground = #abb2bf
+background = #282828
+;background = #181B1F
+foreground = #ebdbb2
+;foreground = #abb2bf
 alert = #bd2c40
 volume-min = #a3be8c
 volume-med = #ebcb8b
@@ -132,7 +134,7 @@ separator = ""
 tray-position = right
 tray-detached = false
 tray-maxsize = 20
-tray-background = #181B1F
+tray-background = #282828
 tray-offset-x = 0
 tray-offset-y = 0
 tray-padding = 10
@@ -252,7 +254,7 @@ label-mode-background = #FFBB00
 label-focused = %icon% %name%
 label-focused-background = ${colors.background}
 label-focused-foreground = ${colors.foreground}
-label-focused-underline = #8fbcbb
+label-focused-underline = #8ec07c
 label-focused-padding = 1
 
 ; Available tokens:
@@ -281,7 +283,7 @@ label-visible-padding = 1
 ; urgent = Workspace with urgency hint set
 label-urgent = %icon% %name%
 label-urgent-background = ${self.label-focused-background}
-label-urgent-foreground = #db104e
+label-urgent-foreground = #fb4934
 label-urgent-padding = 1
 
 format-foreground = ${colors.foreground}
@@ -445,33 +447,33 @@ full-at = 100
 format-charging = <animation-charging> <label-charging>
 label-charging =   %percentage%%
 format-charging-prefix = "  "
-format-charging-foreground = #d8dee9
-format-charging-background = #181B1F
+format-charging-foreground = #ebdbb2
+format-charging-background = #282828
 
 format-discharging = <ramp-capacity> <label-discharging>
 label-discharging =  %percentage%%
 format-discharging-prefix = "  "
-format-discharging-foreground = #d8dee9
-format-discharging-background = #181B1F
+format-discharging-foreground = #ebdbb2
+format-discharging-background = #282828
 
 format-full-prefix = "  "
-format-full-prefix-foreground = #d8dee9
-format-full-foreground = #d8dee9
-format-full-background = #181B1F
+format-full-prefix-foreground = #ebdbb2
+format-full-foreground = #ebdbb2
+format-full-background = #282828
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
 ramp-capacity-2 = 
 ramp-capacity-3 = 
 ramp-capacity-4 = 
-ramp-capacity-foreground = #d8dee9
+ramp-capacity-foreground = #ebdbb2
 
 animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
 animation-charging-3 = 
 animation-charging-4 = 
-animation-charging-foreground = #d8dee9
+animation-charging-foreground = #ebdbb2
 animation-charging-framerate = 750
 
 ################################################################################
@@ -549,10 +551,10 @@ type = internal/cpu
 ; Seconds to sleep between updates
 ; Default: 1
 interval = 1
-format-foreground = #d8dee9
-format-background = #181B1F
+format-foreground = #ebdbb2
+format-background = #282828
 format-prefix = "  "
-format-prefix-foreground = #d8dee9
+format-prefix-foreground = #ebdbb2
 
 label-font = 1
 
@@ -584,9 +586,9 @@ date-alt = " %a %b %d, %Y"
 time = %l:%M%p
 time-alt = %l:%M%p
 format-prefix = "  "
-format-prefix-foreground = #d8dee9
-format-foreground = #d8dee9
-format-background = #181B1F
+format-prefix-foreground = #ebdbb2
+format-foreground = #ebdbb2
+format-background = #282828
 label = "%date% %time% "
 
 #################################################################
@@ -784,9 +786,9 @@ label = %percentage_used%%
 
 format = <label>
 format-prefix = "   "
-format-prefix-foreground = #d8dee9
-format-foreground = #d8dee9
-format-background = #181B1F
+format-prefix-foreground = #ebdbb2
+format-foreground = #ebdbb2
+format-background = #282828
 
 ################################################################################
 
@@ -849,9 +851,9 @@ interface = wlp4s0
 label-connected = "%upspeed:7%"
 format-connected = <label-connected>
 format-connected-prefix = "  "
-format-connected-prefix-foreground = #d8dee9
-format-connected-foreground = #d8dee9
-format-connected-background = #181B1F
+format-connected-prefix-foreground = #ebdbb2
+format-connected-foreground = #ebdbb2
+format-connected-background = #282828
 
 ################################################################################
 
@@ -865,9 +867,9 @@ interface = wlp4s0
 label-connected = "%downspeed:7%"
 format-connected = <label-connected>
 format-connected-prefix = " "
-format-connected-prefix-foreground = #d8dee9
-format-connected-foreground = #d8dee9
-format-connected-background = #181B1F
+format-connected-prefix-foreground = #ebdbb2
+format-connected-foreground = #ebdbb2
+format-connected-background = #282828
 
 ################################################################################
 
@@ -1224,9 +1226,9 @@ label = %title%
 label-maxlen = 50
 
 format-prefix = "  "
-format-prefix-underline = #292d3e
-format-underline = #5e81ac
-format-foreground = #eceff4
+format-prefix-underline = #1d2021
+format-underline = #fabd2f
+format-foreground = #fbf1c7
 format-background = ${colors.background}
 
 ###############################################################################

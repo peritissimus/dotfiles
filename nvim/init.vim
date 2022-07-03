@@ -24,7 +24,7 @@ set laststatus=2
 set scrolloff=10
 set expandtab
 "let loaded_matchparen = 1
-set shell=fish
+set shell=zsh
 set backupskip=/tmp/*,/private/tmp/*
 
 " incremental substitution (neovim)
@@ -140,8 +140,8 @@ if exists("&termguicolors") && exists("&winblend")
   set background=dark
   " Use NeoSolarized
   let g:neosolarized_termtrans=1
-  runtime ./colors/nord.vim
-  colorscheme nord
+  runtime ./colors/Gruvbox.vim
+  colorscheme Gruvbox
 endif
 
 "}}}
@@ -154,4 +154,16 @@ set exrc
 let g:python3_host_prog = "/usr/bin/python3"
 let g:prettier#autoformat = 1
 let g:prettier#autoformat_require_pragma = 0
-" vim: set foldmethod=marker foldlevel=0:
+
+set foldmethod=marker
+
+nnoremap <C-n> :NERDTreeFocus<CR>
+nnoremap sf :NERDTree<CR>
+nnoremap st :NERDTreeToggle<CR>
+nnoremap <C-f> :NERDTreeFind<CR>
+
+lua << EOF
+
+-- Load custom tree-sitter grammar for org filetype
+
+EOF

@@ -1,9 +1,7 @@
 " Fundamentals "{{{
 " ---------------------------------------------------------------------
 
-" init autocmd
-autocmd!
-" set script encoding
+" init autocmd autocmd! set script encoding
 scriptencoding utf-8
 " stop loading config if it's on tiny or small
 if !1 | finish | endif
@@ -161,6 +159,8 @@ nnoremap <C-n> :NERDTreeFocus<CR>
 nnoremap sf :NERDTree<CR>
 nnoremap st :NERDTreeToggle<CR>
 nnoremap <C-f> :NERDTreeFind<CR>
+
+set clipboard+=unnamedplus
 
 lua << EOF
 

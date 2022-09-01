@@ -265,3 +265,4 @@ export EDITOR='nvim'
 exec zsh
 
 
+. "$HOME/.cargo/env"

@@ -1,4 +1,0 @@
-* Heading
-** Nothing
-*** Something
-    TODO: 

@@ -16,7 +16,7 @@ opt.background = "dark"
 opt.signcolumn = "yes"
 opt.foldmethod = "marker"
 
-opt.backspace = { 'start', 'eol', 'indent' }
+opt.backspace = { "start", "eol", "indent" }
 
 opt.clipboard:append("unnamedplus")
 
@@ -24,4 +24,3 @@ opt.splitright = true
 opt.splitbelow = true
 
 opt.iskeyword:append("-")
-

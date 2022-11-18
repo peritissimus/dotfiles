@@ -26,6 +26,7 @@ if not status then
 end
 
 return packer.startup(function(use)
+	use("sainnhe/gruvbox-material")
 	use("tpope/vim-fugitive")
 	use("wbthomason/packer.nvim")
 	use("nvim-lua/plenary.nvim")

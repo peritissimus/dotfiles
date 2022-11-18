@@ -26,7 +26,7 @@ keymap.set("n", "se", "<C-w>=")
 keymap.set("n", "sx", ":close<CR>")
 
 -- Move window
-keymap.set("n", "<leader>", "<C-w>w")
+keymap.set("n", "<leader><leader>", "<C-w>w")
 keymap.set("", "sh", "<C-w>h")
 keymap.set("", "sk", "<C-w>k")
 keymap.set("", "sj", "<C-w>j")
@@ -63,6 +63,7 @@ keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>") -- toggle file explorer
 
 --git fugitive
 keymap.set("n", "<leader>gg", "<CMD>G<CR>") -- oopen git
+keymap.set("n", "<leader>gt", "<CMD>G commit<CR>")
 keymap.set("n", "<leader>gf", "<CMD>G fetch<CR>") -- oopen git
 keymap.set("n", "<leader>gp", "<CMD>G pull<CR>") -- oopen git
 keymap.set("n", "<leader>gP", "<CMD>G push<CR>") -- oopen git

@@ -34,3 +34,4 @@ lualine.setup({
     theme = lualine_gruvbox,
   },
 })
+

@@ -26,9 +26,11 @@ if not status then
 end
 
 return packer.startup(function(use)
+	use("mfussenegger/nvim-dap")
 	use("sainnhe/gruvbox-material")
 	use("tpope/vim-fugitive")
 	use("wbthomason/packer.nvim")
+	use("simrat39/rust-tools.nvim")
 	use("nvim-lua/plenary.nvim")
 	use("morhetz/gruvbox")
 	use("christoomey/vim-tmux-navigator")

@@ -4,6 +4,7 @@ if not lspconfig_status then
 	return
 end
 
+
 -- import cmp-nvim-lsp plugin safely
 local cmp_nvim_lsp_status, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
 if not cmp_nvim_lsp_status then
@@ -82,7 +83,33 @@ lspconfig["tailwindcss"].setup({
 	on_attach = on_attach,
 })
 
-lspconfig["pyright"].setup({})
+lspconfig["rust_analyzer"].setup({
+	capabilities = capabilities,
+	on_attach = on_attach,
+	settings = {
+		["rust-analyzer"] = {
+			imports = {
+				granularity = {
+					group = "module",
+				},
+				prefix = "self",
+			},
+			cargo = {
+				buildScripts = {
+					enable = true,
+				},
+			},
+			procMacro = {
+				enable = true,
+			},
+		},
+	},
+})
+
+lspconfig["pyright"].setup({
+	capabilities = capabilities,
+	on_attach = on_attach,
+})
 
 -- configure emmet language server
 lspconfig["emmet_ls"].setup({

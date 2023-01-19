@@ -26,6 +26,7 @@ if not status then
 end
 
 return packer.startup(function(use)
+	use("NLKNguyen/papercolor-theme")
 	use("mfussenegger/nvim-dap")
 	use("sainnhe/gruvbox-material")
 	use("tpope/vim-fugitive")

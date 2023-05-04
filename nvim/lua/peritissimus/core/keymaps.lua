@@ -62,8 +62,3 @@ keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>") -- toggle file explorer
 --telescope maps in the plugin file
 
 --git fugitive
-keymap.set("n", "<leader>gg", "<CMD>G<CR>") -- oopen git
-keymap.set("n", "<leader>gt", "<CMD>G commit<CR>")
-keymap.set("n", "<leader>gf", "<CMD>G fetch<CR>") -- oopen git
-keymap.set("n", "<leader>gp", "<CMD>G pull<CR>") -- oopen git
-keymap.set("n", "<leader>gP", "<CMD>G push<CR>") -- oopen git

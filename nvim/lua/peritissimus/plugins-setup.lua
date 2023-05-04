@@ -25,6 +25,8 @@ if not status then
 	return
 end
 
+-- { "nvim-tree/nvim-web-devicons" },
+
 return packer.startup(function(use)
 	use("NLKNguyen/papercolor-theme")
 	use("mfussenegger/nvim-dap")
@@ -33,6 +35,7 @@ return packer.startup(function(use)
 	use("wbthomason/packer.nvim")
 	use("simrat39/rust-tools.nvim")
 	use("nvim-lua/plenary.nvim")
+	use("nvim-tree/nvim-web-devicons")
 	use("morhetz/gruvbox")
 	use("christoomey/vim-tmux-navigator")
 	use("szw/vim-maximizer")
@@ -53,19 +56,7 @@ return packer.startup(function(use)
 	use("williamboman/mason-lspconfig.nvim") -- bridges gap b/w mason & lspconfig
 	use("neovim/nvim-lspconfig") -- easily configure language servers
 	use("hrsh7th/cmp-nvim-lsp") -- for autocompletion
-	use({
-		"glepnir/lspsaga.nvim",
-		opt = true,
-		branch = "main",
-		event = "LspAttach",
-		config = function()
-			require("lspsaga").setup({})
-		end,
-		requires = {
-			{ "nvim-tree/nvim-web-devicons" },
-			{ "nvim-treesitter/nvim-treesitter" },
-		},
-	})
+	use("glepnir/lspsaga.nvim")
 	use("jose-elias-alvarez/typescript.nvim") -- additional functionality for typescript server (e.g. rename file & update imports)
 	use("onsails/lspkind.nvim") -- vs-code like icons for autocompletion
 	use("jose-elias-alvarez/null-ls.nvim") -- configure formatters & linters

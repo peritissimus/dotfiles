@@ -1,11 +1,11 @@
--- local status, saga = pcall(require, "lspsaga")
--- if not status then
--- 	return
--- end
+local status, saga = pcall(require, "lspsaga")
+if not status then
+	return
+end
 
 local keymap = vim.keymap.set
 
--- saga.setup({})
+saga.init_lsp_saga({})
 
 keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 keymap({ "n", "v" }, "<leader>ca", "<cmd>Lspsaga code_action<CR>")

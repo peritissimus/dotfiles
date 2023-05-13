@@ -42,7 +42,6 @@ return packer.startup(function(use)
 	use("vim-scripts/ReplaceWithRegister")
 	use("numToStr/Comment.nvim")
 	use("nvim-tree/nvim-tree.lua")
-	use("kyazdani42/nvim-web-devicons")
 	use("nvim-lualine/lualine.nvim")
 	use({ "nvim-telescope/telescope-fzf-native.nvim", run = "make" }) -- dependency for better sorting performance
 	use({ "nvim-telescope/telescope.nvim", branch = "0.1.x" }) -- fuzzy finder
@@ -56,7 +55,14 @@ return packer.startup(function(use)
 	use("williamboman/mason-lspconfig.nvim") -- bridges gap b/w mason & lspconfig
 	use("neovim/nvim-lspconfig") -- easily configure language servers
 	use("hrsh7th/cmp-nvim-lsp") -- for autocompletion
-	use("glepnir/lspsaga.nvim")
+	use({
+		"glepnir/lspsaga.nvim",
+		branch = "main",
+		config = function()
+			local saga = require("lspsaga")
+			saga.init_lsp_saga()
+		end,
+	})
 	use("jose-elias-alvarez/typescript.nvim") -- additional functionality for typescript server (e.g. rename file & update imports)
 	use("onsails/lspkind.nvim") -- vs-code like icons for autocompletion
 	use("jose-elias-alvarez/null-ls.nvim") -- configure formatters & linters

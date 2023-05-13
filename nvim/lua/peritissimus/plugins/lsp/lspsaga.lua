@@ -5,12 +5,12 @@ end
 
 local keymap = vim.keymap.set
 
-saga.init_lsp_saga({})
+saga.setup()
 
 keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 keymap({ "n", "v" }, "<leader>ca", "<cmd>Lspsaga code_action<CR>")
 keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
-keymap("n", "gr", "<cmd>Lspsaga rename ++project<CR>")
+keymap("n", "gR", "<cmd>Lspsaga rename ++project<CR>")
 keymap("n", "gd", "<cmd>Lspsaga peek_definition<CR>")
 keymap("n", "gD", "<cmd>Lspsaga goto_definition<CR>")
 keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")

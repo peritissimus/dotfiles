@@ -21,7 +21,7 @@ bindsym $mod+n border normal
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-font xft:Cascadia Code 10
+font xft:Cascadia Code 9
 
 # Use Mouse+$mod to drag floating windows
 floating_modifier $mod
@@ -33,7 +33,7 @@ bindsym $mod+Return exec alacritty
 bindsym $mod+Shift+q kill
 
 # start program launcher
-bindsym $mod+d exec --no-startup-id dmenu_run -nb '#2E3440' -sf '#2E3440' -sb '#81a1c1' -nf '#F8F9FB' -fn 'Cascadia Code-10'
+bindsym $mod+d exec --no-startup-id rofi -show drun -run-shell-command '{terminal} -e zsh -ic "{cmd} && read"'
 bindsym $mod+i exec --no-startup-id i3-dmenu-desktop --dmenu="dmenu  -nb '#2E3440' -sf '#2E3440' -sb '#81a1c1' -nf '#F8F9FB' -fn 'Cascadia Code-9'"
 
 
@@ -63,8 +63,6 @@ bindsym $mod+F3 exec pcmanfm
 # bindsym $mod+F3 exec ranger
 bindsym $mod+Shift+F3 exec pcmanfm_pkexec
 bindsym $mod+F5 exec terminal -e 'mocp'
-bindsym $mod+t exec --no-startup-id pkill picom
-bindsym $mod+Ctrl+t exec --no-startup-id picom -b
 bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
 bindsym Print exec --no-startup-id i3-scrot
 bindsym $mod+Print --release exec --no-startup-id i3-scrot -w
@@ -333,16 +331,39 @@ exec_always --no-startup-id fix_xcursor
 # hide/unhide i3status bar
 bindsym $mod+m bar mode toggle
 
+set $bg #282828
+set $red #cc241d
+set $green #98971a
+set $yellow #fabd2f
+set $blue #83a598
+set $purple #b16286
+set $aqua #689d68
+set $gray #a89984
+set $darkgray #1d2021
+
+# green gruvbox
+# class                 border|backgr|text|indicator|child_border
+# client.focused          $green $green $darkgray $purple $darkgray
+# client.focused_inactive $darkgray $darkgray $yellow $purple $darkgray
+# client.unfocused        $darkgray $darkgray $yellow $purple $darkgray
+# client.urgent           $red $red $white $red $red
+
+# blue gruvbox
+# class                 border|backgr|text|indicator|child_border
+client.focused          $blue $blue $darkgray $purple $darkgray
+client.focused_inactive $darkgray $darkgray $yellow $purple $darkgray
+client.unfocused        $darkgray $darkgray $yellow $purple $darkgray
+client.urgent           $red $red $white $red $red
 
 # Window color settings
 # class                 border  backgr. text    indicator
-client.focused          #81a1c1 #81a1c1 #ffffff #81a1c1
-client.unfocused        #2e3440 #2e3440 #888888 #2e3440
-client.focused_inactive #2e3440 #2e3440 #888888 #2e3440
-client.placeholder      #2e3440 #2e3440 #888888 #2e3440
-client.urgent           #900000 #900000 #ffffff #900000
-
-client.background       #242424
+# client.focused          #81a1c1 #81a1c1 #ffffff #81a1c1
+# client.unfocused        #2e3440 #2e3440 #888888 #2e3440
+# client.focused_inactive #2e3440 #2e3440 #888888 #2e3440
+# client.placeholder      #2e3440 #2e3440 #888888 #2e3440
+# client.urgent           #900000 #900000 #ffffff #900000
+# 
+# client.background       #242424
 
 #############################
 ### settings for i3-gaps: ###
@@ -405,4 +426,9 @@ mode "$mode_gaps_outer" {
 
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 
-exec_always xrandr --output LVDS-1 --mode 1366x768 --output HDMI-1 --mode 1920x1080 --right-of LVDS-1
+
+exec_always --no-startup-id picom --experimental-backends -b
+#exec_always xrandr --output eDP-1-0 --mode 1920x1080 --output HDMI-0 --mode 1920x1080 --left-of eDP-1-0
+#exec_always xrandr --output eDP-1-0 --mode 1920x1080 --output HDMI-0 --mode 3840x2160 --left-of eDP-1-0
+#
+exec_always xrandr --output eDP-1-0 --mode 1920x1080 --output HDMI-0 --mode 2560x1440 --right-of eDP-1-0

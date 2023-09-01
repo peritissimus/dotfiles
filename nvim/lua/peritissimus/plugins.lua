@@ -15,6 +15,7 @@ packer.startup(function(use)
   use 'sainnhe/gruvbox-material'
   use 'peritissimus/gruvbox.vim'
   use 'tpope/vim-fugitive'
+  use("jose-elias-alvarez/typescript.nvim") -- additional functionality for typescript server (e.g. rename file & update imports)
 
   use 'nvim-lualine/lualine.nvim'       -- Statusline
   use 'nvim-lua/plenary.nvim'           -- Common utilities

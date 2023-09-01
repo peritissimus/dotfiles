@@ -41,9 +41,3 @@ keymap.set("n", "<leader>nh", ":nohl<CR>")
 
 -- Delete under Cursor
 keymap.set("n", "x", '"_x')
-
---plugin keymaps
-keymap.set("n", "<leader>sm", ":MaximizerToggle<CR>") -- toggle split window maximization
-
---nvimtree
-keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>") -- toggle file explorer

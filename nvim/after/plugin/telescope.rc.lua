@@ -27,7 +27,6 @@ telescope.setup {
       '--ignore-file',
       '.gitignore'
     },
-    file_ignore_patterns = { ".git/*" }
   },
   extensions = {
     file_browser = {

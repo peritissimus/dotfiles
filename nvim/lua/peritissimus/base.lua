@@ -45,3 +45,5 @@ vim.opt.formatoptions:append { 'r' }
 
 -- Folds
 vim.opt.foldmethod = 'marker'
+
+vim.g.mapleader = " "

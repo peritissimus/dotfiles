@@ -5,6 +5,13 @@ if (not status) then return end
 
 local protocol = require('vim.lsp.protocol')
 
+
+local typescript_setup, typescript = pcall(require, "typescript")
+if not typescript_setup then
+  return
+end
+
+
 local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
 local enable_format_on_save = function(_, bufnr)
   vim.api.nvim_clear_autocmds({ group = augroup_format, buffer = bufnr })
@@ -22,18 +29,21 @@ end
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
 
-  --Enable completion triggered by <c-x><c-o>
-  --local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
-  --buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-  -- Mappings.
   local opts = { noremap = true, silent = true }
 
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
-  buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  --buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  --buf_set_keymap('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  -- buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+  -- buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  -- buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  -- buf_set_keymap('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+
+  if client.name == "tsserver" then
+    vim.keymap.set("n", "<leader>oi", ":TypescriptOrganizeImports<CR>")
+    vim.keymap.set("n", "<leader>ru", ":TypescriptRemoveUnused<CR>")
+  end
+  if client.name == "pyright" then
+    vim.keymap.set("n", "<leader>oi", ":PyrightOrganizeImports<CR>")
+    vim.keymap.set("n", "<leader>ru", ":PyrightRemoveUnused<CR>")
+  end
 end
 
 protocol.CompletionItemKind = {
@@ -72,17 +82,19 @@ nvim_lsp.flow.setup {
   capabilities = capabilities
 }
 
-nvim_lsp.tsserver.setup {
-  on_attach = on_attach,
-  filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
-  cmd = { "typescript-language-server", "--stdio" },
-  capabilities = capabilities
-}
+-- configure typescript server with plugin
+typescript.setup({
+  server = {
+    capabilities = capabilities,
+    on_attach = on_attach,
+  },
+})
 
-nvim_lsp.sourcekit.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-}
+-- nvim_lsp.sourcekit.setup {
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+-- }
+
 
 nvim_lsp.lua_ls.setup {
   capabilities = capabilities,
@@ -106,28 +118,48 @@ nvim_lsp.lua_ls.setup {
   },
 }
 
-nvim_lsp.tailwindcss.setup {
-  on_attach = on_attach,
-  capabilities = capabilities
-}
+-- nvim_lsp.tailwindcss.setup {
+--   on_attach = on_attach,
+--   capabilities = capabilities
+-- }
 
 nvim_lsp.cssls.setup {
   on_attach = on_attach,
   capabilities = capabilities
 }
 
-nvim_lsp.astro.setup {
+nvim_lsp.pyright.setup {
   on_attach = on_attach,
-  capabilities = capabilities
+  capabilities = capabilities,
+  commands = {
+    PyrightOrganizeImports = {
+      function()
+        vim.lsp.buf.execute_command({
+          command = "pyright.organizeimports",
+          arguments = { vim.uri_from_bufnr(0) },
+        })
+      end,
+      description = "Organize Imports",
+    },
+    PyrightRemoveUnused = {
+      function()
+        vim.lsp.buf.execute_command({
+          command = "pyright.removeimports",
+          arguments = { vim.uri_from_bufnr(0) },
+        })
+      end,
+      description = "Remove Unused Imports",
+    },
+  },
 }
 
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
-  underline = true,
-  update_in_insert = false,
-  virtual_text = { spacing = 4, prefix = "●" },
-  severity_sort = true,
-}
+    underline = true,
+    update_in_insert = false,
+    virtual_text = { spacing = 4, prefix = "●" },
+    severity_sort = true,
+  }
 )
 
 -- Diagnostic symbols in the sign column (gutter)

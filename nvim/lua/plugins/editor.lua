@@ -1,4 +1,23 @@
 return {
+  {
+    enabled=true,
+    "nvim-neorg/neorg",
+    dependencies = {"nvim-lua/plenary.nvim"},
+    build = ":Neorg sync-parsers",
+    opts = {
+      load = {
+        ["core.defaults"] = {},
+        ["core.concealer"] = {},
+        ["core.dirman"] = {
+          config = {
+            workspaces = {
+              noteBook= "~/peritissimus/NoteBook/",
+            },
+          },
+        },
+      },
+    },
+  },
 	{
 		enabled = false,
 		"folke/flash.nvim",
@@ -9,6 +28,23 @@ return {
 				multi_window = false,
 				wrap = false,
 				incremental = true,
+			},
+		},
+	},
+	{
+		enabled = false,
+		"stevearc/conform.nvim",
+		dependencies = { "mason.nvim" },
+		lazy = true,
+		cmd = "ConformInfo",
+		keys = {
+			{
+				"<leader>cF",
+				function()
+					require("conform").format({ formatters = { "injected" } })
+				end,
+				mode = { "n", "v" },
+				desc = "Format Injected Langs",
 			},
 		},
 	},

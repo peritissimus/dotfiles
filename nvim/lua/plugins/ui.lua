@@ -60,7 +60,6 @@ return {
 			background_colour = "#000000",
 		},
 	},
-
 	-- animations
 	{
 		"echasnovski/mini.animate",

@@ -4,23 +4,8 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		opts = {
-			ensure_installed = {
-				"astro",
-				"cmake",
-				"cpp",
-				"css",
-				"fish",
-				"gitignore",
-				"go",
-				"graphql",
-				"http",
-				"java",
-				"php",
-				"rust",
-				"scss",
-				"sql",
-				"svelte",
-			},
+			ensure_installed = { },
+
 
 			-- matchup = {
 			-- 	enable = true,
@@ -53,6 +38,7 @@ return {
 			},
 		},
 		config = function(_, opts)
+      require("nvim-treesitter.install").compilers = {'clang'}
 			require("nvim-treesitter.configs").setup(opts)
 
 			-- MDX

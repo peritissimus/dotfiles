@@ -12,6 +12,13 @@ return {
       load = {
         ["core.defaults"] = {},
         ["core.keybinds"] = {},
+        ["core.itero"] = {},
+        ["core.summary"] = {},
+        ["core.journal"] = {
+          config = {
+            strategy = "nested",
+          }
+        },
         ["core.concealer"] = {},
         ["core.dirman"] = {
           config = {

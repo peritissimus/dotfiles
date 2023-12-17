@@ -4,8 +4,25 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		opts = {
-			ensure_installed = { },
-
+			ensure_installed = {
+				"cmake",
+				"cpp",
+				"css",
+				"fish",
+				"gitignore",
+				"go",
+				"graphql",
+				"http",
+				"rust",
+				"scss",
+				"sql",
+				"svelte",
+        "python",
+        "typescript",
+        "norg",
+        "norg_meta",
+        "lua"
+			},
 
 			-- matchup = {
 			-- 	enable = true,
@@ -39,6 +56,7 @@ return {
 		},
 		config = function(_, opts)
 			require("nvim-treesitter.configs").setup(opts)
+      require("nvim-treesitter.install").compilers = {'zig', 'clang', 'gcc'}
 
 			-- MDX
 			vim.filetype.add({

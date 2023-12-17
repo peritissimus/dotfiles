@@ -35,7 +35,7 @@ return {
 ,
         },
         ruff_lsp = {
-          enabled=true,
+          enabled=false,
           keys = {
             {
               "<leader>co",

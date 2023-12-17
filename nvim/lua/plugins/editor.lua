@@ -11,7 +11,7 @@ return {
         ["core.dirman"] = {
           config = {
             workspaces = {
-              noteBook= "~/peritissimus/NoteBook/",
+              noteBook= "~/NoteBook/",
             },
           },
         },

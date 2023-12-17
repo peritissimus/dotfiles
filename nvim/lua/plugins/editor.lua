@@ -1,5 +1,9 @@
 return {
   {
+    "christoomey/vim-tmux-navigator",
+    lazy=false,
+  },
+  {
     enabled=true,
     "nvim-neorg/neorg",
     dependencies = {"nvim-lua/plenary.nvim"},
@@ -7,12 +11,14 @@ return {
     opts = {
       load = {
         ["core.defaults"] = {},
+        ["core.keybinds"] = {},
         ["core.concealer"] = {},
         ["core.dirman"] = {
           config = {
             workspaces = {
               noteBook= "~/NoteBook/",
             },
+            default_workspace = "noteBook"
           },
         },
       },
@@ -169,7 +175,7 @@ return {
 					telescope.extensions.file_browser.file_browser({
 						path = "%:p:h",
 						cwd = telescope_buffer_dir(),
-						respect_gitignore = false,
+						respect_gitignore = true,
 						hidden = true,
 						grouped = true,
 						previewer = false,

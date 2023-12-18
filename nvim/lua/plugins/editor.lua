@@ -14,6 +14,11 @@ return {
         ["core.keybinds"] = {},
         ["core.itero"] = {},
         ["core.summary"] = {},
+        ["core.export.markdown"] = {
+          config = {
+            extension = "md",
+          }
+        },
         ["core.journal"] = {
           config = {
             strategy = "nested",
@@ -24,6 +29,7 @@ return {
           config = {
             workspaces = {
               noteBook= "~/NoteBook/",
+              work= "~/work"
             },
             default_workspace = "noteBook"
           },

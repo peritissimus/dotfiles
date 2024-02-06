@@ -1,42 +1,44 @@
 return {
-  {
-    "christoomey/vim-tmux-navigator",
-    lazy=false,
-  },
-  {
-    enabled=true,
-    "nvim-neorg/neorg",
-    dependencies = {"nvim-lua/plenary.nvim"},
-    build = ":Neorg sync-parsers",
-    opts = {
-      load = {
-        ["core.defaults"] = {},
-        ["core.keybinds"] = {},
-        ["core.itero"] = {},
-        ["core.summary"] = {},
-        ["core.export.markdown"] = {
-          config = {
-            extension = "md",
-          }
-        },
-        ["core.journal"] = {
-          config = {
-            strategy = "nested",
-          }
-        },
-        ["core.concealer"] = {},
-        ["core.dirman"] = {
-          config = {
-            workspaces = {
-              noteBook= "~/NoteBook/",
-              work= "~/work"
-            },
-            default_workspace = "noteBook"
-          },
-        },
-      },
-    },
-  },
+	{
+		"christoomey/vim-tmux-navigator",
+		lazy = false,
+	},
+	{
+		enabled = true,
+		"nvim-neorg/neorg",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		build = ":Neorg sync-parsers",
+		opts = {
+			load = {
+				["core.defaults"] = {},
+				["core.keybinds"] = {},
+				["core.itero"] = {},
+				["core.summary"] = {},
+				["core.export"] = {},
+				["core.export.markdown"] = {
+					config = {
+						extension = "md",
+						extensions = "all",
+					},
+				},
+				["core.journal"] = {
+					config = {
+						strategy = "nested",
+					},
+				},
+				["core.concealer"] = {},
+				["core.dirman"] = {
+					config = {
+						workspaces = {
+							noteBook = "~/NoteBook/",
+							work = "~/work",
+						},
+						default_workspace = "noteBook",
+					},
+				},
+			},
+		},
+	},
 	{
 		enabled = false,
 		"folke/flash.nvim",
@@ -47,23 +49,6 @@ return {
 				multi_window = false,
 				wrap = false,
 				incremental = true,
-			},
-		},
-	},
-	{
-		enabled = false,
-		"stevearc/conform.nvim",
-		dependencies = { "mason.nvim" },
-		lazy = true,
-		cmd = "ConformInfo",
-		keys = {
-			{
-				"<leader>cF",
-				function()
-					require("conform").format({ formatters = { "injected" } })
-				end,
-				mode = { "n", "v" },
-				desc = "Format Injected Langs",
 			},
 		},
 	},

@@ -46,6 +46,15 @@ keymap.set("n", "<C-w><right>", "<C-w>>")
 keymap.set("n", "<C-w><up>", "<C-w>+")
 keymap.set("n", "<C-w><down>", "<C-w>-")
 
+-- Escape
+keymap.set("i", "jj", "<ESC>")
+
+-- Clear Search
+keymap.set("n", "<leader>nh", ":nohl<CR>")
+
+-- Delete under Cursor
+keymap.set("n", "x", '"_x')
+
 -- Diagnostics
 keymap.set("n", "<C-j>", function()
 	vim.diagnostic.goto_next()
@@ -54,3 +63,11 @@ end, opts)
 keymap.set("n", "<leader>r", function()
 	require("peritissimus.utils").replaceHexWithHSL()
 end)
+
+-- Escape
+keymap.set("i", "jj", "<ESC>")
+
+-- Delete under Cursor
+keymap.set("n", "x", '"_x')
+
+-- Neorg Setup

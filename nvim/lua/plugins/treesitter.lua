@@ -17,11 +17,12 @@ return {
 				"scss",
 				"sql",
 				"svelte",
-        "python",
-        "typescript",
-        "norg",
-        "norg_meta",
-        "lua"
+				"python",
+				"typescript",
+				"tsx",
+				"norg",
+				"norg_meta",
+				"lua",
 			},
 
 			-- matchup = {
@@ -56,15 +57,15 @@ return {
 		},
 		config = function(_, opts)
 			require("nvim-treesitter.configs").setup(opts)
-      require("nvim-treesitter.install").compilers = {'zig', 'clang', 'gcc'}
+			require("nvim-treesitter.install").compilers = { "zig", "clang", "gcc" }
 
-			-- MDX
-			vim.filetype.add({
-				extension = {
-					mdx = "mdx",
-				},
-			})
-			vim.treesitter.language.register("markdown", "mdx")
+			-- -- MDX
+			-- vim.filetype.add({
+			-- 	extension = {
+			-- 		mdx = "mdx",
+			-- 	},
+			-- })
+			-- vim.treesitter.language.register("markdown", "mdx")
 		end,
 	},
 }

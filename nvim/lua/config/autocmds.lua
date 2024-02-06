@@ -12,3 +12,10 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt.conceallevel = 0
 	end,
 })
+-- Add the file types you want line wrapping for
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "text", "markdown", "norg" },
+    callback = function()
+        vim.opt.wrap = true
+    end,
+})

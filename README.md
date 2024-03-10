@@ -1,6 +1,6 @@
 # My Setup (Mac)
 
-![ScreenShotSetup](https://imgur.com/vL4n7RH)
+![ScreenShotSetup](https://raw.githubusercontent.com/peritissimus/dotfiles/main/setup-screenshot.png)
 
 1. **Install Homebrew:**
 

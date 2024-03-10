@@ -1,4 +1,4 @@
-# My Setup (Mac)
+# My Setup
 
 ![ScreenShotSetup](https://raw.githubusercontent.com/peritissimus/dotfiles/main/setup-screenshot.png)
 

@@ -1,6 +1,6 @@
 # My Setup (Mac)
 
-[ScreenShotSetup](https://imgur.com/vL4n7RH)
+![ScreenShotSetup](https://imgur.com/vL4n7RH)
 
 1. **Install Homebrew:**
 

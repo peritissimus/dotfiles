@@ -14,3 +14,11 @@ set -x PATH $GOPATH/bin $PATH
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
+
+
+if type -q lsd
+    alias ll "lsd -Al"
+    alias llt "lsd -A --tree"
+end
+
+set -x PATH /Users/peritissimus/development/flutter/bin $PATH

@@ -4,7 +4,11 @@ name: appledore
 root: ~/
 
 windows:
-  - editor:
+  - goldenruby:
       layout: main-vertical
       panes:
-        - cd ~/projects
+        - cd ~/projects/goldenruby/
+  - goldenolive:
+      layout: main-vertical
+      panes:
+        - cd ~/projects/goldenolive/

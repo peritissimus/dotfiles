@@ -88,8 +88,3 @@
     ```bash
     brew install --cask raycast
     ```
-
-14. **Install Rectangle:**
-    ```bash
-    brew install --cask rectangle
-    ```

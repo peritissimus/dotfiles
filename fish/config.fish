@@ -10,6 +10,8 @@ set -gx EDITOR nvim
 
 set -x GOPATH $HOME/go
 set -x PATH $GOPATH/bin $PATH
+set -x PATH $PATH $HOME/.pub-cache/bin
+set -gx PATH $HOME/.gem/bin $PATH
 
 if status is-interactive
     # Commands to run in interactive sessions can go here

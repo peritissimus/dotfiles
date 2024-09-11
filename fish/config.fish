@@ -24,3 +24,6 @@ if type -q lsd
 end
 
 set -x PATH /Users/peritissimus/development/flutter/bin $PATH
+
+set -x NVM_DIR ~/.nvm
+bass source (brew --prefix nvm)/nvm.sh

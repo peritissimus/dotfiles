@@ -27,3 +27,5 @@ set -x PATH /Users/peritissimus/development/flutter/bin $PATH
 
 set -x NVM_DIR ~/.nvm
 bass source (brew --prefix nvm)/nvm.sh
+
+set -x PATH /Users/peritissimus/Library/Android/sdk/platform-tools $PATH

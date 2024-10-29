@@ -4,11 +4,57 @@ name: appledore
 root: ~/
 
 windows:
-  - goldenruby:
+  - next:
+      root: ~/projects/basicblog/
       layout: main-vertical
       panes:
-        - cd ~/projects/goldenruby/
-  - goldenolive:
+        - nvim .
+        - npm run dev
+        - >
+          clear;
+          echo "Prisma Studio ready to launch";
+          echo "Run: npx prisma studio"
+
+  - django:
+      root: ~/projects/goldenolive/
       layout: main-vertical
       panes:
-        - cd ~/projects/goldenolive/
+        - nvim .
+        - python manage.py runserver
+        - celery -A config worker -l info
+        - >
+          echo "Redis status:";
+          redis-cli ping;
+          echo "PostgreSQL status:";
+          pg_isready
+
+  - flutter:
+      root: ~/projects/goldenruby/
+      layout: main-vertical
+      panes:
+        - nvim .
+        - flutter doctor
+        - >
+          echo "Launch emulator:";
+          echo "flutter emulators --launch <emulator_id>"
+        - >
+          echo "Run tests:";
+          echo "flutter test"
+
+  - dotfiles:
+      root: ~/dotfiles
+      layout: main-horizontal
+      panes:
+        - nvim .
+        - git status
+        - >
+          cd ~/scripts;
+          ls -la
+
+  - remote:
+      layout: even-horizontal
+      panes:
+        - >
+          clear;
+          echo "Ready for SSH connections"
+        - htop

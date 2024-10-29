@@ -5,13 +5,13 @@
 
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Run Shell Command
+# @raycast.title Shell
 # @raycast.mode silent
 # @raycast.packageName iTerm
 
 # Optional parameters:
 # @raycast.icon images/iterm.png
-# @raycast.argument1 { "type": "text", "placeholder": "shell command" }
+# @raycast.argument1 { "type": "text", "placeholder": "command" }
 
 -- Set this property to true to open in a new window instead of a new tab
 property open_in_new_window : false

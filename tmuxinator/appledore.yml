@@ -6,7 +6,7 @@ root: ~/
 windows:
   - next:
       root: ~/projects/basicblog/
-      layout: main-vertical
+      layout: main-horizontal
       panes:
         - nvim .
         - npm run dev
@@ -17,7 +17,7 @@ windows:
 
   - django:
       root: ~/projects/goldenolive/
-      layout: main-vertical
+      layout: main-horizontal
       panes:
         - nvim .
         - python manage.py runserver

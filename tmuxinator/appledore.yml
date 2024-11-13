@@ -20,8 +20,9 @@ windows:
       layout: main-horizontal
       panes:
         - nvim .
-        - python manage.py runserver
-        - celery -A config worker -l info
+        - startenv | python manage.py runserver
+        - >
+          echo "celery -A <config> worker -l info"
         - >
           echo "Redis status:";
           redis-cli ping;

@@ -40,24 +40,6 @@ return {
 						},
 					},
 				},
-				ruff_lsp = {
-					enabled = true,
-					keys = {
-						{
-							"<leader>oi",
-							function()
-								vim.lsp.buf.code_action({
-									apply = true,
-									context = {
-										only = { "source.organizeImports" },
-										diagnostics = {},
-									},
-								})
-							end,
-							desc = "Organize Imports",
-						},
-					},
-				},
 				cssls = {},
 				tailwindcss = {
 					hovers = true,

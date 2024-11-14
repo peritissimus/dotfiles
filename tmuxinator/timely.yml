@@ -1,0 +1,28 @@
+# /Users/peritissimus/.tmuxinator/timely.yml
+
+name: timely
+root: ~/
+
+windows:
+  - frontend:
+      root: ~/projects/ozar-frontend/
+      layout: main-horizontal
+      panes:
+        - nvim .
+        - npm run dev
+        - >
+          clear;
+          echo "Prisma Studio ready to launch";
+          echo "Run: npx prisma studio"
+
+  - backedn:
+      root: ~/projects/ozar-fastapi/
+      layout: main-horizontal
+      panes:
+        - startenv | nvim .
+        - startenv | python server.py
+        - >
+          echo ""
+        - >
+          echo "PostgreSQL status:";
+          pg_isready

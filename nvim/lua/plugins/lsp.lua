@@ -15,6 +15,7 @@ return {
 				"typescript-language-server",
 				"css-lsp",
 				"pyright",
+				"ruff-lsp",
 			})
 		end,
 	},
@@ -24,8 +25,23 @@ return {
 		"neovim/nvim-lspconfig",
 		opts = {
 			inlay_hints = { enabled = false },
+			diagnostics = {
+				underline = true,
+				update_in_insert = false,
+				virtual_text = {
+					spacing = 4,
+					source = "if_many",
+					prefix = "●",
+				},
+				severity_sort = true,
+			},
 			servers = {
-				eslint = {},
+				eslint = {
+					settings = {
+						-- helps eslint find the eslintrc when it's placed in a subfolder
+						workingDirectory = { mode = "auto" },
+					},
+				},
 				pyright = {
 					enabled = true,
 					settings = {
@@ -33,14 +49,20 @@ return {
 							analysis = {
 								autoImportCompletions = true,
 								autoSearchPaths = true,
-								diagnosticMode = "workspace", -- openFilesOnly, workspace
-								typeCheckingMode = "basic", -- off, basic, strict
+								diagnosticMode = "workspace",
+								typeCheckingMode = "basic",
 								useLibraryCodeForTypes = true,
 							},
 						},
 					},
 				},
-				cssls = {},
+				cssls = {
+					settings = {
+						css = { validate = true },
+						scss = { validate = true },
+						less = { validate = true },
+					},
+				},
 				tailwindcss = {
 					hovers = true,
 					suggestions = true,
@@ -58,30 +80,27 @@ return {
 						return require("lspconfig.util").root_pattern(".git")(...)
 					end,
 					single_file_support = false,
-					keys = {
-						{
-							"<leader>oi",
-							function()
-								local params = {
-									command = "_typescript.organizeImports",
-									arguments = { vim.api.nvim_buf_get_name(0) },
-									title = "",
-								}
-								vim.lsp.buf.execute_command(params)
-							end,
-							desc = "Organize Imports",
-						},
-					},
 					settings = {
 						typescript = {
 							inlayHints = {
-								includeInlayParameterNameHints = "literal",
+								includeInlayParameterNameHints = "all",
 								includeInlayParameterNameHintsWhenArgumentMatchesName = false,
 								includeInlayFunctionParameterTypeHints = true,
-								includeInlayVariableTypeHints = false,
+								includeInlayVariableTypeHints = true,
 								includeInlayPropertyDeclarationTypeHints = true,
 								includeInlayFunctionLikeReturnTypeHints = true,
 								includeInlayEnumMemberValueHints = true,
+							},
+							suggest = {
+								includeCompletionsForModuleExports = true,
+								includeCompletionsWithObjectLiteralMethodSnippets = true,
+								includeCompletionsWithClassMemberSnippets = true,
+								includeCompletionsWithImportStatements = true,
+							},
+							implementationsCodeLens = true,
+							referencesCodeLens = true,
+							format = {
+								indentSize = 2,
 							},
 						},
 						javascript = {
@@ -96,17 +115,21 @@ return {
 							},
 						},
 					},
-				},
-				html = {},
-				yamlls = {
-					settings = {
-						yaml = {
-							keyOrdering = false,
+					commands = {
+						OrganizeImports = {
+							function()
+								local params = {
+									command = "_typescript.organizeImports",
+									arguments = { vim.api.nvim_buf_get_name(0) },
+									title = "",
+								}
+								vim.lsp.buf.execute_command(params)
+							end,
+							description = "Organize Imports",
 						},
 					},
 				},
 				lua_ls = {
-					-- enabled = false,
 					single_file_support = true,
 					settings = {
 						Lua = {
@@ -114,60 +137,41 @@ return {
 								checkThirdParty = false,
 							},
 							completion = {
-								workspaceWord = true,
-								callSnippet = "Both",
+								callSnippet = "Replace",
 							},
-							misc = {
-								parameters = {
-									-- "--log-level=trace",
-								},
+							diagnostics = {
+								globals = { "vim" },
 							},
 							hint = {
 								enable = true,
-								setType = false,
+								arrayIndex = "Enable",
+								setType = true,
+								paramName = "All",
 								paramType = true,
-								paramName = "Disable",
-								semicolon = "Disable",
-								arrayIndex = "Disable",
-							},
-							doc = {
-								privateName = { "^_" },
-							},
-							type = {
-								castNumberToInteger = true,
-							},
-							diagnostics = {
-								disable = { "incomplete-signature-doc", "trailing-space" },
-								-- enable = false,
-								groupSeverity = {
-									strong = "Warning",
-									strict = "Warning",
-								},
-								groupFileStatus = {
-									["ambiguity"] = "Opened",
-									["await"] = "Opened",
-									["codestyle"] = "None",
-									["duplicate"] = "Opened",
-									["global"] = "Opened",
-									["luadoc"] = "Opened",
-									["redefined"] = "Opened",
-									["strict"] = "Opened",
-									["strong"] = "Opened",
-									["type-check"] = "Opened",
-									["unbalanced"] = "Opened",
-									["unused"] = "Opened",
-								},
-								unusedLocalExclude = { "_*" },
-							},
-							format = {
-								enable = false,
-								defaultConfig = {
-									indent_style = "space",
-									indent_size = "2",
-									continuation_indent_size = "2",
-								},
+								semicolon = "All",
 							},
 						},
+					},
+				},
+				ruff_lsp = {
+					keys = {
+						{
+							"<leader>co",
+							function()
+								vim.lsp.buf.code_action({
+									apply = true,
+									context = {
+										only = { "source.organizeImports" },
+										diagnostics = {},
+									},
+								})
+							end,
+							desc = "Organize Imports",
+						},
+					},
+					settings = {
+						organizeImports = true,
+						fixAll = true,
 					},
 				},
 			},

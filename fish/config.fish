@@ -5,6 +5,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 alias startenv=". .venv/bin/activate.fish"
 alias lz="lazygit"
 alias mux="tmuxinator"
+alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
 
 set -gx EDITOR nvim
 

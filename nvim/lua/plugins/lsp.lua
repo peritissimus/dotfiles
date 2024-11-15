@@ -15,7 +15,6 @@ return {
 				"typescript-language-server",
 				"css-lsp",
 				"pyright",
-				"ruff-lsp",
 			})
 		end,
 	},
@@ -47,10 +46,8 @@ return {
 					settings = {
 						python = {
 							analysis = {
-								autoImportCompletions = true,
-								autoSearchPaths = true,
-								diagnosticMode = "workspace",
 								typeCheckingMode = "basic",
+								autoSearchPaths = true,
 								useLibraryCodeForTypes = true,
 							},
 						},
@@ -153,27 +150,6 @@ return {
 						},
 					},
 				},
-				ruff_lsp = {
-					keys = {
-						{
-							"<leader>co",
-							function()
-								vim.lsp.buf.code_action({
-									apply = true,
-									context = {
-										only = { "source.organizeImports" },
-										diagnostics = {},
-									},
-								})
-							end,
-							desc = "Organize Imports",
-						},
-					},
-					settings = {
-						organizeImports = true,
-						fixAll = true,
-					},
-				},
 			},
 			setup = {
 				eslint = function()
@@ -182,13 +158,6 @@ return {
 							client.server_capabilities.documentFormattingProvider = true
 						elseif client.name == "tsserver" then
 							client.server_capabilities.documentFormattingProvider = false
-						end
-					end)
-				end,
-				ruff_lsp = function()
-					require("lazyvim.util").lsp.on_attach(function(client, _)
-						if client.name == "ruff_lsp" then
-							client.server_capabilities.hoverProvider = false
 						end
 					end)
 				end,

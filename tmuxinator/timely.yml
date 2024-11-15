@@ -4,25 +4,30 @@ name: timely
 root: ~/
 
 windows:
-  - frontend:
+  - ozar-frontend:
       root: ~/projects/ozar-frontend/
       layout: main-horizontal
       panes:
         - nvim .
         - npm run dev
-        - >
-          clear;
-          echo "Prisma Studio ready to launch";
-          echo "Run: npx prisma studio"
+        -
 
-  - backedn:
+  - ozar-backend:
       root: ~/projects/ozar-fastapi/
       layout: main-horizontal
+      pre_window: startenv
       panes:
-        - startenv | nvim .
-        - startenv | python server.py
-        - >
-          echo ""
-        - >
-          echo "PostgreSQL status:";
-          pg_isready
+        - nvim .
+        - cat .env | while read -l line; export $line; end
+        -
+        -
+
+  - lambdas:
+      root: ~/projects/lambdas-prod/
+      layout: main-horizontal
+      pre_window: startenv
+      panes:
+        - nvim .
+        - cat .env | while read -l line; export $line; end
+        - cat .env | while read -l line; export $line; end
+        - cat .env | while read -l line; export $line; end

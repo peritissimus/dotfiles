@@ -1,6 +1,12 @@
 return {
 	-- { "tpope/vim-dadbod" },
 	{
+		"hat0uma/csvview.nvim",
+		config = function()
+			require("csvview").setup()
+		end,
+	},
+	{
 		"christoomey/vim-tmux-navigator",
 		lazy = false,
 	},

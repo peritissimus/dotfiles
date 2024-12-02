@@ -14,7 +14,8 @@ return {
 				"tailwindcss-language-server",
 				"typescript-language-server",
 				"css-lsp",
-				"pyright",
+				"ruff-lsp",
+				"basedpyright",
 			})
 		end,
 	},
@@ -37,9 +38,16 @@ return {
 			servers = {
 				eslint = {
 					settings = {
-						-- helps eslint find the eslintrc when it's placed in a subfolder
 						workingDirectory = { mode = "auto" },
 					},
+				},
+				ruff_lsp = {
+					enabled = true,
+					settings = {},
+				},
+				basedpyright = {
+					enabled = false,
+					settings = {},
 				},
 				pyright = {
 					enabled = true,

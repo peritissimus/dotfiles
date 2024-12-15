@@ -64,6 +64,10 @@ keymap.set("n", "<leader>r", function()
 	require("peritissimus.utils").replaceHexWithHSL()
 end)
 
+keymap.set("x", "<leader>re", function()
+	require("peritissimus.utils").remove_empty_lines()
+end)
+
 -- Escape
 keymap.set("i", "jj", "<ESC>")
 

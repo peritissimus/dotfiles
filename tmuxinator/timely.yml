@@ -9,25 +9,32 @@ windows:
       layout: main-horizontal
       panes:
         - nvim .
-        - npm run dev
+        -
         -
 
   - ozar-backend:
       root: ~/projects/ozar-fastapi/
       layout: main-horizontal
-      pre_window: startenv
       panes:
-        - nvim .
-        - cat .env | while read -l line; export $line; end
-        -
-        -
+        - startenv | nvim
+        - startenv
 
   - lambdas:
       root: ~/projects/lambdas-prod/
       layout: main-horizontal
+      panes:
+        - startenv | nvim
+        - startenv | git fetch
+        - startenv
+        - startenv
+
+  - mononest:
+      root: ~/projects/mononest/
+      layout: main-horizontal
       pre_window: startenv
       panes:
-        - nvim .
-        - cat .env | while read -l line; export $line; end
-        - cat .env | while read -l line; export $line; end
-        - cat .env | while read -l line; export $line; end
+        - nvim
+        - git fetch
+
+  - dotfiles:
+      root: ~/dotfiles/

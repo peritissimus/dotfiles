@@ -31,3 +31,8 @@ bass (brew --prefix nvm)/nvm.sh
 
 set -x PATH /Users/peritissimus/Library/Android/sdk/platform-tools $PATH
 set -x PATH /usr/local/bin $PATH
+
+set -Ux PYENV_ROOT $HOME/.pyenv
+set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
+
+pyenv init - | source

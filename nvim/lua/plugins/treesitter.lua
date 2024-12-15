@@ -20,8 +20,6 @@ return {
 				"python",
 				"typescript",
 				"tsx",
-				"norg",
-				"norg_meta",
 				"lua",
 			},
 

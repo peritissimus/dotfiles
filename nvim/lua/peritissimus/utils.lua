@@ -113,8 +113,38 @@ function M.hslToRgb(h, s, l)
 	return r * 255, g * 255, b * 255
 end
 
+-- function M.remove_empty_lines()
+-- 	local start_line = vim.fn.line("'<")
+-- 	local end_line = vim.fn.line("'>")
+--
+-- 	local non_empty_lines = {}
+--
+-- 	for line = start_line, end_line do
+-- 		local line_text = vim.fn.getline(line)
+-- 		if line_text:match("%S") then
+-- 			table.insert(non_empty_lines, line_text)
+-- 		end
+-- 	end
+--
+-- 	vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, non_empty_lines)
+-- end
+
+function M.remove_empty_lines()
+	local start_line = vim.fn.line("'<")
+	local end_line = vim.fn.line("'>")
+	local non_empty_lines = {}
+	for line = start_line, end_line do
+		local line_text = vim.fn.getline(line)
+
+		if line_text:match("%S") then
+			table.insert(non_empty_lines, line_text)
+		end
+	end
+	vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, non_empty_lines)
+end
+
 function M.hexToHSL(hex)
-	local hsluv = require("gruvbox.hsluv")
+	local hsluv = require("tokyonight.hsluv")
 	local rgb = M.hex_to_rgb(hex)
 	local h, s, l = M.rgbToHsl(rgb[1], rgb[2], rgb[3])
 

@@ -1,5 +1,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
+vim.g.tmux_navigator_save_on_switch = 2
+vim.g.tmux_navigator_disable_when_zoomed = 1
 
 vim.scriptencoding = "utf-8"
 vim.opt.encoding = "utf-8"

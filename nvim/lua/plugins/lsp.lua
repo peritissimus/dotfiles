@@ -22,6 +22,44 @@ return {
 	},
 
 	{
+		"pmizio/typescript-tools.nvim",
+		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+		opts = {
+			settings = {
+				tsserver_max_memory = "8192MB",
+				separate_diagnostic_server = true,
+				publish_diagnostic_on = "insert_leave",
+				expose_as_code_action = "all",
+				filter_out_diagnostics_by_code = { 80001 },
+			},
+			on_attach = function(_, bufnr)
+				local function buf_set_keymap(...)
+					vim.api.nvim_buf_set_keymap(bufnr, ...)
+				end
+				local opts = { noremap = true, silent = true }
+
+				-- Go to Source Definition
+				buf_set_keymap("n", "gD", "<cmd>TSToolsGoToSourceDefinition<CR>", opts)
+
+				-- Find All File References
+				buf_set_keymap("n", "gR", "<cmd>TSToolsFileReferences<CR>", opts)
+
+				-- Organize Imports
+				buf_set_keymap("n", "<leader>co", "<cmd>TSToolsOrganizeImports<CR>", opts)
+
+				-- Add Missing Imports
+				buf_set_keymap("n", "<leader>cM", "<cmd>TSToolsAddMissingImports<CR>", opts)
+
+				-- Remove Unused Imports
+				buf_set_keymap("n", "<leader>cu", "<cmd>TSToolsRemoveUnusedImports<CR>", opts)
+
+				-- Fix All Diagnostics
+				buf_set_keymap("n", "<leader>cD", "<cmd>TSToolsFixAll<CR>", opts)
+			end,
+		},
+	},
+
+	{
 		"neovim/nvim-lspconfig",
 		opts = {
 			inlay_hints = { enabled = false },
@@ -37,6 +75,7 @@ return {
 			},
 			servers = {
 				vtsls = {
+					enabled = false,
 					filetypes = {
 						"javascript",
 						"javascriptreact",

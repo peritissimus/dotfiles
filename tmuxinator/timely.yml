@@ -8,7 +8,7 @@ windows:
       root: ~/projects/ozar-frontend/
       layout: main-horizontal
       panes:
-        - nvim .
+        - 
         -
         -
 
@@ -16,7 +16,7 @@ windows:
       root: ~/projects/ozar-fastapi/
       layout: main-horizontal
       panes:
-        - startenv | nvim
+        - startenv 
         - startenv
 
   - lambdas:

@@ -1,62 +1,56 @@
-# Remove fish greeting
+# Place at the top since it affects everything below
 set fish_greeting
 
-# Environment variables
+# Group environment variables together
 set -gx EDITOR nvim
+set -gx JAVA_HOME (/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 > /dev/null | grep 'java.home' | awk '{print $3}')
+set -gx PATH $HOME/.gem/bin $PATH
 
-# Homebrew setup
+# Development tools setup
+## Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# NVM setup
-set -x NVM_DIR ~/.nvm
+## NVM (consider using fnm instead - it's faster)
+set -gx NVM_DIR ~/.nvm
 function nvm
     bass source (brew --prefix nvm)/nvm.sh --no-use ';' nvm $argv
 end
 
-# Go setup
-set -x GOPATH $HOME/go
-set -x PATH $GOPATH/bin $PATH
+## Go
+set -gx GOPATH $HOME/go
+fish_add_path $GOPATH/bin
 
-# Flutter setup
-set -x PATH /Users/peritissimus/development/flutter/bin $PATH
+## Flutter and Android
+set -gx ANDROID_HOME $HOME/Library/Android/sdk
+fish_add_path /Users/peritissimus/development/flutter/bin \
+    $ANDROID_HOME/tools \
+    $ANDROID_HOME/tools/bin \
+    $ANDROID_HOME/platform-tools \
+    $ANDROID_HOME/emulator
 
-
-set -x ANDROID_HOME $HOME/Library/Android/sdk # Mac
-
-set -x PATH $PATH $ANDROID_HOME/tools
-set -x PATH $PATH $ANDROID_HOME/tools/bin
-set -x PATH $PATH $ANDROID_HOME/platform-tools
-set -x PATH $PATH $ANDROID_HOME/emulator
-
-
-# Java/Jenv setup (single source of truth)
-set -gx JENV_ROOT "$HOME/.jenv"
-set -gx JAVA_HOME (jenv javahome)
-set -gx PATH "$JENV_ROOT/bin" $PATH
-status --is-interactive; and jenv init - fish | source
-
-# Python/Pyenv setup
+## Python
 set -Ux PYENV_ROOT $HOME/.pyenv
-set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
+fish_add_path $PYENV_ROOT/bin
 pyenv init - | source
 
-# Other PATH additions
-set -gx PATH $HOME/.gem/bin $PATH
-set -x PATH $PATH $HOME/.pub-cache/bin
-set -x PATH /usr/local/bin $PATH
+## Other paths
+fish_add_path /usr/local/bin $HOME/.pub-cache/bin
 
-
-# Aliases
+# Aliases (grouped by functionality)
+## Development tools
 alias startenv=". .venv/bin/activate.fish"
 alias lz="lazygit"
 alias mux="tmuxinator"
 alias c2p="code2prompt"
+
+## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
 
-# LSD configuration (if installed)
+## Project-specific
+alias linear="npm run dev --"
+
+## File listing
 if type -q lsd
     alias ll "lsd -Al"
     alias llt "lsd -A --tree"
 end
-
-status --is-interactive; and source (jenv init -|psub)

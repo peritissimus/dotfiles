@@ -38,7 +38,7 @@
 6. **Install jq, fzf, ripgrep:**
 
    ```bash
-   brew install jq fzf ripgrep
+   brew install jq fzf ripgrep gh xh
    ```
 
 7. **Install Fisher and Tide (Fish plugins) and Z:**

@@ -42,8 +42,10 @@ set -gx CPPFLAGS "-I/opt/homebrew/opt/openjdk@17/include"
 ## Development tools
 alias startenv=". .venv/bin/activate.fish"
 alias lz="lazygit"
+alias tf="terraform"
 alias mux="tmuxinator"
 alias c2p="code2prompt"
+alias gcm="~/scripts/commit.sh"
 
 ## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
@@ -56,3 +58,4 @@ if type -q lsd
     alias ll "lsd -Al"
     alias llt "lsd -A --tree"
 end
+

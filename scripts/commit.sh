@@ -95,12 +95,11 @@ generate_commit_message() {
   local diff="$2"
   local project_structure="$3"
   local project_languages="$4"
-
   local prompt="Analyze these changes and generate a conventional commit message following the spec exactly.
 
 Commit Types:
-- feat: New features
-- fix: Bug fixes
+- feat: New features (correlates with MINOR in semver)
+- fix: Bug fixes (correlates with PATCH in semver)
 - docs: Documentation changes
 - style: Code style/formatting
 - refactor: Code restructuring
@@ -111,22 +110,25 @@ Commit Types:
 - chore: Maintenance
 
 Requirements:
-1. First line must be: <type>[optional scope]: <description>
-   - commit description shall only be in smallcase 
+1. First line must be: <type>(<scope>): <description>
+   - Use only lowercase for description
    - Imperative mood
    - Under 72 chars
    - No period at end
-   - Add '!' before ':' for breaking changes
-
-2. Body (required for multiple files):
+   
+2. Breaking Changes (if any) must be indicated in either:
+   a) Type/scope prefix with ! before colon:
+      <type>(<scope>)!: <description>
+   b) Footer with uppercase 'BREAKING CHANGE:' token:
+      BREAKING CHANGE: <description>
+   Note: If using ! prefix, BREAKING CHANGE footer is optional
+   
+3. Body (required for multiple files):
    - Blank line after description
    - List what changed in each file
    - Start each file with '* filename:'
    - Keep each line under 72 chars
    - Wrap text if needed
-
-3. Footer (if breaking):
-   - Add 'BREAKING CHANGE: <description>'
 
 Changes to analyze:
 Files modified:
@@ -140,7 +142,7 @@ Languages: $project_languages
 Structure:
 $project_structure
 
-Output ONLY the commit message, following format exactly. Also do not add any markdown syntax."
+Output ONLY the commit message, following format exactly. Do not add any markdown syntax."
 
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }

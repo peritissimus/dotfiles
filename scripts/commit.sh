@@ -101,23 +101,31 @@ generate_commit_message() {
 Commit Types:
 - feat: New features
 - fix: Bug fixes
-- docs: Documentation only
-- style: Changes not affecting code
-- refactor: Code changes neither fixing bugs nor adding features
+- docs: Documentation changes
+- style: Code style/formatting
+- refactor: Code restructuring
 - perf: Performance improvements
-- test: Adding/updating tests
-- build: Build system or dependencies
+- test: Tests
+- build: Build system/dependencies
 - ci: CI configuration
-- chore: Maintenance tasks
+- chore: Maintenance
 
 Requirements:
-- Format: <type>[optional scope]: <description>
-- Use imperative mood
-- Description under 72 chars
-- No period at end
-- Add '!' before ':' for breaking changes
-- Add 'BREAKING CHANGE: <description>' in footer for breaking changes
-- Dont add markdown syntax
+1. First line must be: <type>[optional scope]: <description>
+   - Imperative mood
+   - Under 72 chars
+   - No period at end
+   - Add '!' before ':' for breaking changes
+
+2. Body (required for multiple files):
+   - Blank line after description
+   - List what changed in each file
+   - Start each file with '* filename:'
+   - Keep each line under 72 chars
+   - Wrap text if needed
+
+3. Footer (if breaking):
+   - Add 'BREAKING CHANGE: <description>'
 
 Changes to analyze:
 Files modified:
@@ -131,7 +139,7 @@ Languages: $project_languages
 Structure:
 $project_structure
 
-Output ONLY the commit message, nothing else."
+Output ONLY the commit message, following format exactly. Also do not add any markdown syntax."
 
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }

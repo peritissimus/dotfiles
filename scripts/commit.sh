@@ -89,54 +89,49 @@ get_staged_changes() {
   git diff --cached
 }
 
-# Function to get file type context
-get_file_context() {
-  local file="$1"
-  local context=""
-
-  file_type=$(file -b "$file")
-  dir=$(dirname "$file")
-  case "$dir" in
-  *src* | *lib*) context="$context\nComponent: Source code" ;;
-  *test*) context="$context\nComponent: Tests" ;;
-  *docs*) context="$context\nComponent: Documentation" ;;
-  *config*) context="$context\nComponent: Configuration" ;;
-  *scripts*) context="$context\nComponent: Build/deployment scripts" ;;
-  esac
-
-  echo "$context"
-}
-
 # Function to generate commit message using LLM
 generate_commit_message() {
   local files="$1"
   local diff="$2"
   local project_structure="$3"
   local project_languages="$4"
-  local relevant_docs="$5"
 
-  local prompt="Generate a conventional commit message for the following changes. Follow these rules exactly and output ONLY the commit message:
+  local prompt="Analyze these changes and generate a conventional commit message following the spec exactly.
 
-Primary Languages: $project_languages
+Commit Types:
+- feat: New features
+- fix: Bug fixes
+- docs: Documentation only
+- style: Changes not affecting code
+- refactor: Code changes neither fixing bugs nor adding features
+- perf: Performance improvements
+- test: Adding/updating tests
+- build: Build system or dependencies
+- ci: CI configuration
+- chore: Maintenance tasks
 
-Project Structure:
-$project_structure
+Requirements:
+- Format: <type>[optional scope]: <description>
+- Use imperative mood
+- Description under 72 chars
+- No period at end
+- Add '!' before ':' for breaking changes
+- Add 'BREAKING CHANGE: <description>' in footer for breaking changes
+- Dont add markdown syntax
 
-Relevant Documentation:
-$relevant_docs
-
-Changes Context:
-Files changed:
+Changes to analyze:
+Files modified:
 $files
 
-File-specific context:
-$(for file in $files; do
-    echo "File: $file"
-    get_file_context "$file"
-  done)
+Diff:
+$diff
 
-Actual Changes:
-$diff"
+Project context:
+Languages: $project_languages
+Structure:
+$project_structure
+
+Output ONLY the commit message, nothing else."
 
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }

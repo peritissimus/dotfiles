@@ -19,13 +19,16 @@ check_llm() {
   fi
 }
 
-# Function to check if OpenAI API key is set
 check_openai_key() {
-  if [ -z "$OPENAI_API_KEY" ]; then
-    echo "OpenAI API key is not set."
+  # Check if the 'openai' key is set in the llm CLI
+  if ! llm keys get openai &>/dev/null; then
+    echo "OpenAI API key is not set in the llm CLI."
     read -p "Please enter your OpenAI API key: " openai_key
-    export OPENAI_API_KEY=$openai_key
-    echo "OpenAI API key set for this session."
+    # Set the 'openai' key in the llm CLI
+    llm keys set openai --value "$openai_key"
+    echo "OpenAI API key has been set in the llm CLI."
+  else
+    echo "..."
   fi
 }
 

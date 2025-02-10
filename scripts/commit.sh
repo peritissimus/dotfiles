@@ -112,6 +112,7 @@ Commit Types:
 
 Requirements:
 1. First line must be: <type>[optional scope]: <description>
+   - commit description shall only be in smallcase 
    - Imperative mood
    - Under 72 chars
    - No period at end

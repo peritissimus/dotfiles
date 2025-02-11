@@ -106,7 +106,7 @@ Commit Types:
 - perf: Performance improvements
 - test: Tests
 - build: Build system/dependencies
-- ci: CI configuration
+- ci: CI configuration or Workflow updates
 - chore: Maintenance
 
 Requirements:

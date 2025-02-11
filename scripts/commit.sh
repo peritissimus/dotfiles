@@ -95,54 +95,51 @@ generate_commit_message() {
   local diff="$2"
   local project_structure="$3"
   local project_languages="$4"
-  local prompt="Analyze these changes and generate a conventional commit message following the spec exactly.
+  local prompt="Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
 
-Commit Types:
-- feat: New features (correlates with MINOR in semver)
-- fix: Bug fixes (correlates with PATCH in semver)
-- docs: Documentation changes
-- style: Code style/formatting
-- refactor: Code restructuring
-- perf: Performance improvements
-- test: Tests
-- build: Build system/dependencies
-- ci: CI configuration or Workflow updates
-- chore: Maintenance
+**Commit Message Requirements:**
+1. **Format:** '<type>(<scope>): <description>'
+   - **Types:** feat, fix, docs, style, refactor, perf, test, build, ci, chore
+   - **Scope:** (Optional, but highly recommended) Indicate the area of the codebase affected (e.g., auth, user-profile, api). Infer from file paths and project structure.
+   - **Description:**
+     - Lowercase, imperative mood, under 72 chars, no period at the end. Briefly describe the change.
 
-Requirements:
-1. First line must be: <type>(<scope>): <description>
-   - Use only lowercase for description
-   - Imperative mood
-   - Under 72 chars
-   - No period at end
-   
-2. Breaking Changes (if any) must be indicated in either:
-   a) Type/scope prefix with ! before colon:
-      <type>(<scope>)!: <description>
-   b) Footer with uppercase 'BREAKING CHANGE:' token:
-      BREAKING CHANGE: <description>
-   Note: If using ! prefix, BREAKING CHANGE footer is optional
-   
-3. Body (required for multiple files):
-   - Blank line after description
-   - List what changed in each file
-   - Start each file with '* filename:'
-   - Keep each line under 72 chars
-   - Wrap text if needed
+2. **Breaking Changes:** Indicate with either:
+   - **Option A (Prefix):** '<type>(<scope>)!: <description>'
+   - **Option B (Footer):** 'BREAKING CHANGE: <description>'
+   - If '!' prefix is used, BREAKING CHANGE footer is optional for redundancy.
 
-Changes to analyze:
-Files modified:
-$files
+3. **Body (For changes affecting multiple files or requiring more detail):**
+   - Blank line after the description.
+   - List changed files with a brief explanation of changes per file if helpful for clarity.
+   - Format: '* filename: Briefly describe the change in this file'
+   - Keep lines under 72 chars, wrap text as needed.
 
-Diff:
-$diff
+**Context for Commit Message Generation:**
+* **Modified Files:** ${files}
+* **Diff:**
+\`\`\`diff
+${diff}
+\`\`\`
+* **Project Languages:** ${project_languages}
+* **Project Structure:**
+\`\`\`
+${project_structure}
+\`\`\`
 
-Project context:
-Languages: $project_languages
-Structure:
-$project_structure
+**Instructions:**
+- Analyze the provided diff and file changes to understand the *intent* of the changes.
+- Infer the appropriate commit type and scope based on the context and changes.
+- **Prioritize clarity and conciseness.**
+- **Output ONLY the conventional commit message. Do not add any extra text, explanations, or markdown syntax.**
 
-Output ONLY the commit message, following format exactly. Do not add any markdown syntax."
+**Example Commit Messages (for inspiration):**
+* \`feat(auth): implement password reset functionality\`
+* \`fix(user-profile): correct display of user avatar on profile page\`
+* \`refactor(api): extract common error handling logic\`
+* \`docs: update README with installation instructions\`
+* \`chore(deps): upgrade axios to latest version\`
+* \`feat!: remove deprecated payment gateway (BREAKING CHANGE: Users must use the new payment gateway)\`"
 
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }

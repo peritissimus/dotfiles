@@ -4,20 +4,20 @@ name: timely
 root: ~/
 
 windows:
-  - ozar-frontend:
-      root: ~/projects/ozar-frontend/
+  - pybench:
+      root: ~/projects/pybench/
       layout: main-horizontal
       panes:
         - 
         -
         -
-
-  - ozar-backend:
-      root: ~/projects/ozar-fastapi/
+  - raft:
+      root: ~/projects/raft/
       layout: main-horizontal
       panes:
-        - startenv 
-        - startenv
+        - 
+        -
+        -
 
   - lambdas:
       root: ~/projects/lambdas-prod/

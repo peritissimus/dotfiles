@@ -28,10 +28,6 @@ fish_add_path /Users/peritissimus/development/flutter/bin \
     $ANDROID_HOME/platform-tools \
     $ANDROID_HOME/emulator
 
-## Python
-set -Ux PYENV_ROOT $HOME/.pyenv
-fish_add_path $PYENV_ROOT/bin
-pyenv init - | source
 
 ## Other paths
 fish_add_path /usr/local/bin $HOME/.pub-cache/bin

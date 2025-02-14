@@ -1,0 +1,94 @@
+# AeroSpace configuration matching i3 bindings
+start-at-login = true
+enable-normalization-flatten-containers = false
+enable-normalization-opposite-orientation-for-nested-containers = false
+
+after-startup-command = ['exec-and-forget sketchybar']
+
+# Mouse follows focus when focused monitor changes
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+[gaps]
+inner.horizontal = 6
+inner.vertical = 6
+outer.top = 0
+outer.right = 0
+outer.bottom = 0
+outer.left = 0
+
+[mode.main.binding]
+# Monitor movement
+alt-shift-period = 'move-workspace-to-monitor next'
+alt-shift-comma = 'move-workspace-to-monitor prev'
+
+# Terminal
+alt-enter = 'exec-and-forget open -n /Applications/Alacritty.app'
+
+# Window focus
+alt-h = 'focus --boundaries-action wrap-around-the-workspace left'
+alt-j = 'focus --boundaries-action wrap-around-the-workspace down'
+alt-k = 'focus --boundaries-action wrap-around-the-workspace up'
+alt-l = 'focus --boundaries-action wrap-around-the-workspace right'
+
+# Window movement
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+# Layout controls
+alt-shift-v = 'split horizontal'
+alt-v = 'split vertical'
+alt-q = 'split opposite'  # Changed from toggle to opposite
+alt-f = 'fullscreen'
+alt-s = 'layout v_accordion'  # stacking
+alt-w = 'layout h_accordion'  # tabbed
+alt-e = 'layout tiles horizontal vertical'  # toggle split
+
+# Floating controls
+alt-shift-space = 'layout floating tiling'
+# alt-space = 'focus tiling'  # Changed from mode_toggle
+
+# Workspace switching
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+
+# Move to workspace
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+
+# Workspace navigation
+alt-shift-tab = 'move-node-to-workspace prev'  # Modified workspace movement
+
+# Reload config
+alt-shift-c = 'reload-config'
+# Removed restart as it's not supported in AeroSpace
+
+# Resize mode
+alt-r = 'mode resize'
+
+[mode.resize.binding]
+h = 'resize width -5'
+j = 'resize height +5'
+k = 'resize height -5'
+l = 'resize width +5'
+left = 'resize width -10'
+down = 'resize height +10'
+up = 'resize height -10'
+right = 'resize width +10'
+enter = 'mode main'
+esc = 'mode main'
+
+

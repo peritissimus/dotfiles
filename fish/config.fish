@@ -48,7 +48,7 @@ alias lz="lazygit"
 alias tf="terraform"
 alias mux="tmuxinator"
 alias c2p="code2prompt"
-alias gcm="~/scripts/commit.sh"
+alias gcm="~/dotfiles/scripts/gcm.sh"
 
 ## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'

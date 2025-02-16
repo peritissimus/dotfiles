@@ -1,102 +1,222 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Exit on error
-set -e
+set -euo pipefail
 
 # Define colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Get the directory where the script is located
-DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo -e "${BLUE}Setting up dotfiles...${NC}"
+# Logging functions
+log() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
 
-# Install Nerd Fonts
-echo -e "\n${BLUE}Installing Nerd Fonts...${NC}"
-FONT_DIR="$HOME/Library/Fonts"
-MESLO_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip"
-FIRA_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to install Homebrew if it's not already installed
+install_homebrew() {
+    if ! command_exists brew; then
+        log "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        success "Homebrew installed successfully!"
+    else
+        success "Homebrew is already installed"
+    fi
+}
+
+# Function to install a Homebrew package if it's not already installed
+install_brew_package() {
+    local package=$1
+    if ! brew list "$package" >/dev/null 2>&1; then
+        log "Installing $package..."
+        brew install "$package"
+        success "$package installed successfully!"
+    else
+        success "$package is already installed"
+    fi
+}
 
 # Function to download and install font
 install_font() {
     local font_url=$1
     local font_name=$2
     
-    echo "Downloading $font_name..."
+    log "Downloading $font_name..."
     TEMP_DIR=$(mktemp -d)
     curl -L "$font_url" -o "$TEMP_DIR/$font_name.zip"
     
-    echo "Installing $font_name..."
+    log "Installing $font_name..."
     unzip -o "$TEMP_DIR/$font_name.zip" -d "$FONT_DIR" >/dev/null 2>&1
     rm -rf "$TEMP_DIR"
-    echo -e "${GREEN}$font_name installed successfully!${NC}"
+    success "$font_name installed successfully!"
 }
-
-# Install both fonts
-install_font "$MESLO_URL" "Meslo"
-install_font "$FIRA_URL" "FiraCode"
 
 # Function to create symlink
 create_symlink() {
-    local src=$1
-    local dest=$2
+    local src="$1"
+    local dest="$2"
+    
+    # Check if source exists
+    if [ ! -e "$src" ]; then
+        error "Source file/directory does not exist: $src"
+        return 1
+    fi
     
     # Create parent directory if it doesn't exist
     mkdir -p "$(dirname "$dest")"
     
     # Remove existing file/symlink if it exists
     if [ -e "$dest" ]; then
-        echo "Removing existing $dest"
+        log "Removing existing $dest"
         rm -rf "$dest"
     fi
     
     # Create symlink
-    ln -s "$src" "$dest"
-    echo -e "${GREEN}Created symlink:${NC} $src → $dest"
+    ln -sf "$src" "$dest"
+    success "Created symlink: $src → $dest"
 }
 
-# Alacritty
-echo -e "\n${BLUE}Setting up Alacritty...${NC}"
-create_symlink "$DOTFILES_DIR/alacritty" "$HOME/.config/alacritty"
+# Detect operating system
+OS="$(uname -s)"
+case "$OS" in
+    "Darwin")
+        CONFIG_HOME="$HOME/Library/Application Support"
+        FONT_DIR="$HOME/Library/Fonts"
+        ;;
+    "Linux")
+        CONFIG_HOME="$HOME/.config"
+        FONT_DIR="$HOME/.local/share/fonts"
+        ;;
+    *)
+        error "Unsupported operating system: $OS"
+        exit 1
+        ;;
+esac
 
-# Neovim
-echo -e "\n${BLUE}Setting up Neovim...${NC}"
-create_symlink "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
+log "Setting up dotfiles..."
 
-# Fish
-echo -e "\n${BLUE}Setting up Fish...${NC}"
-create_symlink "$DOTFILES_DIR/fish/config.fish" "$HOME/.config/fish/config.fish"
+# macOS-specific setup
+if [ "$OS" = "Darwin" ]; then
+    # Install Homebrew
+    install_homebrew
 
-# Tmux
-echo -e "\n${BLUE}Setting up Tmux...${NC}"
-create_symlink "$DOTFILES_DIR/tmux" "$HOME/.tmux.conf"
+    # Install required packages
+    log "Installing required packages..."
+    PACKAGES=(
+        "fish"
+        "node"
+        "go"
+        "jq"
+        "fzf"
+        "ripgrep"
+        "gh"
+        "xh"
+        "neovim"
+        "tmux"
+        "raycast"
+    )
 
-# Tmuxinator
-echo -e "\n${BLUE}Setting up Tmuxinator...${NC}"
-create_symlink "$DOTFILES_DIR/tmuxinator" "$HOME/.config/tmuxinator"
+    for package in "${PACKAGES[@]}"; do
+        install_brew_package "$package"
+    done
 
-# # Scripts
-# echo -e "\n${BLUE}Setting up Scripts...${NC}"
-# create_symlink "$DOTFILES_DIR/scripts" "$HOME/.local/bin"
+    # Set Fish as default shell if it isn't already
+    if ! grep -q "/opt/homebrew/bin/fish" /etc/shells; then
+        log "Adding Fish to /etc/shells..."
+        echo "/opt/homebrew/bin/fish" | sudo tee -a /etc/shells
+        success "Fish added to /etc/shells"
+    fi
 
-# Raycast
-echo -e "\n${BLUE}Setting up Raycast...${NC}"
-create_symlink "$DOTFILES_DIR/raycast" "$HOME/.config/raycast"
+    if [ "$SHELL" != "/opt/homebrew/bin/fish" ]; then
+        log "Setting Fish as default shell..."
+        chsh -s /opt/homebrew/bin/fish
+        success "Fish set as default shell"
+    fi
 
-# iTerm2 (Note: iTerm2 colors need to be imported manually through the UI)
-echo -e "\n${BLUE}Note: iTerm2 colors need to be imported manually through iTerm2 preferences${NC}"
+    # Install Rust
+    if ! command_exists rustc; then
+        log "Installing Rust..."
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        success "Rust installed successfully!"
+    else
+        success "Rust is already installed"
+    fi
 
-echo -e "\n${GREEN}Dotfiles setup complete!${NC}"
+    # Install Fisher and Fish plugins
+    if ! command_exists fisher; then
+        log "Installing Fisher and plugins..."
+        fish -c 'curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher'
+        fish -c 'fisher install IlanCosman/tide'
+        fish -c 'fisher install jethrokuan/z'
+        fish -c 'fisher install edc/bass'
+        success "Fisher and plugins installed successfully!"
+    else
+        success "Fisher is already installed"
+    fi
 
-# Make scripts executable
-echo -e "\n${BLUE}Making scripts executable...${NC}"
-# chmod +x "$HOME/.local/bin/pr.sh"
-# chmod +x "$HOME/.local/bin/commit.sh"
-# chmod +x "$DOTFILES_DIR/art.sh"
-# chmod +x "$DOTFILES_DIR/spotify.sh"
+    # Install Nerd Fonts
+    log "Installing Nerd Fonts..."
+    MESLO_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip"
+    FIRA_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
+    
+    install_font "$MESLO_URL" "Meslo"
+    install_font "$FIRA_URL" "FiraCode"
+fi
 
-echo -e "\n${GREEN}All done! 🎉${NC}"
-echo -e "${BLUE}Note: You may need to restart your terminal or applications to see the new fonts.${NC}"
+# Create common symlinks
+log "Setting up Alacritty..."
+create_symlink "$DOTFILES_DIR/alacritty" "$CONFIG_HOME/alacritty"
+
+log "Setting up Neovim..."
+create_symlink "$DOTFILES_DIR/nvim" "$CONFIG_HOME/nvim"
+
+log "Setting up Fish..."
+create_symlink "$DOTFILES_DIR/fish/config.fish" "$CONFIG_HOME/fish/config.fish"
+
+log "Setting up Tmux..."
+create_symlink "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+
+log "Setting up Tmuxinator..."
+create_symlink "$DOTFILES_DIR/tmuxinator" "$CONFIG_HOME/tmuxinator"
+
+# OS-specific symlinks
+if [ "$OS" = "Darwin" ]; then
+    log "Setting up macOS-specific configurations..."
+    
+    # Raycast
+    create_symlink "$DOTFILES_DIR/raycast" "$CONFIG_HOME/raycast"
+    
+    # Aerospace
+    create_symlink "$DOTFILES_DIR/aerospace/aerospace.toml" "$CONFIG_HOME/aerospace/aerospace.toml"
+
+elif [ "$OS" = "Linux" ]; then
+    log "Setting up Linux-specific configurations..."
+    
+    # i3
+    create_symlink "$DOTFILES_DIR/i3/config" "$CONFIG_HOME/i3/config"
+fi
+
+success "Dotfiles setup complete! 🎉"
+log "Note: You may need to restart your terminal to apply all changes."

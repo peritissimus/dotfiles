@@ -31,10 +31,6 @@ fish_add_path /Users/peritissimus/development/flutter/bin \
 
 fish_add_path /opt/homebrew/opt/coreutils/libexec/gnubin
 
-## Python
-set -Ux PYENV_ROOT $HOME/.pyenv
-fish_add_path $PYENV_ROOT/bin
-pyenv init - | source
 
 ## Other paths
 fish_add_path /usr/local/bin $HOME/.pub-cache/bin

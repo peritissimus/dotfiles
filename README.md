@@ -2,7 +2,7 @@
 
 My personal dotfiles for setting up a development environment on macOS and Linux. These configurations focus on creating a productive and aesthetically pleasing terminal-based workflow.
 
-![ScreenShotSetup](https://raw.githubusercontent.com/peritissimus/dotfiles/main/setup-screenshot.png)
+![ScreenShotSetup](https://raw.githubusercontent.com/peritissimus/dotfiles/main/assets/setup-screenshot.png)
 
 ## Features
 

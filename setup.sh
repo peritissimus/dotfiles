@@ -136,6 +136,16 @@ if [ "$OS" = "Darwin" ]; then
         "neovim"
         "tmux"
         "raycast"
+        "lazygit"
+        "lazydocker"
+        "git-delta"
+        "atuin"
+        "bat"
+        "fd"
+        "btop"
+        "broot"
+        "zoxide"
+        "starship"
     )
 
     for package in "${PACKAGES[@]}"; do
@@ -164,25 +174,65 @@ if [ "$OS" = "Darwin" ]; then
         success "Rust is already installed"
     fi
 
-    # Install Fisher and Fish plugins
-    if ! command_exists fisher; then
-        log "Installing Fisher and plugins..."
-        fish -c 'curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher'
-        fish -c 'fisher install IlanCosman/tide'
-        fish -c 'fisher install jethrokuan/z'
-        fish -c 'fisher install edc/bass'
-        success "Fisher and plugins installed successfully!"
-    else
-        success "Fisher is already installed"
+    # Clean up existing Fisher plugins
+    if [ -f "$HOME/.config/fish/functions/fisher.fish" ]; then
+        log "Removing existing Fisher plugins..."
+        fish -c 'fisher list | fisher remove'
+        success "Cleaned up Fisher plugins"
     fi
 
-    # Install Nerd Fonts
-    log "Installing Nerd Fonts..."
+    # Install/Reinstall Fisher
+    log "Installing Fisher..."
+    fish -c 'curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher'
+    success "Fisher installed successfully!"
+    
+    # Install core Fisher plugins
+    log "Installing Fisher plugins..."
+    fish -c 'fisher install edc/bass'
+    success "Fisher plugins installed successfully!"
+
+    # Install Nerd Fonts if not present
+    log "Checking Nerd Fonts..."
+    
+    # Define font files to check (common font files from these packages)
+    MESLO_FILES=("MesloLGS NF Regular.ttf" "MesloLGS NF Bold.ttf" "MesloLGS NF Italic.ttf")
+    FIRA_FILES=("FiraCode Regular Nerd Font Complete.ttf" "FiraCode Bold Nerd Font Complete.ttf")
+    
+    # Check Meslo
+    MESLO_INSTALLED=true
+    for font in "${MESLO_FILES[@]}"; do
+        if [ ! -f "$FONT_DIR/$font" ]; then
+            MESLO_INSTALLED=false
+            break
+        fi
+    done
+    
+    # Check FiraCode
+    FIRA_INSTALLED=true
+    for font in "${FIRA_FILES[@]}"; do
+        if [ ! -f "$FONT_DIR/$font" ]; then
+            FIRA_INSTALLED=false
+            break
+        fi
+    done
+    
+    # Install only missing fonts
     MESLO_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip"
     FIRA_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
     
-    install_font "$MESLO_URL" "Meslo"
-    install_font "$FIRA_URL" "FiraCode"
+    # if [ "$MESLO_INSTALLED" = false ]; then
+    #     log "Installing Meslo Nerd Font..."
+    #     install_font "$MESLO_URL" "Meslo"
+    # else
+    #     success "Meslo Nerd Font is already installed"
+    # fi
+    #
+    # if [ "$FIRA_INSTALLED" = false ]; then
+    #     log "Installing FiraCode Nerd Font..."
+    #     install_font "$FIRA_URL" "FiraCode"
+    # else
+    #     success "FiraCode Nerd Font is already installed"
+    # fi
 fi
 
 # Create common symlinks
@@ -196,7 +246,10 @@ log "Setting up Fish..."
 create_symlink "$DOTFILES_DIR/fish/config.fish" "$CONFIG_HOME/fish/config.fish"
 
 log "Setting up Tmux..."
-create_symlink "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+create_symlink "$DOTFILES_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf"
+
+log "Setting up Starship..."
+create_symlink "$DOTFILES_DIR/starship/starship.toml" "$CONFIG_HOME/starship.toml"
 
 log "Setting up Tmuxinator..."
 create_symlink "$DOTFILES_DIR/tmuxinator" "$CONFIG_HOME/tmuxinator"

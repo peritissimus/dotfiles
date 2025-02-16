@@ -28,20 +28,30 @@ fish_add_path /Users/peritissimus/development/flutter/bin \
     $ANDROID_HOME/platform-tools \
     $ANDROID_HOME/emulator
 
-
 fish_add_path /opt/homebrew/opt/coreutils/libexec/gnubin
-
 
 ## Other paths
 fish_add_path /usr/local/bin $HOME/.pub-cache/bin
-
 set -gx CPPFLAGS "-I/opt/homebrew/opt/openjdk@17/include"
-
 set -x PATH $HOME/.cargo/bin $PATH
+
+# Initialize zoxide
+zoxide init fish | source
+
+# Initialize starship
+starship init fish | source
+
+# Initialize atuin
+atuin init fish | source
+
+# bat configuration
+set -gx BAT_THEME "Dracula"
+
 # Aliases (grouped by functionality)
 ## Development tools
 alias startenv=". .venv/bin/activate.fish"
 alias lz="lazygit"
+alias ld="lazydocker"
 alias tf="terraform"
 alias mux="tmuxinator"
 alias c2p="code2prompt"
@@ -53,9 +63,15 @@ alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
 ## Project-specific
 alias linear="npm run dev --"
 
-## File listing
+## Modern CLI tool replacements
+alias cat="bat"
+alias find="fd"
+alias ls="eza"
+alias ll="eza -l"
+alias la="eza -la"
+alias tree="broot"
+
 if type -q lsd
     alias ll "lsd -Al"
     alias llt "lsd -A --tree"
 end
-

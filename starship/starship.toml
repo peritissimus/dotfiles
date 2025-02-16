@@ -1,47 +1,59 @@
-# Get editor completions based on the config schema
 "$schema" = 'https://starship.rs/config-schema.json'
-
-# Inserts a blank line between shell prompts
 add_newline = true
 
-# Replace the '❯' symbol in the prompt with '➜'
-[character] # The name of the module we are configuring is 'character'
-success_symbol = '[➜](bold green)' # The 'success_symbol' segment is being set to '➜' with color 'bold green'
-error_symbol = '[✗](bold red)'
+format = """
+$directory\
+$git_branch\
+$git_status\
+$fill\
+$cmd_duration\
+$time\
+$line_break\
+$character"""
 
-# Disable the package module, hiding it from the prompt completely
+[character]
+success_symbol = "[❯](cyan)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](cyan)"
+
+[directory]
+style = "cyan"
+format = "[$path]($style)"
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+format = " [$branch]($style)"
+style = "green"
+
+[git_status]
+format = '( [$all_status$ahead_behind]($style))'
+style = "yellow"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+up_to_date = ""
+untracked = "?"
+stashed = ""
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+[fill]
+symbol = " "
+
+[cmd_duration]
+disabled = true
+
 [package]
 disabled = true
 
-[cmd_duration]
-min_time = 500
-format = "took [$duration](bold yellow)"
-
-[directory]
-truncation_length = 3
-truncate_to_repo = true
-style = "bold blue"
-
-[git_branch]
-symbol = "🌱 "
-truncation_length = 4
-truncation_symbol = ""
-style = "bold purple"
-
-[git_status]
-format = '([\[$all_status$ahead_behind\]]($style) )'
-style = "bold red"
-
 [nodejs]
-format = "via [⬢ $version](bold green) "
+disabled = true
 
 [rust]
-format = "via [⚙️ $version](red bold)"
+disabled = true
 
-[golang]
-format = "via [🏃 $version](bold cyan) "
-
-[time]
-disabled = false
-format = '🕙 [\[ $time \]](bold yellow) '
-time_format = "%R"
+[python]
+disabled = true

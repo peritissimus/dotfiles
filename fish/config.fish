@@ -41,6 +41,7 @@ fish_add_path /usr/local/bin $HOME/.pub-cache/bin
 
 set -gx CPPFLAGS "-I/opt/homebrew/opt/openjdk@17/include"
 
+set -x PATH $HOME/.cargo/bin $PATH
 # Aliases (grouped by functionality)
 ## Development tools
 alias startenv=". .venv/bin/activate.fish"

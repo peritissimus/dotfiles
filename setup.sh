@@ -102,7 +102,7 @@ create_symlink() {
 OS="$(uname -s)"
 case "$OS" in
     "Darwin")
-        CONFIG_HOME="$HOME/Library/Application Support"
+        CONFIG_HOME="$HOME/.config"
         FONT_DIR="$HOME/Library/Fonts"
         ;;
     "Linux")
@@ -185,7 +185,7 @@ if [ "$OS" = "Darwin" ]; then
     log "Installing Fisher..."
     fish -c 'curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher'
     success "Fisher installed successfully!"
-    
+
     # Install core Fisher plugins
     log "Installing Fisher plugins..."
     fish -c 'fisher install edc/bass'
@@ -193,11 +193,11 @@ if [ "$OS" = "Darwin" ]; then
 
     # Install Nerd Fonts if not present
     log "Checking Nerd Fonts..."
-    
+
     # Define font files to check (common font files from these packages)
     MESLO_FILES=("MesloLGS NF Regular.ttf" "MesloLGS NF Bold.ttf" "MesloLGS NF Italic.ttf")
     FIRA_FILES=("FiraCode Regular Nerd Font Complete.ttf" "FiraCode Bold Nerd Font Complete.ttf")
-    
+
     # Check Meslo
     MESLO_INSTALLED=true
     for font in "${MESLO_FILES[@]}"; do
@@ -206,7 +206,7 @@ if [ "$OS" = "Darwin" ]; then
             break
         fi
     done
-    
+
     # Check FiraCode
     FIRA_INSTALLED=true
     for font in "${FIRA_FILES[@]}"; do
@@ -215,11 +215,11 @@ if [ "$OS" = "Darwin" ]; then
             break
         fi
     done
-    
+
     # Install only missing fonts
     MESLO_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip"
     FIRA_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
-    
+
     # if [ "$MESLO_INSTALLED" = false ]; then
     #     log "Installing Meslo Nerd Font..."
     #     install_font "$MESLO_URL" "Meslo"

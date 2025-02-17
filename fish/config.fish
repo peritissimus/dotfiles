@@ -66,12 +66,7 @@ alias linear="npm run dev --"
 ## Modern CLI tool replacements
 alias cat="bat"
 alias find="fd"
-alias ls="eza"
-alias ll="eza -l"
-alias la="eza -la"
+alias ls="ls"
+alias ll="ls -l"
+alias la="ls -la"
 alias tree="broot"
-
-if type -q lsd
-    alias ll "lsd -Al"
-    alias llt "lsd -A --tree"
-end

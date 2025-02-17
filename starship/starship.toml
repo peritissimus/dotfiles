@@ -1,10 +1,11 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 add_newline = true
-
 format = """
 $directory\
 $git_branch\
 $git_status\
+$nodejs\
+$python\
 $fill\
 $cmd_duration\
 $time\
@@ -23,37 +24,42 @@ truncation_length = 3
 truncate_to_repo = true
 
 [git_branch]
-format = " [$branch]($style)"
+format = " [$symbol$branch]($style)"
+symbol = " "
 style = "green"
 
 [git_status]
-format = '( [$all_status$ahead_behind]($style))'
-style = "yellow"
-ahead = "⇡"
-behind = "⇣"
-diverged = "⇕"
-up_to_date = ""
-untracked = "?"
-stashed = ""
-modified = "!"
-staged = "+"
-renamed = "»"
-deleted = "✘"
+format = """($all_status$ahead_behind)"""
+ahead = "[⇡](blue)"
+behind = "[⇣](red)"
+diverged = "[⇕](purple)"
+up_to_date = "[✓](green)"
+untracked = "[?](bright-purple)"
+stashed = "[≡](cyan)"
+modified = "[!](yellow)"
+staged = "[+](green)"
+renamed = "[»](blue)"
+deleted = "[✘](red)"
+
+[nodejs]
+format = "[ $version](bold green) "
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+disabled = false
+
+[python]
+format = "[ $version](bold blue) "
+detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "Pipfile", "__init__.py"]
+disabled = false
 
 [fill]
 symbol = " "
 
 [cmd_duration]
-disabled = true
+disabled = false
+format = "[ $duration]($style)"
+min_time = 2000
 
-[package]
-disabled = true
-
-[nodejs]
-disabled = true
-
-[rust]
-disabled = true
-
-[python]
-disabled = true
+[time]
+disabled = false
+format = "[$time]($style)"
+style = "dimmed"

@@ -18,14 +18,13 @@ vimcmd_symbol = "[❮](cyan)"
 
 [directory]
 style = "cyan"
-format = "[$symbol$path]($style) "
+format = "[$path]($style) "
 truncation_length = 3
 truncate_to_repo = true
-symbol = "" # Using plain symbol instead of Nerd Font notation
 
 [git_branch]
 format = "[$symbol$branch]($style) "
-symbol = "" # Using plain symbol instead of Nerd Font notation
+symbol = " " # nf-oct-git_branch
 style = "green"
 
 [git_status]
@@ -43,24 +42,25 @@ deleted = "[✘](red)"
 
 [nodejs]
 format = "[$symbol$version]($style) "
-symbol = "" # Using plain symbol instead of Nerd Font notation
+symbol = "󰎙 " # nf-dev-nodejs_small
 detect_files = ["package.json", ".node-version", ".nvmrc"]
 disabled = false
 
 [python]
 format = "[$symbol$version]($style) "
-symbol = "" # Using plain symbol instead of Nerd Font notation
+symbol = "󰌠 "
 detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "Pipfile", "__init__.py"]
 disabled = false
 
+[fill]
+disabled = true # Removed fill for compactness
+
 [cmd_duration]
 disabled = false
-format = "[$symbol$duration]($style)"
+format = "[$duration]($style)"
 min_time = 2000
-symbol = "⏱" # Using plain symbol instead of Nerd Font notation
 
 [time]
 disabled = false
-format = " [$symbol$time]($style)"
+format = " [$time]($style)"
 style = "dimmed"
-symbol = "" # Using plain symbol instead of Nerd Font notation

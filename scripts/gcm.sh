@@ -95,9 +95,20 @@ generate_commit_message() {
   local diff="$2"
   local project_structure="$3"
   local project_languages="$4"
+  local additional_context="$5"
+
+  # Add context section to prompt if provided
+  local context_section=""
+  if [ -n "$additional_context" ]; then
+    context_section="**Additional Context Provided:**
+$additional_context
+
+"
+  fi
+
   local prompt="Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
 
-**Commit Message Requirements:**
+${context_section}**Commit Message Requirements:**
 1. **Format:** '<type>(<scope>): <description>'
    - **Types:** feat, fix, docs, style, refactor, perf, test, build, ci, chore
    - **Scope:** (Optional, but highly recommended) Indicate the area of the codebase affected (e.g., auth, user-profile, api). Infer from file paths and project structure.
@@ -144,10 +155,54 @@ ${project_structure}
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }
 
+# Function to print usage
+print_usage() {
+  echo "Usage: $0 [--preview] [--context \"Additional context for the commit\"]"
+  echo
+  echo "Options:"
+  echo "  --preview    Preview the commit message without creating a commit"
+  echo "  --context    Provide additional context to help generate a more accurate commit message"
+  echo
+  echo "Example:"
+  echo "  $0 --context \"This change is part of the authentication refactoring sprint\""
+  echo "  $0 --preview --context \"Fixing bug reported in issue #123\""
+}
+
 # Main script logic
 main() {
   check_llm
   check_openai_key
+
+  local preview=false
+  local context=""
+
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --preview)
+      preview=true
+      shift
+      ;;
+    --context)
+      if [[ -z "$2" ]]; then
+        echo "Error: --context requires an argument"
+        print_usage
+        exit 1
+      fi
+      context="$2"
+      shift 2
+      ;;
+    -h | --help)
+      print_usage
+      exit 0
+      ;;
+    *)
+      echo "Error: Unknown option $1"
+      print_usage
+      exit 1
+      ;;
+    esac
+  done
 
   staged_files=$(get_staged_files)
   if [ -z "$staged_files" ]; then
@@ -167,9 +222,9 @@ main() {
   relevant_docs=$(get_relevant_docs "$staged_files")
 
   echo "Generating commit message..."
-  commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$relevant_docs")
+  commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context")
 
-  if [ "$1" = "--preview" ]; then
+  if [ "$preview" = true ]; then
     echo "Preview of commit message:"
     echo "$commit_message"
   else

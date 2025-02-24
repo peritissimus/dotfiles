@@ -2,9 +2,57 @@
 # Exit on error
 set -e
 
+# ANSI color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+DIM='\033[2m'
+ITALIC='\033[3m'
+NC='\033[0m' # No Color
+
+# Logging utilities
+log_header() {
+  echo -e "\n${BOLD}${BLUE}⚡️ $1${NC}\n"
+}
+
+log_info() {
+  echo -e "${CYAN}ℹ️  $1${NC}"
+}
+
+log_success() {
+  echo -e "${GREEN}✨ $1${NC}"
+}
+
+log_warning() {
+  echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+log_error() {
+  echo -e "${RED}❌ $1${NC}"
+}
+
+log_debug() {
+  echo -e "${DIM}${ITALIC}🔍 $1${NC}"
+}
+
+# Function to print fancy ASCII banner
+print_banner() {
+  echo -e "${BOLD}${CYAN}"
+  cat <<"EOF"
+ _____  _ _    _____                      _ _   
+|   __>|_| |  |     |___ _____ _____ ___|_| |_ 
+|   __>| | |  |   --| . |     |     | .'| |  _|
+|__|  |_|_|  |_____|___|_|_|_|_|_|_|__,|_|_|  
+EOF
+  echo -e "${NC}"
+}
+
 # Check if git repository exists
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "Error: Not a git repository"
+  log_error "Not a git repository"
   exit 1
 fi
 
@@ -27,8 +75,6 @@ check_openai_key() {
     # Set the 'openai' key in the llm CLI
     llm keys set openai --value "$openai_key"
     echo "OpenAI API key has been set in the llm CLI."
-  else
-    echo "..."
   fi
 }
 
@@ -89,6 +135,48 @@ get_staged_changes() {
   git diff --cached
 }
 
+# Function to check if nx is available and get project graph
+get_nx_graph() {
+  if [ -f "nx.json" ]; then
+    echo "Nx project detected, generating dependency graph..."
+    nx graph --file=project-graph.json >/dev/null 2>&1
+    if [ -f "project-graph.json" ]; then
+      # Process with jq to get simplified graph
+      jq '{
+        nodes: (
+          .graph.nodes | to_entries | map({
+            name: .value.name,
+            type: .value.type
+          })
+        ),
+        dependencies: (
+          .graph.dependencies | to_entries | map({
+            source: .key,
+            targets: (.value | map(.target))
+          })
+        )
+      }' project-graph.json >simplified-graph.json
+      cat simplified-graph.json
+      rm project-graph.json simplified-graph.json
+    else
+      echo "Failed to generate Nx project graph"
+      return 1
+    fi
+  else
+    echo "No Nx project detected"
+    return 1
+  fi
+}
+
+# Function to count tokens in prompt
+count_tokens() {
+  local input="$1"
+  # Rough estimation: split into words and multiply by 1.3 for safety
+  local word_count=$(echo "$input" | wc -w)
+  local estimated_tokens=$(echo "scale=0; $word_count * 1.3 / 1" | bc)
+  echo "Estimated tokens in prompt: $estimated_tokens"
+}
+
 # Function to generate commit message using LLM
 generate_commit_message() {
   local files="$1"
@@ -106,9 +194,24 @@ $additional_context
 "
   fi
 
+  # Get Nx graph if available
+  local nx_graph=$(get_nx_graph || echo "")
+  local nx_section=""
+  if [ -n "$nx_graph" ]; then
+    nx_section="**Nx Project Graph:**
+\`\`\`json
+$nx_graph
+\`\`\`
+
+"
+  fi
+
   local prompt="Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
 
-${context_section}**Commit Message Requirements:**
+${context_section}
+${nx_section}
+
+**Commit Message Requirements:**
 1. **Format:** '<type>(<scope>): <description>'
    - **Types:** feat, fix, docs, style, refactor, perf, test, build, ci, chore
    - **Scope:** (Optional, but highly recommended) Indicate the area of the codebase affected (e.g., auth, user-profile, api). Infer from file paths and project structure.
@@ -150,7 +253,16 @@ ${project_structure}
 * \`refactor(api): extract common error handling logic\`
 * \`docs: update README with installation instructions\`
 * \`chore(deps): upgrade axios to latest version\`
-* \`feat!: remove deprecated payment gateway (BREAKING CHANGE: Users must use the new payment gateway)\`"
+* \`feat!: remove deprecated payment gateway (BREAKING CHANGE: Users must use the new payment gateway)\`
+* \`ci(github): add node.js workflow for automated testing\`
+* \`ci(jenkins): configure multi-stage pipeline for deployment\`
+* \`ci(gitlab): setup container scanning in CI pipeline\`
+* \`ci(actions): add caching for npm dependencies\`
+* \`ci(azure): configure release pipeline for staging environment\`
+* \`ci(circle): optimize test execution with parallel jobs\`"
+
+  # Count tokens before sending to LLM
+  count_tokens "$prompt"
 
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
 }
@@ -170,20 +282,21 @@ print_usage() {
 
 # Main script logic
 main() {
+
+  log_header "Git Commit Message Generator"
   check_llm
   check_openai_key
-
   local preview=false
   local context=""
 
   # Parse command line arguments
   while [[ $# -gt 0 ]]; do
     case $1 in
-    --preview)
+    -p | --preview)
       preview=true
       shift
       ;;
-    --context)
+    -c | --context)
       if [[ -z "$2" ]]; then
         echo "Error: --context requires an argument"
         print_usage
@@ -193,6 +306,7 @@ main() {
       shift 2
       ;;
     -h | --help)
+      print_banner
       print_usage
       exit 0
       ;;
@@ -206,30 +320,34 @@ main() {
 
   staged_files=$(get_staged_files)
   if [ -z "$staged_files" ]; then
-    echo "No staged changes found. Stage your changes using 'git add' first."
+    log_error "No staged changes found. Stage your changes using 'git add' first."
     exit 1
   fi
 
   staged_diff=$(get_staged_changes)
   if [ -z "$staged_diff" ]; then
-    echo "No changes detected in staged files."
+    log_error "No changes detected in staged files."
     exit 1
   fi
 
-  echo "Analyzing project structure..."
+  log_info "Analyzing repository..."
+  log_debug "├─ Scanning project structure"
   project_structure=$(get_project_structure)
+  log_debug "├─ Detecting languages"
   project_languages=$(get_project_languages)
+  log_debug "└─ Finding relevant documentation"
   relevant_docs=$(get_relevant_docs "$staged_files")
 
-  echo "Generating commit message..."
+  log_header "Generating Commit Message"
   commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context")
 
   if [ "$preview" = true ]; then
-    echo "Preview of commit message:"
-    echo "$commit_message"
+    log_info "Preview of commit message:"
+    echo -e "${CYAN}${BOLD}$commit_message${NC}"
   else
     git commit -m "$commit_message"
-    echo "Successfully created commit: $commit_message"
+    log_success "Commit created successfully! 🎉"
+    echo -e "${DIM}$commit_message${NC}"
   fi
 }
 

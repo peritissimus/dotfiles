@@ -341,7 +341,7 @@ main() {
     echo -e "${YELLOW}${BOLD}$commit_message${NC}"
   else
     git commit -m "$commit_message"
-    log_success "Commit created successfully!"
+    log_success "\nCommit created successfully!"
     echo -e "${DIM}$commit_message${NC}"
   fi
 }

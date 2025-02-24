@@ -42,7 +42,6 @@ log_debug() {
 print_banner() {
   echo -e "${BOLD}${CYAN}"
   cat <<"EOF"
-
  ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓██████████████▓▒░  
 ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
 ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
@@ -52,7 +51,6 @@ print_banner() {
  ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
                                                 
                                                 
-
 EOF
   echo -e "${NC}"
 }
@@ -114,24 +112,6 @@ get_project_languages() {
     awk '{print $2}' | tr '\n' ',' | sed 's/,$//'
 }
 
-# Function to get relevant documentation
-get_relevant_docs() {
-  local changed_files="$1"
-  local docs=""
-
-  for file in $changed_files; do
-    dir=$(dirname "$file")
-    while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
-      if [ -f "$dir/README.md" ]; then
-        docs="$docs\nREADME from $dir:\n$(head -n 10 "$dir/README.md")"
-      fi
-      dir=$(dirname "$dir")
-    done
-  done
-
-  echo "$docs"
-}
-
 # Function to get staged files
 get_staged_files() {
   git diff --cached --name-only
@@ -148,7 +128,6 @@ get_nx_graph() {
     echo "Nx project detected, generating dependency graph..."
     nx graph --file=project-graph.json >/dev/null 2>&1
     if [ -f "project-graph.json" ]; then
-      # Process with jq to get simplified graph
       jq '{
         nodes: (
           .graph.nodes | to_entries | map({
@@ -178,7 +157,6 @@ get_nx_graph() {
 # Function to count tokens in prompt
 count_tokens() {
   local input="$1"
-  # Rough estimation: split into words and multiply by 1.3 for safety
   local word_count=$(echo "$input" | wc -w)
   local estimated_tokens=$(echo "scale=0; $word_count * 1.3 / 1" | bc)
   log_debug "\nEstimated tokens in prompt: $estimated_tokens"
@@ -191,108 +169,72 @@ generate_commit_message() {
   local project_structure="$3"
   local project_languages="$4"
   local additional_context="$5"
+  local model="$6"
 
   # Add context section to prompt if provided
   local context_section=""
   if [ -n "$additional_context" ]; then
-    context_section="**Additional Context Provided:**
-$additional_context
-
-"
+    context_section="Additional Context: $additional_context\n\n"
   fi
 
   # Get Nx graph if available
   local nx_graph=$(get_nx_graph || echo "")
   local nx_section=""
   if [ -n "$nx_graph" ]; then
-    nx_section="**Nx Project Graph:**
-\`\`\`json
-$nx_graph
-\`\`\`
-
-"
+    nx_section="Project Graph:\n$nx_graph\n\n"
   fi
 
   local prompt="Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
 
-${context_section}
-${nx_section}
+${context_section}${nx_section}
+Commit Message Format: <type>(<scope>): <description>
 
-**Commit Message Requirements:**
-1. **Format:** '<type>(<scope>): <description>'
-   - **Types:** feat, fix, docs, style, refactor, perf, test, build, ci, chore
-   - **Scope:** (Optional, but highly recommended) Indicate the area of the codebase affected (e.g., auth, user-profile, api). Infer from file paths and project structure.
-   - **Description:**
-     - Lowercase, imperative mood, under 72 chars, no period at the end. Briefly describe the change.
+Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
+Scope: (Optional) Area of codebase affected (e.g., auth, user-profile, api)
+Description: Lowercase, imperative mood, under 72 chars, no period
 
-2. **Breaking Changes:** Indicate with either:
-   - **Option A (Prefix):** '<type>(<scope>)!: <description>'
-   - **Option B (Footer):** 'BREAKING CHANGE: <description>'
-   - If '!' prefix is used, BREAKING CHANGE footer is optional for redundancy.
+Breaking Changes:
+- Option A: <type>(<scope>)!: <description>
+- Option B: Add footer 'BREAKING CHANGE: <description>'
 
-3. **Body (For changes affecting multiple files or requiring more detail):**
-   - Blank line after the description.
-   - List changed files with a brief explanation of changes per file if helpful for clarity.
-   - Format: '* filename: Briefly describe the change in this file'
-   - Keep lines under 72 chars, wrap text as needed.
+Context:
+Modified Files: ${files}
+Project Languages: ${project_languages}
+Project Structure:
+${project_structure}
 
-**Context for Commit Message Generation:**
-* **Modified Files:** ${files}
-* **Diff:**
+Changes:
 \`\`\`diff
 ${diff}
-\`\`\`
-* **Project Languages:** ${project_languages}
-* **Project Structure:**
-\`\`\`
-${project_structure}
-\`\`\`
+\`\`\`"
 
-**Instructions:**
-- Analyze the provided diff and file changes to understand the *intent* of the changes.
-- Infer the appropriate commit type and scope based on the context and changes.
-- **Prioritize clarity and conciseness.**
-- **Output ONLY the conventional commit message. Do not add any extra text, explanations, or markdown syntax.**
-
-**Example Commit Messages (for inspiration):**
-* \`feat(auth): implement password reset functionality\`
-* \`fix(user-profile): correct display of user avatar on profile page\`
-* \`refactor(api): extract common error handling logic\`
-* \`docs: update README with installation instructions\`
-* \`chore(deps): upgrade axios to latest version\`
-* \`feat!: remove deprecated payment gateway (BREAKING CHANGE: Users must use the new payment gateway)\`
-* \`ci(github): add node.js workflow for automated testing\`
-* \`ci(jenkins): configure multi-stage pipeline for deployment\`
-* \`ci(gitlab): setup container scanning in CI pipeline\`
-* \`ci(actions): add caching for npm dependencies\`
-* \`ci(azure): configure release pipeline for staging environment\`
-* \`ci(circle): optimize test execution with parallel jobs\`"
-
-  echo "$prompt" | llm --no-stream -m gpt-4o-mini
+  echo "$prompt" | llm --no-stream -m "$model"
   count_tokens "$prompt"
 }
 
 # Function to print usage
 print_usage() {
-  echo "Usage: $0 [--preview] [--context \"Additional context for the commit\"]"
+  echo "Usage: $0 [-p|--preview] [-c|--context \"context\"] [-m|--model MODEL]"
   echo
   echo "Options:"
-  echo "  --preview    Preview the commit message without creating a commit"
-  echo "  --context    Provide additional context to help generate a more accurate commit message"
+  echo "  -p, --preview    Preview the commit message without creating a commit"
+  echo "  -c, --context    Provide additional context to help generate a more accurate commit message"
+  echo "  -m, --model      Specify the LLM model to use (default: gpt-4o-mini)"
   echo
   echo "Example:"
-  echo "  $0 --context \"This change is part of the authentication refactoring sprint\""
-  echo "  $0 --preview --context \"Fixing bug reported in issue #123\""
+  echo "  $0 -c \"This change is part of the authentication refactoring sprint\""
+  echo "  $0 -p -c \"Fixing bug reported in issue #123\""
+  echo "  $0 -m gpt-4-1106-preview"
 }
 
 # Main script logic
 main() {
-
   log_header "Git Commit Message Generator"
   check_llm
   check_openai_key
   local preview=false
   local context=""
+  local model="gpt-4o-mini"
 
   # Parse command line arguments
   while [[ $# -gt 0 ]]; do
@@ -303,11 +245,20 @@ main() {
       ;;
     -c | --context)
       if [[ -z "$2" ]]; then
-        echo "Error: --context requires an argument"
+        log_error "--context requires an argument"
         print_usage
         exit 1
       fi
       context="$2"
+      shift 2
+      ;;
+    -m | --model)
+      if [[ -z "$2" ]]; then
+        log_error "--model requires an argument"
+        print_usage
+        exit 1
+      fi
+      model="$2"
       shift 2
       ;;
     -h | --help)
@@ -315,7 +266,7 @@ main() {
       exit 0
       ;;
     *)
-      echo "Error: Unknown option $1"
+      log_error "Unknown option: $1"
       print_usage
       exit 1
       ;;
@@ -341,7 +292,7 @@ main() {
   project_languages=$(get_project_languages)
   log_debug " └─ Finding relevant documentation"
 
-  commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context")
+  commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context" "$model")
 
   if [ "$preview" = true ]; then
     log_info "Preview of commit message:"

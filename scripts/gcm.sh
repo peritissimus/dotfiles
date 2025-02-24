@@ -341,7 +341,7 @@ main() {
 
   if [ "$preview" = true ]; then
     log_info "Preview of commit message:"
-    echo -e "${CYAN}${BOLD}$commit_message${NC}"
+    echo -e "${YELLOW}${BOLD}$commit_message${NC}"
   else
     git commit -m "$commit_message"
     log_success "Commit created successfully!"

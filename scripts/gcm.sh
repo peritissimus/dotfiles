@@ -187,32 +187,35 @@ generate_commit_message() {
   local prompt="
 Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
 ${context_section}${nx_section}
-Commit Message Format: <type>(<scope>): <description>
+
+Expected Output Format:
+For simple changes (single file, no breaking changes):
+\`\`\`
+<type>(<scope>): <description>
+\`\`\`
+
+For complex changes (ONLY when criteria below are met):
+\`\`\`
+<type>(<scope>): <description>
+
+<body lines, if required>
+\`\`\`
 
 Header Requirements:
 - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
-- Scope: (Optional) Area of codebase affected (e.g., auth, user-profile, api)
-- Description: Lowercase, imperative mood, under 72 chars, no period, write about the change/diff
+- Scope: Area affected (e.g., auth, api) - use filename/module when clear
+- Description: Lowercase, imperative mood, under 72 chars, no period
 
-Body Requirements:
-- Generate a body ONLY when:
-  1. The changes affect multiple components or files in different areas
-  2. There are breaking changes that need detailed explanation
-  3. The changes introduce complex features that need clarification
-  4. The commit fixes a bug that requires context about the root cause
-  5. The changes involve important architectural decisions
-
-- Body format:
-  - Separate from header with a blank line
-  - Wrap at 72 characters
-  - Explain the what and why of changes, not the how
-  - Use bullet points for multiple items
-  - Reference issues/tickets where applicable
+Body: Include ONLY if changes meet ANY of these criteria:
+1. Changes affect multiple components/areas
+2. Breaking changes requiring explanation
+3. Complex features needing clarification
+4. Bug fixes requiring root cause context
+5. Important architectural decisions
 
 Breaking Changes:
-- Option A: <type>(<scope>)!: <description>
-- Option B: Add footer 'BREAKING CHANGE: <description>'
-- Always include detailed explanation in body for breaking changes
+- Format: <type>(<scope>)!: <description>
+- Or add footer: BREAKING CHANGE: <description>
 
 Context:
 Modified Files: ${files}
@@ -223,6 +226,10 @@ Changes:
 \`\`\`diff
 ${diff}
 \`\`\`
+
+
+IMPORTANT:
+- Do not include any markdown tags in the output
 "
   echo "$prompt" | llm --no-stream -m "$model"
   count_tokens "$prompt"

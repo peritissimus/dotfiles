@@ -35,7 +35,7 @@ log_error() {
 }
 
 log_debug() {
-  echo -e "${DIM}${ITALIC}🔍 $1${NC}"
+  echo -e "${DIM}${ITALIC} $1${NC}"
 }
 
 # Function to print fancy ASCII banner
@@ -336,9 +336,7 @@ main() {
   log_debug "├─ Detecting languages"
   project_languages=$(get_project_languages)
   log_debug "└─ Finding relevant documentation"
-  relevant_docs=$(get_relevant_docs "$staged_files")
 
-  log_header "Generating Commit Message"
   commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context")
 
   if [ "$preview" = true ]; then
@@ -346,7 +344,7 @@ main() {
     echo -e "${CYAN}${BOLD}$commit_message${NC}"
   else
     git commit -m "$commit_message"
-    log_success "Commit created successfully! 🎉"
+    log_success "Commit created successfully!"
     echo -e "${DIM}$commit_message${NC}"
   fi
 }

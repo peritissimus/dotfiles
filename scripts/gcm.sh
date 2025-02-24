@@ -15,19 +15,19 @@ NC='\033[0m' # No Color
 
 # Logging utilities
 log_header() {
-  echo -e "\n${BOLD}${BLUE}⚡️ $1${NC}\n"
+  echo -e "${BOLD}${BLUE}⚡️ $1${NC}"
 }
 
 log_info() {
-  echo -e "${CYAN}ℹ️  $1${NC}"
+  echo -e "${CYAN}$1${NC}"
 }
 
 log_success() {
-  echo -e "${GREEN}✨ $1${NC}"
+  echo -e "${GREEN}$1${NC}"
 }
 
 log_warning() {
-  echo -e "${YELLOW}⚠️  $1${NC}"
+  echo -e "${YELLOW}$1${NC}"
 }
 
 log_error() {
@@ -174,7 +174,7 @@ count_tokens() {
   # Rough estimation: split into words and multiply by 1.3 for safety
   local word_count=$(echo "$input" | wc -w)
   local estimated_tokens=$(echo "scale=0; $word_count * 1.3 / 1" | bc)
-  echo "Estimated tokens in prompt: $estimated_tokens"
+  log_debug "\nEstimated tokens in prompt: $estimated_tokens"
 }
 
 # Function to generate commit message using LLM
@@ -261,10 +261,8 @@ ${project_structure}
 * \`ci(azure): configure release pipeline for staging environment\`
 * \`ci(circle): optimize test execution with parallel jobs\`"
 
-  # Count tokens before sending to LLM
-  count_tokens "$prompt"
-
   echo "$prompt" | llm --no-stream -m gpt-4o-mini
+  count_tokens "$prompt"
 }
 
 # Function to print usage
@@ -306,7 +304,6 @@ main() {
       shift 2
       ;;
     -h | --help)
-      print_banner
       print_usage
       exit 0
       ;;
@@ -330,12 +327,12 @@ main() {
     exit 1
   fi
 
-  log_info "Analyzing repository..."
-  log_debug "├─ Scanning project structure"
+  log_info " Analyzing repository..."
+  log_debug " ├─ Scanning project structure"
   project_structure=$(get_project_structure)
-  log_debug "├─ Detecting languages"
+  log_debug " ├─ Detecting languages"
   project_languages=$(get_project_languages)
-  log_debug "└─ Finding relevant documentation"
+  log_debug " └─ Finding relevant documentation"
 
   commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context")
 

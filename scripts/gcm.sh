@@ -232,7 +232,6 @@ IMPORTANT:
 - Do not include any markdown tags in the output
 "
   echo "$prompt" | llm --no-stream -m "$model"
-  count_tokens "$prompt"
 }
 
 # Function to print usage
@@ -285,6 +284,7 @@ main() {
       shift 2
       ;;
     -h | --help)
+      print_banner
       print_usage
       exit 0
       ;;

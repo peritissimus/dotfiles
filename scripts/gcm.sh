@@ -185,51 +185,73 @@ generate_commit_message() {
   fi
 
   local prompt="
-Generate a concise and informative conventional commit message based on the changes provided. Follow the Conventional Commits specification strictly.
+Generate a precise and meaningful conventional commit message strictly following the Conventional Commits specification (https://www.conventionalcommits.org/).
 ${context_section}${nx_section}
 
-Expected Output Format:
-For simple changes (single file, no breaking changes):
-\`\`\`
-<type>(<scope>): <description>
-\`\`\`
+COMMIT STRUCTURE REQUIREMENTS:
+1. HEADER (REQUIRED):
+   <type>(<scope>): <description>
 
-For complex changes (ONLY when criteria below are met):
-\`\`\`
-<type>(<scope>): <description>
+2. BODY (CONDITIONAL):
+   [blank line]
+   <body>
 
-<body lines, if required>
-\`\`\`
+3. FOOTER (OPTIONAL for breaking changes):
+   [blank line]
+   BREAKING CHANGE: <description>
 
-Header Requirements:
-- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
-- Scope: Area affected (e.g., auth, api) - use filename/module when clear
-- Description: Lowercase, imperative mood, under 72 chars, no period
+TYPE (REQUIRED):
+- feat: A new feature
+- fix: A bug fix
+- docs: Documentation changes only
+- style: Changes that don't affect code meaning (formatting, whitespace)
+- refactor: Code changes that neither fix bugs nor add features
+- perf: Performance improvements
+- test: Adding or correcting tests
+- build: Changes to build system or dependencies
+- ci: Changes to CI configuration files and scripts
+- chore: Other changes that don't modify src or test files
 
-Body: Include ONLY if changes meet ANY of these criteria:
-1. Changes affect multiple components/areas
-2. Breaking changes requiring explanation
-3. Complex features needing clarification
-4. Bug fixes requiring root cause context
-5. Important architectural decisions
+SCOPE (RECOMMENDED):
+- Specific component, module, or area affected (e.g., auth, api, ui)
+- Use filename or directory when the scope is clear from the file context
+- Use 'deps' for dependency updates
+- Omit scope when changes affect multiple areas with no clear primary component
 
-Breaking Changes:
-- Format: <type>(<scope>)!: <description>
-- Or add footer: BREAKING CHANGE: <description>
+DESCRIPTION (REQUIRED):
+- Use imperative, present tense (\"add\" not \"added\" or \"adds\")
+- Start with lowercase
+- No period at the end
+- Keep under 72 characters
+- Be specific about what changed, not why it changed
 
-Context:
+BODY (ONLY INCLUDE WHEN):
+1. Changes affect multiple components requiring explanation of relationships
+2. Complex implementation details need clarification
+3. Breaking changes require migration instructions
+4. Bug fixes should explain root cause and solution approach
+5. Architectural decisions with significant impacts need justification
+
+BREAKING CHANGES:
+- Mark in header: <type>(<scope>)!: <description>
+- AND/OR add footer: BREAKING CHANGE: <description with migration instructions>
+
+Context Information:
 Modified Files: ${files}
 Project Languages: ${project_languages}
 Project Structure:
 ${project_structure}
+
 Changes:
 \`\`\`diff
 ${diff}
 \`\`\`
 
-
-IMPORTANT:
-- Do not include any markdown tags in the output
+OUTPUT FORMAT:
+- Return ONLY the commit message text
+- Do not include any markdown tags or backticks in the output
+- NEVER prefix with 'commit message:' or similar text
+- Include body ONLY when the criteria above are met
 "
   echo "$prompt" | llm --no-stream -m "$model"
 }

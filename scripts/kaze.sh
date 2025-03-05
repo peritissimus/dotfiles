@@ -57,10 +57,6 @@ show_help() {
   echo "  --show-content        Show file content in results"
   echo "  --human               Display human-readable output instead of JSON"
   echo
-  echo -e "${GREEN}List Options:${NC}"
-  echo "  -p, --pattern PATTERN File pattern to list (default: *)"
-  echo "  -c, --collection NAME Collection to list from (default: $DEFAULT_COLLECTION)"
-  echo
   echo -e "${GREEN}Examples:${NC}"
   echo "  $0 create -d ~/myproject                # Create embeddings for all files in ~/myproject"
   echo "  $0 query -q \"database connection\" -n 5   # Find top 5 files related to database connections (JSON)"
@@ -749,112 +745,6 @@ query_embeddings() {
 }
 # }}}
 
-# LIST FILES {{{
-list_files() {
-  local PROJECT_PATH="$1"
-  local PATTERN="$2"
-
-  echo -e "${BLUE}🔍 DEBUG: Starting list_files function${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Project path: ${CYAN}$PROJECT_PATH${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Pattern: ${CYAN}$PATTERN${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: DB path: ${CYAN}$DB_PATH${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Collection: ${CYAN}$COLLECTION${NC}" >&2
-
-  # Check if the database exists
-  if [ ! -f "$DB_PATH" ]; then
-    echo -e "${RED}Error: Embeddings database not found at ${CYAN}$DB_PATH${NC}"
-    echo -e "Run ${GREEN}$0 create${NC} first to generate embeddings."
-    return 1
-  fi
-
-  # First, verify that the collection exists and get all collections
-  echo -e "${BLUE}🔍 DEBUG: Checking available collections in database${NC}" >&2
-  ALL_COLLECTIONS=$(sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
-  echo -e "${BLUE}🔍 DEBUG: Found collections: ${CYAN}$ALL_COLLECTIONS${NC}" >&2
-
-  echo "$ALL_COLLECTIONS"
-
-  # Check if our specified collection exists
-  if ! echo "$ALL_COLLECTIONS"; then
-    echo -e "${BLUE}🔍 DEBUG: Collection ${CYAN}$COLLECTION${BLUE} not found${NC}" >&2
-
-    # If the collection doesn't exist, but there's only one collection, use that one
-    if [ "$(echo "$ALL_COLLECTIONS" | wc -l)" -eq 1 ]; then
-      COLLECTION="$ALL_COLLECTIONS"
-      echo -e "${YELLOW}⚠️ Collection '${CYAN}$COLLECTION${YELLOW}' not found, but found only one collection. Using '${CYAN}$COLLECTION${YELLOW}' instead.${NC}"
-    else
-      echo -e "${RED}Error: Collection '${CYAN}$COLLECTION${RED}' not found in database.${NC}"
-      echo -e "${BLUE}🔍 Available collections:${NC}"
-      echo "$ALL_COLLECTIONS" | while read -r coll; do
-        echo -e "   - ${CYAN}$coll${NC}"
-      done
-      echo -e "Use ${GREEN}-c collection_name${NC} to specify which collection to use."
-      return 1
-    fi
-  fi
-
-  echo -e "${BLUE}📊 Using collection: ${CYAN}$COLLECTION${NC}"
-  echo -e "${BLUE}🔍 Listing files matching pattern: ${CYAN}'$PATTERN'${NC}"
-  echo -e "-------------------------------------------"
-
-  # Check if the pattern is "*" and query the database to get all IDs
-  echo -e "${BLUE}🔍 DEBUG: Querying database for IDs matching pattern: ${CYAN}$PATTERN${NC}" >&2
-
-  # Handle wildcard pattern differently to avoid SQL injection and pattern issues
-  if [ "$PATTERN" = "*" ]; then
-    echo -e "${BLUE}🔍 DEBUG: Using query for all IDs${NC}" >&2
-    IDS=$(sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" ORDER BY id;")
-  else
-    # Escape special characters in pattern for SQL LIKE
-    ESCAPED_PATTERN=$(echo "$PATTERN" | sed 's/[%_]/\\&/g')
-    echo -e "${BLUE}🔍 DEBUG: Using query with LIKE pattern: %${CYAN}$ESCAPED_PATTERN${BLUE}%${NC}" >&2
-    IDS=$(sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" WHERE id LIKE '%$ESCAPED_PATTERN%' ORDER BY id;")
-  fi
-
-  # Debug the SQL results
-  ID_COUNT=$(echo "$IDS" | grep -c "." || echo 0)
-  echo -e "${BLUE}🔍 DEBUG: Query returned ${CYAN}$ID_COUNT${BLUE} IDs${NC}" >&2
-
-  # Check if we got any results
-  if [ -z "$IDS" ]; then
-    echo -e "${BLUE}🔍 DEBUG: No IDs found matching pattern${NC}" >&2
-    echo -e "${YELLOW}❌ No files found matching pattern: '$PATTERN'${NC}"
-    # Give a hint about what's in the database
-    TOTAL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM \"$COLLECTION\";")
-    echo -e "${BLUE}ℹ️ The database contains ${YELLOW}$TOTAL_COUNT${BLUE} total files.${NC}"
-
-    # Show a few examples
-    if [ "$TOTAL_COUNT" -gt 0 ]; then
-      echo -e "${BLUE}ℹ️ Here are a few examples of what's in the database:${NC}"
-      sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" LIMIT 5;" |
-        while read -r id; do
-          echo -e "   - ${CYAN}$id${NC}"
-        done
-    fi
-    return 0
-  fi
-
-  # Count results
-  COUNT=$(echo "$IDS" | wc -l)
-  echo -e "${BLUE}🔍 DEBUG: Found ${CYAN}$COUNT${BLUE} matching files${NC}" >&2
-  echo -e "${GREEN}📋 Found ${YELLOW}$COUNT${GREEN} files matching pattern:${NC}"
-
-  # Display results
-  echo "$IDS" | while read -r id; do
-    echo -e "   - ${CYAN}$id${NC}"
-  done
-
-  echo -e "-------------------------------------------"
-  echo -e "${GREEN}🎉 Listing complete!${NC}"
-
-  # Provide a sample command to search
-  echo -e "${BLUE}ℹ️ To search these files, use:${NC}"
-  echo -e "   ${GREEN}$0 query -q \"your search query\"${NC}"
-
-  echo -e "${BLUE}🔍 DEBUG: list_files function complete${NC}" >&2
-}
-# }}}
-
 # SHOW DATABASE INFORMATION {{{
 show_info() {
   local PROJECT_PATH="$1"
@@ -1019,10 +909,6 @@ main() {
     fi
     check_sqlite
     query_embeddings "$PROJECT_DIR" "$QUERY_TEXT" "$HUMAN_OUTPUT"
-    ;;
-  list)
-    check_sqlite
-    list_files "$PROJECT_DIR" "$PATTERN"
     ;;
   info)
     check_sqlite

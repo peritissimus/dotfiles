@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 MODEL="text-embedding-3-small"
 MAX_FILE_SIZE=8 # in KB
 BATCH_SIZE=10
-DEFAULT_COLLECTION="embeddings"
+DEFAULT_COLLECTION="files"
 # }}}
 
 # HELP MESSAGE {{{
@@ -31,7 +31,7 @@ show_help() {
   echo
   echo -e "${GREEN}Commands:${NC}"
   echo "  create      Create embeddings for files in the project (default if no command specified)"
-  echo "  query       Search for similar content across project files"
+  echo "  query       Search for similar content across project files (returns JSON by default)"
   echo "  list        List files in the embeddings database"
   echo "  info        Show information about the embeddings database"
   echo
@@ -55,6 +55,7 @@ show_help() {
   echo "  -t, --threshold FLOAT Similarity threshold (0.0-1.0, default: 0.2)"
   echo "  -c, --collection NAME Collection to search in (default: $DEFAULT_COLLECTION)"
   echo "  --show-content        Show file content in results"
+  echo "  --human               Display human-readable output instead of JSON"
   echo
   echo -e "${GREEN}List Options:${NC}"
   echo "  -p, --pattern PATTERN File pattern to list (default: *)"
@@ -62,7 +63,8 @@ show_help() {
   echo
   echo -e "${GREEN}Examples:${NC}"
   echo "  $0 create -d ~/myproject                # Create embeddings for all files in ~/myproject"
-  echo "  $0 query -q \"database connection\" -n 5   # Find top 5 files related to database connections"
+  echo "  $0 query -q \"database connection\" -n 5   # Find top 5 files related to database connections (JSON)"
+  echo "  $0 query -q \"database connection\" --human # Same search with human-readable output"
   echo "  $0 list -p \"*.js\"                        # List all JavaScript files in the database"
   echo "  $0 info                                  # Show database information"
 }
@@ -72,8 +74,8 @@ show_help() {
 # Check if LLM CLI is installed
 check_llm_cli() {
   if ! command -v llm &>/dev/null; then
-    echo -e "${RED}Error: llm command not found.${NC}"
-    echo "Please install LLM CLI tool by running: pip install llm"
+    echo -e "${RED}Error: llm command not found.${NC}" >&2
+    echo "Please install LLM CLI tool by running: pip install llm" >&2
     exit 1
   fi
 }
@@ -81,8 +83,8 @@ check_llm_cli() {
 # Check if sqlite3 is installed
 check_sqlite() {
   if ! command -v sqlite3 &>/dev/null; then
-    echo -e "${RED}Error: sqlite3 command not found.${NC}"
-    echo "Please install SQLite to use this script."
+    echo -e "${RED}Error: sqlite3 command not found.${NC}" >&2
+    echo "Please install SQLite to use this script." >&2
     exit 1
   fi
 }
@@ -93,7 +95,7 @@ setup_paths() {
 
   # Check if the project directory exists
   if [ ! -d "$project_dir" ]; then
-    echo -e "${RED}Error: Project directory '$project_dir' does not exist.${NC}"
+    echo -e "${RED}Error: Project directory '$project_dir' does not exist.${NC}" >&2
     exit 1
   fi
   # Set up the output directory
@@ -450,25 +452,30 @@ create_embeddings() {
 
 #}}}
 
-# EMBEDDINGS QUERY WITH JSON OUTPUT {{{
-query_embeddings_json() {
+# QUERY EMBEDDINGS {{{
+query_embeddings() {
   local PROJECT_PATH="$1"
   local QUERY_TEXT="$2"
-  local OUTPUT_JSON="${3:-false}"
+  local HUMAN_OUTPUT="$3"
 
-  echo -e "${BLUE}🔍 DEBUG: Starting query_embeddings_json function${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Project path: ${CYAN}$PROJECT_PATH${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Query text: ${CYAN}$QUERY_TEXT${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Output JSON: ${CYAN}$OUTPUT_JSON${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: DB path: ${CYAN}$DB_PATH${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Collection: ${CYAN}$COLLECTION${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Threshold: ${CYAN}$THRESHOLD${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Limit: ${CYAN}$LIMIT${NC}" >&2
+  # Only show important logs in non-debug mode
+  if [ "${DEBUG:-false}" = true ]; then
+    echo -e "${BLUE}🔍 Project path: ${CYAN}$PROJECT_PATH${NC}" >&2
+    echo -e "${BLUE}🔍 Query text: ${CYAN}$QUERY_TEXT${NC}" >&2
+    echo -e "${BLUE}🔍 Human output: ${CYAN}$HUMAN_OUTPUT${NC}" >&2
+    echo -e "${BLUE}🔍 DB path: ${CYAN}$DB_PATH${NC}" >&2
+    echo -e "${BLUE}🔍 Collection: ${CYAN}$COLLECTION${NC}" >&2
+    echo -e "${BLUE}🔍 Threshold: ${CYAN}$THRESHOLD${NC}" >&2
+    echo -e "${BLUE}🔍 Limit: ${CYAN}$LIMIT${NC}" >&2
+  fi
 
   # Check if the database exists
   if [ ! -f "$DB_PATH" ]; then
-    echo -e "${BLUE}🔍 DEBUG: Database not found at path: ${CYAN}$DB_PATH${NC}" >&2
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "${DEBUG:-false}" = true ]; then
+      echo -e "${BLUE}🔍 Database not found at path: ${CYAN}$DB_PATH${NC}" >&2
+    fi
+
+    if [ "$HUMAN_OUTPUT" = false ]; then
       echo "{\"error\": \"Database not found\", \"path\": \"$DB_PATH\"}"
     else
       echo -e "${RED}Error: Embeddings database not found at ${CYAN}$DB_PATH${NC}"
@@ -479,8 +486,7 @@ query_embeddings_json() {
 
   # Check if query is provided
   if [ -z "$QUERY_TEXT" ]; then
-    echo -e "${BLUE}🔍 DEBUG: No query text provided${NC}" >&2
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "$HUMAN_OUTPUT" = false ]; then
       echo "{\"error\": \"No query provided\"}"
     else
       echo -e "${RED}Error: No query text provided.${NC}"
@@ -489,7 +495,8 @@ query_embeddings_json() {
     return 1
   fi
 
-  if [ "$OUTPUT_JSON" != true ]; then
+  # Show search parameters if human output
+  if [ "$HUMAN_OUTPUT" = true ]; then
     echo -e "${BLUE}🔍 Searching for: ${CYAN}\"$QUERY_TEXT\"${NC}"
     echo -e "${BLUE}📊 Using collection: ${CYAN}$COLLECTION${NC}"
     echo -e "${BLUE}📚 Maximum results: ${CYAN}$LIMIT${NC}"
@@ -498,51 +505,48 @@ query_embeddings_json() {
 
   # Run the query
   TEMP_RESULTS=$(mktemp)
-  echo -e "${BLUE}🔍 DEBUG: Created temp file for results: ${CYAN}$TEMP_RESULTS${NC}" >&2
+  if [ "${DEBUG:-false}" = true ]; then
+    echo -e "${BLUE}🔍 Created temp file for results: ${CYAN}$TEMP_RESULTS${NC}" >&2
+    echo -e "${BLUE}🔍 Running: llm similar \"$COLLECTION\" -c \"$QUERY_TEXT\" -d \"$DB_PATH\"${NC}" >&2
+  fi
 
-  # Run the command to get all results
-  echo -e "${BLUE}🔍 DEBUG: Running llm similar command${NC}" >&2
-  # Note: llm similar doesn't support --json option directly
+  # Execute the llm similar command
   llm similar "$COLLECTION" -c "$QUERY_TEXT" -d "$DB_PATH" >"$TEMP_RESULTS" 2>/dev/null
   QUERY_STATUS=$?
-  echo -e "${BLUE}🔍 DEBUG: llm similar command returned status: ${CYAN}$QUERY_STATUS${NC}" >&2
 
   if [ $QUERY_STATUS -ne 0 ]; then
-    echo -e "${BLUE}🔍 DEBUG: Query failed with status: ${CYAN}$QUERY_STATUS${NC}" >&2
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "$HUMAN_OUTPUT" = false ]; then
       echo "{\"error\": \"Query failed\", \"status\": $QUERY_STATUS}"
     else
       echo -e "${RED}Error: Failed to query embeddings. llm similar command returned code $QUERY_STATUS${NC}"
     fi
-    echo -e "${BLUE}🔍 DEBUG: Removing temp file: ${CYAN}$TEMP_RESULTS${NC}" >&2
-    rm "$TEMP_RESULTS"
+    rm -f "$TEMP_RESULTS"
     return 1
   fi
 
   # Load results
   RESULTS=$(cat "$TEMP_RESULTS")
   RESULTS_COUNT=$(echo "$RESULTS" | grep -c ".")
-  echo -e "${BLUE}🔍 DEBUG: Query returned ${CYAN}$RESULTS_COUNT${BLUE} raw results${NC}" >&2
+  if [ "${DEBUG:-false}" = true ]; then
+    echo -e "${BLUE}🔍 Query returned ${CYAN}$RESULTS_COUNT${BLUE} raw results${NC}" >&2
+  fi
 
   # Check if we have results
   if [ -z "$RESULTS" ]; then
-    echo -e "${BLUE}🔍 DEBUG: No results found${NC}" >&2
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "$HUMAN_OUTPUT" = false ]; then
       echo "[]"
     else
       echo -e "${YELLOW}⚠️ No results found matching your query.${NC}"
     fi
-    echo -e "${BLUE}🔍 DEBUG: Removing temp file: ${CYAN}$TEMP_RESULTS${NC}" >&2
-    rm "$TEMP_RESULTS"
+    rm -f "$TEMP_RESULTS"
     return 0
   fi
 
-  # If we're in JSON mode, we need to parse the text output and convert to JSON
-  if [ "$OUTPUT_JSON" = true ]; then
-    echo -e "${BLUE}🔍 DEBUG: Converting raw output to JSON format${NC}" >&2
-
-    # Initialize JSON array - simpler approach without relying on jq
-    echo -n "[" >"$TEMP_RESULTS.json"
+  # For JSON output, we parse the text output and convert to JSON
+  if [ "$HUMAN_OUTPUT" = false ]; then
+    # Initialize JSON array
+    TEMP_JSON=$(mktemp)
+    echo "[" >"$TEMP_JSON"
     FIRST_ITEM=true
 
     # Process each line of the results
@@ -550,56 +554,95 @@ query_embeddings_json() {
       # Skip empty lines
       [ -z "$line" ] && continue
 
-      # Extract the id and score using regex
-      if [[ "$line" =~ \"id\":\ \"([^\"]+)\".*\"score\":\ ([0-9.]+) ]]; then
-        id="${BASH_REMATCH[1]}"
-        score="${BASH_REMATCH[2]}"
+      # Parse the JSON line to extract information
+      if echo "$line" | grep -q '"id":'; then
+        # Extract the ID and score with proper JSON parsing
+        id=$(echo "$line" | sed -n 's/.*"id": "\([^"]*\)".*/\1/p')
+        score=$(echo "$line" | sed -n 's/.*"score": \([0-9.]*\).*/\1/p')
+
+        # Initialize content and metadata as null
+        content="null"
+        metadata="null"
+
+        # Check if we have content
+        if echo "$line" | grep -q '"content":' && ! echo "$line" | grep -q '"content": null'; then
+          # Extract content and properly escape it for JSON
+          raw_content=$(echo "$line" | sed -n 's/.*"content": "\([^"]*\)".*/\1/p')
+          # Escape backslashes first, then quotes
+          escaped_content=$(echo "$raw_content" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+          content="\"$escaped_content\""
+        fi
+
+        # Check if we need to add content from file
+        if [ "$SHOW_CONTENT" = true ] && [ "$content" = "null" ]; then
+          file_path="$id"
+          if [ ! -f "$file_path" ] && [ -f "$PROJECT_PATH/$id" ]; then
+            file_path="$PROJECT_PATH/$id"
+          fi
+
+          if [ -f "$file_path" ]; then
+            # Read first 5 lines of the file and properly escape for JSON
+            file_content=$(head -n 5 "$file_path" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+            content="\"$file_content\""
+          fi
+        fi
+
+        # Extract metadata if available
+        if echo "$line" | grep -q '"metadata":' && ! echo "$line" | grep -q '"metadata": null'; then
+          metadata_raw=$(echo "$line" | sed -n 's/.*"metadata": \({[^}]*}\).*/\1/p')
+          if [ -n "$metadata_raw" ]; then
+            metadata="$metadata_raw"
+          fi
+        fi
 
         # Add comma if not the first item
         if [ "$FIRST_ITEM" = true ]; then
           FIRST_ITEM=false
         else
-          echo -n "," >>"$TEMP_RESULTS.json"
+          echo "," >>"$TEMP_JSON"
         fi
 
-        # Create simple JSON object with just id and score (avoids escaping issues)
-        echo -n "{\"id\":\"$id\",\"score\":$score}" >>"$TEMP_RESULTS.json"
-        echo -e "${BLUE}🔍 DEBUG: Added result: ${CYAN}$id${BLUE} with score ${CYAN}$score${NC}" >&2
+        # Create properly formatted JSON object
+        echo -n "{\"id\":\"$id\",\"score\":$score,\"content\":$content,\"metadata\":$metadata}" >>"$TEMP_JSON"
+
+        if [ "${DEBUG:-false}" = true ]; then
+          echo -e "${BLUE}🔍 Added result: ${CYAN}$id${NC}" >&2
+        fi
       fi
     done <"$TEMP_RESULTS"
 
     # Close JSON array
-    echo -n "]" >>"$TEMP_RESULTS.json"
+    echo "" >>"$TEMP_JSON" # Add newline before closing bracket
+    echo "]" >>"$TEMP_JSON"
 
-    # Read the JSON array
-    RESULTS=$(cat "$TEMP_RESULTS.json")
-    rm "$TEMP_RESULTS.json" 2>/dev/null || true
-    echo -e "${BLUE}🔍 DEBUG: Converted results to JSON array with ${CYAN}$(echo "$RESULTS" | grep -o '{' | wc -l)${BLUE} items${NC}" >&2
+    # Read the properly formatted JSON array
+    RESULTS=$(cat "$TEMP_JSON")
+    rm -f "$TEMP_JSON"
   fi
 
   # Check if jq is available for filtering
   if command -v jq &>/dev/null; then
-    echo -e "${BLUE}🔍 DEBUG: jq is available, using for JSON processing${NC}" >&2
-
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "$HUMAN_OUTPUT" = false ]; then
       # Filter by threshold and limit
-      echo -e "${BLUE}🔍 DEBUG: Filtering results by threshold ${CYAN}$THRESHOLD${NC}" >&2
-      FILTERED_RESULTS=$(echo "$RESULTS" | jq --arg threshold "$THRESHOLD" '[.[] | select(.score >= ($threshold | tonumber))]')
+      FILTERED_RESULTS=$(echo "$RESULTS" | jq --arg threshold "$THRESHOLD" -c '[.[] | select(.score >= ($threshold | tonumber))]')
 
-      FILTERED_COUNT=$(echo "$FILTERED_RESULTS" | jq 'length')
-      echo -e "${BLUE}🔍 DEBUG: ${CYAN}$FILTERED_COUNT${BLUE} results after threshold filtering${NC}" >&2
+      if [ "${DEBUG:-false}" = true ]; then
+        FILTERED_COUNT=$(echo "$FILTERED_RESULTS" | jq 'length')
+        echo -e "${BLUE}🔍 ${CYAN}$FILTERED_COUNT${BLUE} results after threshold filtering${NC}" >&2
+      fi
 
       # Apply limit
-      echo -e "${BLUE}🔍 DEBUG: Limiting results to ${CYAN}$LIMIT${NC}" >&2
-      LIMITED_RESULTS=$(echo "$FILTERED_RESULTS" | jq --arg limit "$LIMIT" 'limit(($limit | tonumber); .)')
+      LIMITED_RESULTS=$(echo "$FILTERED_RESULTS" | jq --arg limit "$LIMIT" -c 'limit(($limit | tonumber); .)')
 
       # Return properly formatted JSON array
       echo "$LIMITED_RESULTS"
-      echo -e "${BLUE}🔍 DEBUG: JSON output complete${NC}" >&2
     else
-      # Human-readable output for non-JSON mode
+      # Human-readable output
+      # Convert raw results to JSON first for easier processing
+      FILTERED_RESULTS=$(echo "$RESULTS" | jq --arg threshold "$THRESHOLD" '[.[] | select(.score >= ($threshold | tonumber))]')
+      LIMITED_RESULTS=$(echo "$FILTERED_RESULTS" | jq --arg limit "$LIMIT" 'limit(($limit | tonumber); .)')
+
       LIMITED_COUNT=$(echo "$LIMITED_RESULTS" | jq 'length')
-      echo -e "${BLUE}🔍 DEBUG: Displaying ${CYAN}$LIMITED_COUNT${BLUE} results in human-readable format${NC}" >&2
 
       echo -e "${GREEN}📋 Search results:${NC}"
       echo -e "-------------------------------------------"
@@ -654,26 +697,20 @@ query_embeddings_json() {
       echo -e "${GREEN}🎉 Search complete!${NC}"
     fi
   else
-    # No jq available - this is a critical dependency for JSON mode
-    echo -e "${BLUE}🔍 DEBUG: jq not available${NC}" >&2
-    if [ "$OUTPUT_JSON" = true ]; then
-      # In JSON mode, we really need jq - return an error
-      echo "{\"error\": \"jq command not found. Please install jq for JSON output mode.\"}"
-      echo -e "${YELLOW}⚠️ Warning: jq not installed, cannot process JSON properly${NC}" >&2
+    # No jq available - this is a fallback for both modes
+    if [ "$HUMAN_OUTPUT" = false ]; then
+      # In JSON mode, we've already created a simple JSON array above
+      echo "$RESULTS"
+      echo -e "${YELLOW}⚠️ Warning: jq not installed. Results are not filtered by threshold.${NC}" >&2
     else
       echo -e "${YELLOW}⚠️ Warning: jq not found - cannot filter by threshold${NC}"
       echo -e "${YELLOW}   Install jq for better filtering capabilities${NC}"
 
       # Basic display of results for human-readable mode without jq
-      # We'll take a simple approach with head/grep/sed
-      echo -e "${BLUE}🔍 DEBUG: Displaying results in basic format without jq${NC}" >&2
-
       # Apply only limit
       TOTAL_RESULTS=$(echo "$RESULTS" | wc -l)
-      echo -e "${BLUE}🔍 DEBUG: Total results: ${CYAN}$TOTAL_RESULTS${NC}" >&2
 
       if [ $TOTAL_RESULTS -gt $LIMIT ]; then
-        echo -e "${BLUE}🔍 DEBUG: Limiting to first ${CYAN}$LIMIT${BLUE} results${NC}" >&2
         RESULTS=$(echo "$RESULTS" | head -n $LIMIT)
       fi
 
@@ -707,10 +744,7 @@ query_embeddings_json() {
   fi
 
   # Clean up
-  echo -e "${BLUE}🔍 DEBUG: Cleaning up temp files${NC}" >&2
-  rm "$TEMP_RESULTS" 2>/dev/null || true
-
-  echo -e "${BLUE}🔍 DEBUG: query_embeddings_json function complete${NC}" >&2
+  rm -f "$TEMP_RESULTS"
   return 0
 }
 # }}}
@@ -738,8 +772,10 @@ list_files() {
   ALL_COLLECTIONS=$(sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
   echo -e "${BLUE}🔍 DEBUG: Found collections: ${CYAN}$ALL_COLLECTIONS${NC}" >&2
 
+  echo "$ALL_COLLECTIONS"
+
   # Check if our specified collection exists
-  if ! echo "$ALL_COLLECTIONS" | grep -q "^$COLLECTION$"; then
+  if ! echo "$ALL_COLLECTIONS"; then
     echo -e "${BLUE}🔍 DEBUG: Collection ${CYAN}$COLLECTION${BLUE} not found${NC}" >&2
 
     # If the collection doesn't exist, but there's only one collection, use that one
@@ -870,14 +906,14 @@ main() {
   OUTPUT_DIR=""
   COLLECTION="$DEFAULT_COLLECTION"
   QUERY_TEXT=""
-  LIMIT=10
+  LIMIT=200
   THRESHOLD=0.2
   PATTERN="*"
   FORCE=false
   SHOW_CONTENT=false
   INCLUDE_PATTERN=""
   EXCLUDE_PATTERN=""
-  OUTPUT_JSON=false
+  HUMAN_OUTPUT=false
 
   # Parse command if provided
   if [ $# -gt 0 ] && [[ "$1" != -* ]]; then
@@ -948,8 +984,8 @@ main() {
       EXCLUDE_PATTERN="$2"
       shift 2
       ;;
-    --json)
-      OUTPUT_JSON=true
+    --human)
+      HUMAN_OUTPUT=true
       shift
       ;;
     *)
@@ -974,7 +1010,7 @@ main() {
     ;;
   query)
     if [ -z "$QUERY_TEXT" ]; then
-      if [ "$OUTPUT_JSON" = true ]; then
+      if [ "$HUMAN_OUTPUT" = false ]; then
         echo '{"error": "No query specified. Use -q \"your query\" to search."}'
       else
         echo -e "${YELLOW}No query specified. Use -q \"your query\" to search.${NC}"
@@ -982,7 +1018,7 @@ main() {
       exit 1
     fi
     check_sqlite
-    query_embeddings_json "$PROJECT_DIR" "$QUERY_TEXT" "$OUTPUT_JSON"
+    query_embeddings "$PROJECT_DIR" "$QUERY_TEXT" "$HUMAN_OUTPUT"
     ;;
   list)
     check_sqlite
@@ -993,7 +1029,7 @@ main() {
     show_info "$PROJECT_DIR"
     ;;
   *)
-    if [ "$OUTPUT_JSON" = true ]; then
+    if [ "$HUMAN_OUTPUT" = false ]; then
       echo "{\"error\": \"Unknown command: $COMMAND\"}"
     else
       echo -e "${RED}Unknown command: $COMMAND${NC}"

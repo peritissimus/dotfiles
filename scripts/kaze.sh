@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 MODEL="text-embedding-3-small"
 MAX_FILE_SIZE=8 # in KB
 BATCH_SIZE=10
-DEFAULT_COLLECTION="files"
+DEFAULT_COLLECTION="embeddings"
 # }}}
 
 # HELP MESSAGE {{{
@@ -450,164 +450,248 @@ create_embeddings() {
 
 #}}}
 
-# EMBEDDINGS {{{
-query_embeddings() {
+# EMBEDDINGS QUERY WITH JSON OUTPUT {{{
+query_embeddings_json() {
   local PROJECT_PATH="$1"
   local QUERY_TEXT="$2"
+  local OUTPUT_JSON="${3:-false}"
+
+  echo -e "${BLUE}🔍 DEBUG: Starting query_embeddings_json function${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Project path: ${CYAN}$PROJECT_PATH${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Query text: ${CYAN}$QUERY_TEXT${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Output JSON: ${CYAN}$OUTPUT_JSON${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: DB path: ${CYAN}$DB_PATH${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Collection: ${CYAN}$COLLECTION${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Threshold: ${CYAN}$THRESHOLD${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Limit: ${CYAN}$LIMIT${NC}" >&2
 
   # Check if the database exists
   if [ ! -f "$DB_PATH" ]; then
-    echo -e "${RED}Error: Embeddings database not found at ${CYAN}$DB_PATH${NC}"
-    echo -e "Run ${GREEN}$0 create${NC} first to generate embeddings."
+    echo -e "${BLUE}🔍 DEBUG: Database not found at path: ${CYAN}$DB_PATH${NC}" >&2
+    if [ "$OUTPUT_JSON" = true ]; then
+      echo "{\"error\": \"Database not found\", \"path\": \"$DB_PATH\"}"
+    else
+      echo -e "${RED}Error: Embeddings database not found at ${CYAN}$DB_PATH${NC}"
+      echo -e "Run ${GREEN}$0 create${NC} first to generate embeddings."
+    fi
     return 1
   fi
 
   # Check if query is provided
   if [ -z "$QUERY_TEXT" ]; then
-    echo -e "${RED}Error: No query text provided.${NC}"
-    echo -e "Use ${GREEN}-q \"your query\"${NC} to specify a search query."
+    echo -e "${BLUE}🔍 DEBUG: No query text provided${NC}" >&2
+    if [ "$OUTPUT_JSON" = true ]; then
+      echo "{\"error\": \"No query provided\"}"
+    else
+      echo -e "${RED}Error: No query text provided.${NC}"
+      echo -e "Use ${GREEN}-q \"your query\"${NC} to specify a search query."
+    fi
     return 1
   fi
 
-  echo -e "${BLUE}🔍 DEBUG: Starting query with text: ${CYAN}\"$QUERY_TEXT\"${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Using database: ${CYAN}$DB_PATH${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Using collection: ${CYAN}$COLLECTION${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Maximum results: ${CYAN}$LIMIT${NC}" >&2
-  echo -e "${BLUE}🔍 DEBUG: Similarity threshold: ${CYAN}$THRESHOLD${NC}" >&2
+  if [ "$OUTPUT_JSON" != true ]; then
+    echo -e "${BLUE}🔍 Searching for: ${CYAN}\"$QUERY_TEXT\"${NC}"
+    echo -e "${BLUE}📊 Using collection: ${CYAN}$COLLECTION${NC}"
+    echo -e "${BLUE}📚 Maximum results: ${CYAN}$LIMIT${NC}"
+    echo -e "${BLUE}🎯 Similarity threshold: ${CYAN}$THRESHOLD${NC}"
+  fi
 
-  echo -e "${BLUE}🔍 Searching for: ${CYAN}\"$QUERY_TEXT\"${NC}"
-  echo -e "${BLUE}📊 Using collection: ${CYAN}$COLLECTION${NC}"
-  echo -e "${BLUE}📚 Maximum results: ${CYAN}$LIMIT${NC}"
-  echo -e "${BLUE}🎯 Similarity threshold: ${CYAN}$THRESHOLD${NC}"
-
-  # Run the query - note that llm similar doesn't support -l parameter or threshold properly
-  echo -e "${BLUE}🔍 DEBUG: Executing llm similar command${NC}" >&2
-
-  # Create a temp file for the results
+  # Run the query
   TEMP_RESULTS=$(mktemp)
+  echo -e "${BLUE}🔍 DEBUG: Created temp file for results: ${CYAN}$TEMP_RESULTS${NC}" >&2
 
-  # Run the command without any parameters that might not be supported
-  llm similar "$COLLECTION" -c "$QUERY_TEXT" -d "$DB_PATH" --json >"$TEMP_RESULTS" 2>/dev/null
+  # Run the command to get all results
+  echo -e "${BLUE}🔍 DEBUG: Running llm similar command${NC}" >&2
+  # Note: llm similar doesn't support --json option directly
+  llm similar "$COLLECTION" -c "$QUERY_TEXT" -d "$DB_PATH" >"$TEMP_RESULTS" 2>/dev/null
   QUERY_STATUS=$?
+  echo -e "${BLUE}🔍 DEBUG: llm similar command returned status: ${CYAN}$QUERY_STATUS${NC}" >&2
 
-  echo -e "${BLUE}🔍 DEBUG: llm similar returned status: ${CYAN}$QUERY_STATUS${NC}" >&2
-
-  # Check the command status
   if [ $QUERY_STATUS -ne 0 ]; then
-    echo -e "${RED}Error: Failed to query embeddings. llm similar command returned code $QUERY_STATUS${NC}"
-    cat "$TEMP_RESULTS" >&2 # Dump any error output for debugging
+    echo -e "${BLUE}🔍 DEBUG: Query failed with status: ${CYAN}$QUERY_STATUS${NC}" >&2
+    if [ "$OUTPUT_JSON" = true ]; then
+      echo "{\"error\": \"Query failed\", \"status\": $QUERY_STATUS}"
+    else
+      echo -e "${RED}Error: Failed to query embeddings. llm similar command returned code $QUERY_STATUS${NC}"
+    fi
+    echo -e "${BLUE}🔍 DEBUG: Removing temp file: ${CYAN}$TEMP_RESULTS${NC}" >&2
     rm "$TEMP_RESULTS"
     return 1
   fi
 
   # Load results
   RESULTS=$(cat "$TEMP_RESULTS")
-  rm "$TEMP_RESULTS"
+  RESULTS_COUNT=$(echo "$RESULTS" | grep -c ".")
+  echo -e "${BLUE}🔍 DEBUG: Query returned ${CYAN}$RESULTS_COUNT${BLUE} raw results${NC}" >&2
 
   # Check if we have results
   if [ -z "$RESULTS" ]; then
-    echo -e "${YELLOW}⚠️ No results found matching your query.${NC}"
-    echo -e "${BLUE}🔍 DEBUG: No results returned from llm similar${NC}" >&2
-    echo -e "${BLUE}🔍 DEBUG: Try a more generic query${NC}" >&2
+    echo -e "${BLUE}🔍 DEBUG: No results found${NC}" >&2
+    if [ "$OUTPUT_JSON" = true ]; then
+      echo "[]"
+    else
+      echo -e "${YELLOW}⚠️ No results found matching your query.${NC}"
+    fi
+    echo -e "${BLUE}🔍 DEBUG: Removing temp file: ${CYAN}$TEMP_RESULTS${NC}" >&2
+    rm "$TEMP_RESULTS"
     return 0
   fi
 
-  # Filter results by threshold and limit using jq if available
-  if command -v jq &>/dev/null; then
-    echo -e "${BLUE}🔍 DEBUG: Filtering results by threshold ${CYAN}$THRESHOLD${NC}" >&2
+  # If we're in JSON mode, we need to parse the text output and convert to JSON
+  if [ "$OUTPUT_JSON" = true ]; then
+    echo -e "${BLUE}🔍 DEBUG: Converting raw output to JSON format${NC}" >&2
 
-    # Create temporary file for filtered results
-    FILTERED_RESULTS=$(mktemp)
+    # Initialize JSON array - simpler approach without relying on jq
+    echo -n "[" >"$TEMP_RESULTS.json"
+    FIRST_ITEM=true
 
-    # Filter by threshold and limit using jq
-    cat "$TEMP_RESULTS" | jq -c "select(.score >= $THRESHOLD)" >"$FILTERED_RESULTS"
+    # Process each line of the results
+    while IFS= read -r line; do
+      # Skip empty lines
+      [ -z "$line" ] && continue
 
-    # Count filtered results
-    FILTERED_COUNT=$(cat "$FILTERED_RESULTS" | wc -l)
-    echo -e "${BLUE}🔍 DEBUG: Found ${CYAN}$FILTERED_COUNT${BLUE} results after threshold filtering${NC}" >&2
+      # Extract the id and score using regex
+      if [[ "$line" =~ \"id\":\ \"([^\"]+)\".*\"score\":\ ([0-9.]+) ]]; then
+        id="${BASH_REMATCH[1]}"
+        score="${BASH_REMATCH[2]}"
 
-    if [ $FILTERED_COUNT -eq 0 ]; then
-      echo -e "${YELLOW}⚠️ No results found with threshold ${THRESHOLD}. Try lowering the threshold.${NC}"
-      rm "$FILTERED_RESULTS"
-      return 0
-    fi
+        # Add comma if not the first item
+        if [ "$FIRST_ITEM" = true ]; then
+          FIRST_ITEM=false
+        else
+          echo -n "," >>"$TEMP_RESULTS.json"
+        fi
 
-    # Apply limit
-    if [ $FILTERED_COUNT -gt $LIMIT ]; then
-      echo -e "${BLUE}🔍 DEBUG: Limiting to first ${CYAN}$LIMIT${BLUE} results${NC}" >&2
-      RESULTS=$(cat "$FILTERED_RESULTS" | head -n $LIMIT)
-    else
-      RESULTS=$(cat "$FILTERED_RESULTS")
-    fi
+        # Create simple JSON object with just id and score (avoids escaping issues)
+        echo -n "{\"id\":\"$id\",\"score\":$score}" >>"$TEMP_RESULTS.json"
+        echo -e "${BLUE}🔍 DEBUG: Added result: ${CYAN}$id${BLUE} with score ${CYAN}$score${NC}" >&2
+      fi
+    done <"$TEMP_RESULTS"
 
-    rm "$FILTERED_RESULTS"
-  else
-    # Without jq, we'll have to do basic filtering using grep and head
-    echo -e "${BLUE}🔍 DEBUG: jq not available, using basic filtering${NC}" >&2
+    # Close JSON array
+    echo -n "]" >>"$TEMP_RESULTS.json"
 
-    # Count total results
-    TOTAL_RESULTS=$(echo "$RESULTS" | wc -l)
-    echo -e "${BLUE}🔍 DEBUG: Found ${CYAN}$TOTAL_RESULTS${BLUE} total results${NC}" >&2
-
-    # Apply limit
-    if [ $TOTAL_RESULTS -gt $LIMIT ]; then
-      echo -e "${BLUE}🔍 DEBUG: Limiting to first ${CYAN}$LIMIT${BLUE} results${NC}" >&2
-      RESULTS=$(echo "$RESULTS" | head -n $LIMIT)
-    fi
-
-    echo -e "${YELLOW}⚠️ Warning: jq not found - cannot apply threshold filtering${NC}"
-    echo -e "${YELLOW}   Install jq for better filtering capabilities${NC}"
+    # Read the JSON array
+    RESULTS=$(cat "$TEMP_RESULTS.json")
+    rm "$TEMP_RESULTS.json" 2>/dev/null || true
+    echo -e "${BLUE}🔍 DEBUG: Converted results to JSON array with ${CYAN}$(echo "$RESULTS" | grep -o '{' | wc -l)${BLUE} items${NC}" >&2
   fi
 
-  # Process and display results
-  echo -e "${GREEN}📋 Search results:${NC}"
-  echo -e "-------------------------------------------"
-
-  # Format the file paths for better display
-  echo -e "${BLUE}🔍 DEBUG: Formatting results${NC}" >&2
-
-  # Use jq to process JSON if available, otherwise use a simpler approach
+  # Check if jq is available for filtering
   if command -v jq &>/dev/null; then
-    echo -e "${BLUE}🔍 DEBUG: Using jq for JSON processing${NC}" >&2
-    echo "$RESULTS" | while read -r result; do
-      # Parse each line of JSON individually
-      id=$(echo "$result" | jq -r '.id')
-      score=$(echo "$result" | jq -r '.score')
-      # Format score as percentage with 1 decimal place using bc if available
-      if command -v bc &>/dev/null; then
-        # Format score as percentage with 1 decimal place using bc if available
-        if command -v bc &>/dev/null; then
-          score_percent=$(printf "%.1f" $(echo "$score * 100" | bc -l))
-        else
-          # Fallback if bc is not available
-          score_percent=$(echo "$score * 100" | awk '{printf "%.1f", $1}')
+    echo -e "${BLUE}🔍 DEBUG: jq is available, using for JSON processing${NC}" >&2
+
+    if [ "$OUTPUT_JSON" = true ]; then
+      # Filter by threshold and limit
+      echo -e "${BLUE}🔍 DEBUG: Filtering results by threshold ${CYAN}$THRESHOLD${NC}" >&2
+      FILTERED_RESULTS=$(echo "$RESULTS" | jq --arg threshold "$THRESHOLD" '[.[] | select(.score >= ($threshold | tonumber))]')
+
+      FILTERED_COUNT=$(echo "$FILTERED_RESULTS" | jq 'length')
+      echo -e "${BLUE}🔍 DEBUG: ${CYAN}$FILTERED_COUNT${BLUE} results after threshold filtering${NC}" >&2
+
+      # Apply limit
+      echo -e "${BLUE}🔍 DEBUG: Limiting results to ${CYAN}$LIMIT${NC}" >&2
+      LIMITED_RESULTS=$(echo "$FILTERED_RESULTS" | jq --arg limit "$LIMIT" 'limit(($limit | tonumber); .)')
+
+      # Return properly formatted JSON array
+      echo "$LIMITED_RESULTS"
+      echo -e "${BLUE}🔍 DEBUG: JSON output complete${NC}" >&2
+    else
+      # Human-readable output for non-JSON mode
+      LIMITED_COUNT=$(echo "$LIMITED_RESULTS" | jq 'length')
+      echo -e "${BLUE}🔍 DEBUG: Displaying ${CYAN}$LIMITED_COUNT${BLUE} results in human-readable format${NC}" >&2
+
+      echo -e "${GREEN}📋 Search results:${NC}"
+      echo -e "-------------------------------------------"
+
+      # Use jq to iterate through results
+      for i in $(seq 0 $(($LIMITED_COUNT - 1))); do
+        RESULT=$(echo "$LIMITED_RESULTS" | jq --arg i "$i" '.[$i | tonumber]')
+
+        id=$(echo "$RESULT" | jq -r '.id')
+        score=$(echo "$RESULT" | jq -r '.score')
+
+        # Format score as percentage
+        score_percent=$(printf "%.1f" $(echo "$score * 100" | bc -l 2>/dev/null || echo "$score * 100" | awk '{printf "%.1f", $1}'))
+
+        content=$(echo "$RESULT" | jq -r '.content')
+        metadata=$(echo "$RESULT" | jq -r '.metadata')
+
+        # Get file path
+        file_path="$id"
+        if [ ! -f "$file_path" ] && [ -f "$PROJECT_PATH/$id" ]; then
+          file_path="$PROJECT_PATH/$id"
         fi
-      else
-        # Fallback if bc is not available
-        score_percent=$(echo "$score * 100" | awk '{printf "%.1f", $1}')
-      fi
-      content=$(echo "$result" | jq -r '.content')
-      metadata=$(echo "$result" | jq -r '.metadata')
 
-      # Get file path - either full path if file exists at id, or try joining with PROJECT_PATH
-      file_path="$id"
-      if [ ! -f "$file_path" ] && [ -f "$PROJECT_PATH/$id" ]; then
-        file_path="$PROJECT_PATH/$id"
-      fi
+        echo -e "${CYAN}$id${NC} (${YELLOW}${score_percent}%${NC} match)"
 
-      echo -e "${CYAN}$id${NC} (${YELLOW}${score_percent}%${NC} match)"
-
-      if [ "$SHOW_CONTENT" = true ]; then
-        # Check if we have stored content
-        if [ "$content" != "null" ]; then
-          echo -e "${PURPLE}--- Content Preview:${NC}"
-          echo "$content" | head -n 5 # Show first 5 lines
-          if [ $(echo "$content" | wc -l) -gt 5 ]; then
-            echo -e "${PURPLE}...${NC}"
+        if [ "$SHOW_CONTENT" = true ]; then
+          # Show content if available
+          if [ "$content" != "null" ]; then
+            echo -e "${PURPLE}--- Content Preview:${NC}"
+            echo "$content" | head -n 5
+            if [ $(echo "$content" | wc -l) -gt 5 ]; then
+              echo -e "${PURPLE}...${NC}"
+            fi
+            echo -e "${PURPLE}---${NC}"
+          elif [ -f "$file_path" ]; then
+            echo -e "${PURPLE}--- File Preview:${NC}"
+            head -n 5 "$file_path"
+            if [ $(wc -l <"$file_path") -gt 5 ]; then
+              echo -e "${PURPLE}...${NC}"
+            fi
+            echo -e "${PURPLE}---${NC}"
           fi
-          echo -e "${PURPLE}---${NC}"
-        elif [ -f "$file_path" ]; then
-          # If no stored content but file exists, show first few lines of the file
+
+          # Show metadata if available
+          if [ "$metadata" != "null" ] && [ "$metadata" != "{}" ]; then
+            echo -e "${BLUE}Metadata:${NC} $metadata"
+          fi
+        fi
+      done
+
+      echo -e "-------------------------------------------"
+      echo -e "${GREEN}🎉 Search complete!${NC}"
+    fi
+  else
+    # No jq available - this is a critical dependency for JSON mode
+    echo -e "${BLUE}🔍 DEBUG: jq not available${NC}" >&2
+    if [ "$OUTPUT_JSON" = true ]; then
+      # In JSON mode, we really need jq - return an error
+      echo "{\"error\": \"jq command not found. Please install jq for JSON output mode.\"}"
+      echo -e "${YELLOW}⚠️ Warning: jq not installed, cannot process JSON properly${NC}" >&2
+    else
+      echo -e "${YELLOW}⚠️ Warning: jq not found - cannot filter by threshold${NC}"
+      echo -e "${YELLOW}   Install jq for better filtering capabilities${NC}"
+
+      # Basic display of results for human-readable mode without jq
+      # We'll take a simple approach with head/grep/sed
+      echo -e "${BLUE}🔍 DEBUG: Displaying results in basic format without jq${NC}" >&2
+
+      # Apply only limit
+      TOTAL_RESULTS=$(echo "$RESULTS" | wc -l)
+      echo -e "${BLUE}🔍 DEBUG: Total results: ${CYAN}$TOTAL_RESULTS${NC}" >&2
+
+      if [ $TOTAL_RESULTS -gt $LIMIT ]; then
+        echo -e "${BLUE}🔍 DEBUG: Limiting to first ${CYAN}$LIMIT${BLUE} results${NC}" >&2
+        RESULTS=$(echo "$RESULTS" | head -n $LIMIT)
+      fi
+
+      # Basic display of results
+      echo -e "${GREEN}📋 Search results (unfiltered):${NC}"
+      echo -e "-------------------------------------------"
+      echo "$RESULTS" | while read -r line; do
+        id=$(echo "$line" | grep -o '"id": "[^"]*"' | sed 's/"id": "\(.*\)"/\1/')
+        score=$(echo "$line" | grep -o '"score": [0-9.]*' | sed 's/"score": \(.*\)/\1/')
+
+        file_path="$id"
+        if [ ! -f "$file_path" ] && [ -f "$PROJECT_PATH/$id" ]; then
+          file_path="$PROJECT_PATH/$id"
+        fi
+
+        echo -e "${CYAN}$id${NC} (score: ${YELLOW}$score${NC})"
+
+        if [ "$SHOW_CONTENT" = true ] && [ -f "$file_path" ]; then
           echo -e "${PURPLE}--- File Preview:${NC}"
           head -n 5 "$file_path"
           if [ $(wc -l <"$file_path") -gt 5 ]; then
@@ -615,43 +699,19 @@ query_embeddings() {
           fi
           echo -e "${PURPLE}---${NC}"
         fi
+      done
 
-        # Show metadata if available
-        if [ "$metadata" != "null" ] && [ "$metadata" != "{}" ]; then
-          echo -e "${BLUE}Metadata:${NC} $metadata"
-        fi
-      fi
-    done
-  else
-    # Simple parsing without jq
-    echo -e "${BLUE}🔍 DEBUG: Using basic string parsing (no jq)${NC}" >&2
-    echo "$RESULTS" | while read -r line; do
-      # Extract ID and score using basic string manipulation
-      id=$(echo "$line" | grep -o '"id": "[^"]*"' | sed 's/"id": "\(.*\)"/\1/')
-      score=$(echo "$line" | grep -o '"score": [0-9.]*' | sed 's/"score": \(.*\)/\1/')
-      score_percent=$(printf "%.1f" $(echo "$score * 100" | bc -l))
-
-      # Get file path - either full path if file exists at id, or try joining with PROJECT_PATH
-      file_path="$id"
-      if [ ! -f "$file_path" ] && [ -f "$PROJECT_PATH/$id" ]; then
-        file_path="$PROJECT_PATH/$id"
-      fi
-
-      echo -e "${CYAN}$id${NC} (${YELLOW}${score_percent}%${NC} match)"
-
-      if [ "$SHOW_CONTENT" = true ] && [ -f "$file_path" ]; then
-        echo -e "${PURPLE}--- File Preview:${NC}"
-        head -n 5 "$file_path"
-        if [ $(wc -l <"$file_path") -gt 5 ]; then
-          echo -e "${PURPLE}...${NC}"
-        fi
-        echo -e "${PURPLE}---${NC}"
-      fi
-    done
+      echo -e "-------------------------------------------"
+      echo -e "${GREEN}🎉 Search complete!${NC}"
+    fi
   fi
 
-  echo -e "-------------------------------------------"
-  echo -e "${GREEN}🎉 Search complete!${NC}"
+  # Clean up
+  echo -e "${BLUE}🔍 DEBUG: Cleaning up temp files${NC}" >&2
+  rm "$TEMP_RESULTS" 2>/dev/null || true
+
+  echo -e "${BLUE}🔍 DEBUG: query_embeddings_json function complete${NC}" >&2
+  return 0
 }
 # }}}
 
@@ -660,6 +720,12 @@ list_files() {
   local PROJECT_PATH="$1"
   local PATTERN="$2"
 
+  echo -e "${BLUE}🔍 DEBUG: Starting list_files function${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Project path: ${CYAN}$PROJECT_PATH${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Pattern: ${CYAN}$PATTERN${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: DB path: ${CYAN}$DB_PATH${NC}" >&2
+  echo -e "${BLUE}🔍 DEBUG: Collection: ${CYAN}$COLLECTION${NC}" >&2
+
   # Check if the database exists
   if [ ! -f "$DB_PATH" ]; then
     echo -e "${RED}Error: Embeddings database not found at ${CYAN}$DB_PATH${NC}"
@@ -667,24 +733,64 @@ list_files() {
     return 1
   fi
 
+  # First, verify that the collection exists and get all collections
+  echo -e "${BLUE}🔍 DEBUG: Checking available collections in database${NC}" >&2
+  ALL_COLLECTIONS=$(sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+  echo -e "${BLUE}🔍 DEBUG: Found collections: ${CYAN}$ALL_COLLECTIONS${NC}" >&2
+
+  # Check if our specified collection exists
+  if ! echo "$ALL_COLLECTIONS" | grep -q "^$COLLECTION$"; then
+    echo -e "${BLUE}🔍 DEBUG: Collection ${CYAN}$COLLECTION${BLUE} not found${NC}" >&2
+
+    # If the collection doesn't exist, but there's only one collection, use that one
+    if [ "$(echo "$ALL_COLLECTIONS" | wc -l)" -eq 1 ]; then
+      COLLECTION="$ALL_COLLECTIONS"
+      echo -e "${YELLOW}⚠️ Collection '${CYAN}$COLLECTION${YELLOW}' not found, but found only one collection. Using '${CYAN}$COLLECTION${YELLOW}' instead.${NC}"
+    else
+      echo -e "${RED}Error: Collection '${CYAN}$COLLECTION${RED}' not found in database.${NC}"
+      echo -e "${BLUE}🔍 Available collections:${NC}"
+      echo "$ALL_COLLECTIONS" | while read -r coll; do
+        echo -e "   - ${CYAN}$coll${NC}"
+      done
+      echo -e "Use ${GREEN}-c collection_name${NC} to specify which collection to use."
+      return 1
+    fi
+  fi
+
   echo -e "${BLUE}📊 Using collection: ${CYAN}$COLLECTION${NC}"
   echo -e "${BLUE}🔍 Listing files matching pattern: ${CYAN}'$PATTERN'${NC}"
   echo -e "-------------------------------------------"
 
-  # Query the database to get all IDs
-  IDS=$(sqlite3 "$DB_PATH" "SELECT id FROM ${COLLECTION} WHERE id LIKE '%${PATTERN}%' ORDER BY id;")
+  # Check if the pattern is "*" and query the database to get all IDs
+  echo -e "${BLUE}🔍 DEBUG: Querying database for IDs matching pattern: ${CYAN}$PATTERN${NC}" >&2
+
+  # Handle wildcard pattern differently to avoid SQL injection and pattern issues
+  if [ "$PATTERN" = "*" ]; then
+    echo -e "${BLUE}🔍 DEBUG: Using query for all IDs${NC}" >&2
+    IDS=$(sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" ORDER BY id;")
+  else
+    # Escape special characters in pattern for SQL LIKE
+    ESCAPED_PATTERN=$(echo "$PATTERN" | sed 's/[%_]/\\&/g')
+    echo -e "${BLUE}🔍 DEBUG: Using query with LIKE pattern: %${CYAN}$ESCAPED_PATTERN${BLUE}%${NC}" >&2
+    IDS=$(sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" WHERE id LIKE '%$ESCAPED_PATTERN%' ORDER BY id;")
+  fi
+
+  # Debug the SQL results
+  ID_COUNT=$(echo "$IDS" | grep -c "." || echo 0)
+  echo -e "${BLUE}🔍 DEBUG: Query returned ${CYAN}$ID_COUNT${BLUE} IDs${NC}" >&2
 
   # Check if we got any results
   if [ -z "$IDS" ]; then
+    echo -e "${BLUE}🔍 DEBUG: No IDs found matching pattern${NC}" >&2
     echo -e "${YELLOW}❌ No files found matching pattern: '$PATTERN'${NC}"
     # Give a hint about what's in the database
-    TOTAL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM ${COLLECTION};")
+    TOTAL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM \"$COLLECTION\";")
     echo -e "${BLUE}ℹ️ The database contains ${YELLOW}$TOTAL_COUNT${BLUE} total files.${NC}"
 
     # Show a few examples
     if [ "$TOTAL_COUNT" -gt 0 ]; then
       echo -e "${BLUE}ℹ️ Here are a few examples of what's in the database:${NC}"
-      sqlite3 "$DB_PATH" "SELECT id FROM ${COLLECTION} LIMIT 5;" |
+      sqlite3 "$DB_PATH" "SELECT id FROM \"$COLLECTION\" LIMIT 5;" |
         while read -r id; do
           echo -e "   - ${CYAN}$id${NC}"
         done
@@ -694,6 +800,7 @@ list_files() {
 
   # Count results
   COUNT=$(echo "$IDS" | wc -l)
+  echo -e "${BLUE}🔍 DEBUG: Found ${CYAN}$COUNT${BLUE} matching files${NC}" >&2
   echo -e "${GREEN}📋 Found ${YELLOW}$COUNT${GREEN} files matching pattern:${NC}"
 
   # Display results
@@ -707,6 +814,8 @@ list_files() {
   # Provide a sample command to search
   echo -e "${BLUE}ℹ️ To search these files, use:${NC}"
   echo -e "   ${GREEN}$0 query -q \"your search query\"${NC}"
+
+  echo -e "${BLUE}🔍 DEBUG: list_files function complete${NC}" >&2
 }
 # }}}
 
@@ -768,6 +877,7 @@ main() {
   SHOW_CONTENT=false
   INCLUDE_PATTERN=""
   EXCLUDE_PATTERN=""
+  OUTPUT_JSON=false
 
   # Parse command if provided
   if [ $# -gt 0 ] && [[ "$1" != -* ]]; then
@@ -838,6 +948,10 @@ main() {
       EXCLUDE_PATTERN="$2"
       shift 2
       ;;
+    --json)
+      OUTPUT_JSON=true
+      shift
+      ;;
     *)
       PROJECT_DIR="$1"
       shift
@@ -846,13 +960,7 @@ main() {
   done
 
   # Make sure PROJECT_DIR is an absolute path
-  PROJECT_DIR=$(realpath "$PROJECT_DIR" 2>/dev/null || echo "$PROJECT_DIR")
-
-  # Verify the project directory exists
-  if [ ! -d "$PROJECT_DIR" ]; then
-    echo -e "${RED}Error: Project directory '$PROJECT_DIR' does not exist.${NC}"
-    exit 1
-  fi
+  PROJECT_DIR=$(realpath "$PROJECT_DIR")
 
   # Set up paths based on project directory
   setup_paths "$PROJECT_DIR"
@@ -866,11 +974,15 @@ main() {
     ;;
   query)
     if [ -z "$QUERY_TEXT" ]; then
-      echo -e "${YELLOW}No query specified. Use -q \"your query\" to search.${NC}"
+      if [ "$OUTPUT_JSON" = true ]; then
+        echo '{"error": "No query specified. Use -q \"your query\" to search."}'
+      else
+        echo -e "${YELLOW}No query specified. Use -q \"your query\" to search.${NC}"
+      fi
       exit 1
     fi
     check_sqlite
-    query_embeddings "$PROJECT_DIR" "$QUERY_TEXT"
+    query_embeddings_json "$PROJECT_DIR" "$QUERY_TEXT" "$OUTPUT_JSON"
     ;;
   list)
     check_sqlite
@@ -881,8 +993,12 @@ main() {
     show_info "$PROJECT_DIR"
     ;;
   *)
-    echo -e "${RED}Unknown command: $COMMAND${NC}"
-    show_help
+    if [ "$OUTPUT_JSON" = true ]; then
+      echo "{\"error\": \"Unknown command: $COMMAND\"}"
+    else
+      echo -e "${RED}Unknown command: $COMMAND${NC}"
+      show_help
+    fi
     exit 1
     ;;
   esac

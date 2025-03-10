@@ -71,3 +71,20 @@ alias ls="ls"
 alias ll="ls -l"
 alias la="ls -la"
 alias tree="broot"
+
+function update_pr --description "Update PR description with AI-generated summary"
+    set pr_number $argv[1]
+    
+    if test -z "$pr_number"
+        echo "Please provide a PR number"
+        return 1
+    end
+    
+    # Generate the PR summary
+    ~/dotfiles/scripts/gpr.sh $pr_number
+    
+    # Update the PR with the generated summary
+    gh pr edit $pr_number --body-file pr_summary_$pr_number.md
+    
+    echo "PR #$pr_number description updated successfully!"
+end

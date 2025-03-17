@@ -238,6 +238,11 @@ OUTPUT FORMAT:
 - Do not include any markdown tags or backticks in the output
 - NEVER prefix with 'commit message:' or similar text
 - Include body ONLY when the criteria above are met
+
+WORKFLOW:
+-Identify the change.
+-Consider all the types of commit for the change and choose the most appropriate based on the definitions provied above.
+-Revalidate the the selected type and move ahead with scope and description.
 "
   echo "$prompt" | llm --no-stream -m "$model"
 }

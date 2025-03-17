@@ -170,83 +170,69 @@ generate_commit_message() {
   local project_languages="$4"
   local additional_context="$5"
   local model="$6"
-
   # Add context section to prompt if provided
   local context_section=""
   if [ -n "$additional_context" ]; then
     context_section="Additional Context: $additional_context\n\n"
   fi
-
   # Get Nx graph if available
   local nx_graph=$(get_nx_graph || echo "")
   local nx_section=""
   if [ -n "$nx_graph" ]; then
     nx_section="Project Graph:\n$nx_graph\n\n"
   fi
-
   local prompt="
 Generate a precise and meaningful conventional commit message strictly following the Conventional Commits specification (https://www.conventionalcommits.org/).
 ${context_section}${nx_section}
-
 COMMIT STRUCTURE REQUIREMENTS:
 1. HEADER (REQUIRED):
    <type>(<scope>): <description>
-
 2. BODY (CONDITIONAL):
    [blank line]
    <body>
-
 3. FOOTER (OPTIONAL for breaking changes):
    [blank line]
    BREAKING CHANGE: <description>
-
-TYPE (REQUIRED):
-- feat: A new feature
-- fix: A bug fix
-- docs: Documentation changes only
-- style: Changes that don't affect code meaning (formatting, whitespace)
-- refactor: Code changes that neither fix bugs nor add features
-- perf: Performance improvements
-- test: Adding or correcting tests
-- build: Changes to build system or dependencies
-- ci: Changes to CI configuration files and scripts
-- chore: Other changes that don't modify src or test files
-
+TYPE (REQUIRED) - Analyze the diff carefully to determine the most accurate type:
+- feat: A new feature or functionality that didn't exist before. Look for new functions, components, API endpoints, or user-facing capabilities.
+- fix: A bug fix addressing incorrect behavior. Look for condition corrections, edge case handling, or changes that restore intended functionality.
+- docs: Documentation changes only. Look for updates to comments, README files, documentation files, or JSDoc/TSDoc annotations with no functional code changes.
+- style: Formatting changes that don't affect code meaning. Look for whitespace, semicolon, indentation, or code style changes without logic modifications.
+- refactor: Code restructuring without behavior changes. Look for method extractions, file reorganizations, or code simplifications that maintain the same functionality.
+- perf: Performance improvements. Look for optimizations, algorithm improvements, caching mechanisms, or changes that make the code run faster.
+- test: Changes to test files or testing infrastructure. Look for new tests, test fixes, or test infrastructure updates.
+- build: Changes affecting build system or external dependencies. Look for package.json, webpack, gradle, or dependency version changes.
+- ci: Changes to CI configuration. Look for updates to GitHub Actions, Jenkins, Travis, CircleCI files, or other CI pipeline configurations.
+- chore: Other changes that don't modify src or test files. Look for maintenance tasks, tooling updates, or changes not fitting other categories.
 SCOPE (RECOMMENDED):
 - Specific component, module, or area affected (e.g., auth, api, ui)
 - Use filename or directory when the scope is clear from the file context
 - Use 'deps' for dependency updates
 - Omit scope when changes affect multiple areas with no clear primary component
-
 DESCRIPTION (REQUIRED):
 - Use imperative, present tense (\"add\" not \"added\" or \"adds\")
 - Start with lowercase
 - No period at the end
 - Keep under 72 characters
 - Be specific about what changed, not why it changed
-
 BODY (ONLY INCLUDE WHEN):
 1. Changes affect multiple components requiring explanation of relationships
 2. Complex implementation details need clarification
 3. Breaking changes require migration instructions
 4. Bug fixes should explain root cause and solution approach
 5. Architectural decisions with significant impacts need justification
-
 BREAKING CHANGES:
 - Mark in header: <type>(<scope>)!: <description>
 - AND/OR add footer: BREAKING CHANGE: <description with migration instructions>
-
 Context Information:
 Modified Files: ${files}
 Project Languages: ${project_languages}
 Project Structure:
 ${project_structure}
-
 Changes:
 \`\`\`diff
 ${diff}
 \`\`\`
-
 OUTPUT FORMAT:
 - Return ONLY the commit message text
 - Do not include any markdown tags or backticks in the output

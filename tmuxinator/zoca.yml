@@ -1,0 +1,50 @@
+# /Users/peritissimus/.tmuxinator/zoca.yml
+
+name: zoca
+root: ~/
+
+windows:
+  - pybench:
+      root: ~/projects/pybench/
+      layout: main-horizontal
+      panes:
+        - 
+        -
+        -
+
+  - raft:
+      root: ~/projects/raft/
+      layout: main-horizontal
+      panes:
+        - 
+        -
+        -
+
+  - raft:
+      root: ~/projects/zoca-websites/
+      layout: main-horizontal
+      panes:
+        - 
+        -
+        -
+
+  - mononest:
+      root: ~/projects/mononest/
+      layout: main-horizontal
+      pre_window: startenv
+      panes:
+        - nvim
+        - git fetch
+
+  - dotfiles:
+      root: ~/dotfiles/
+
+  - servers:
+      root: ~/
+      panes:
+        - redis-server
+        - redis-cli
+        - 
+        -  
+        - 
+        -  

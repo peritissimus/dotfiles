@@ -20,7 +20,7 @@ windows:
         -
         -
 
-  - raft:
+  - www:
       root: ~/projects/zoca-websites/
       layout: main-horizontal
       panes:

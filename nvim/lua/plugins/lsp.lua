@@ -75,9 +75,6 @@ return {
       },
       servers = {
         terraformls = {},
-        bash_ls = {
-          filetypes = { "sh", "zsh", "fish" }
-        },
         vtsls = {
           enabled = false,
           filetypes = {

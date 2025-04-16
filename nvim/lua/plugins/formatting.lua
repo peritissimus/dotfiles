@@ -48,6 +48,12 @@ return {
           javascriptreact = { "prettierd", "prettier" },
           typescriptreact = { "prettierd", "prettier" },
           python = { "ruff_fix", "ruff_format" },
+          css = { "prettierd", "prettier" },
+          html = { "prettierd", "prettier" },
+          json = { "prettierd", "prettier" },
+          jsonc = { "prettierd", "prettier" },
+          markdown = { "prettierd", "prettier" },
+          yaml = { "prettierd", "prettier" },
         },
 
         ---@type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>

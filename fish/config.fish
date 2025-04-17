@@ -87,3 +87,7 @@ function update_pr --description "Update PR description with AI-generated summar
     
     echo "PR #$pr_number description updated successfully!"
 end
+set -gx PATH $PATH /opt/homebrew/Cellar/tmuxinator/3.3.3/libexec
+
+# Load Linear CLI aliases
+source /Users/peritissimus/.config/fish/linear_aliases.fish

@@ -50,6 +50,7 @@ return {
           python = { "ruff_fix", "ruff_format" },
           css = { "prettierd", "prettier" },
           html = { "prettierd", "prettier" },
+          astro = { "prettierd", "prettier" },
           json = { "prettierd", "prettier" },
           jsonc = { "prettierd", "prettier" },
           markdown = { "prettierd", "prettier" },

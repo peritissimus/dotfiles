@@ -23,6 +23,7 @@ return {
         "lua",
         "terraform",
         "hcl",
+        "astro",
       },
 
       -- matchup = {
@@ -58,6 +59,9 @@ return {
     config = function(_, opts)
       require("nvim-treesitter.configs").setup(opts)
       require("nvim-treesitter.install").compilers = { "zig", "clang", "gcc" }
+      -- Filetype detection for Astro
+      vim.filetype.add({ extension = { astro = "astro" } })
+      vim.treesitter.language.register("astro", "astro")
 
       -- -- MDX
       -- vim.filetype.add({

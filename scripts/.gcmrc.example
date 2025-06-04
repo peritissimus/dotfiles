@@ -1,0 +1,32 @@
+# GCM Configuration File Example
+# Copy to .gcmrc in your project root to customize behavior
+
+# LLM model to use (default: gpt-4o-mini)
+# Options: gpt-4, gpt-4-turbo-preview, gpt-3.5-turbo, etc.
+model=gpt-4o-mini
+
+# Maximum diff size in characters (default: 50000)
+# Larger diffs will be truncated
+max_diff_size=50000
+
+# Maximum estimated tokens (default: 2000)
+# Prevents expensive API calls
+max_tokens=2000
+
+# Commit message format (future feature)
+# Options: conventional, angular, custom
+commit_format=conventional
+
+# Additional patterns to detect as secrets (regex)
+# One pattern per line, will be added to built-in patterns
+# custom_secret_patterns=(
+#   'MYCOMPANY_[A-Z0-9]{32}'
+#   'internal.*token.*=.*[a-zA-Z0-9]{16,}'
+# )
+
+# Files/patterns to exclude from diff (gitignore syntax)
+# exclude_patterns=(
+#   '*.min.js'
+#   'package-lock.json'
+#   'yarn.lock'
+# )

@@ -13,12 +13,14 @@ readonly MAX_TOKENS=${GCM_MAX_TOKENS:-2000}        # Max estimated tokens
 readonly DEFAULT_MODEL=${GCM_MODEL:-gpt-4o-mini}
 readonly CACHE_TTL=${GCM_CACHE_TTL:-604800}        # Cache TTL in seconds (1 week)
 
-# Gum styles
-readonly ERROR_STYLE="foreground=160"
-readonly SUCCESS_STYLE="foreground=120"
-readonly WARNING_STYLE="foreground=220"
-readonly INFO_STYLE="foreground=39"
-readonly DIM_STYLE="foreground=240"
+# Gum styles using terminal colors
+readonly ERROR_STYLE="foreground=9"       # Bright Red
+readonly SUCCESS_STYLE="foreground=10"    # Bright Green
+readonly WARNING_STYLE="foreground=11"    # Bright Yellow
+readonly INFO_STYLE="foreground=14"       # Bright Cyan
+readonly DIM_STYLE="foreground=8"         # Bright Black (Gray)
+readonly ACCENT_STYLE="foreground=13"     # Bright Magenta
+readonly HEADER_STYLE="foreground=12"     # Bright Blue
 
 # Logging utilities using gum
 log_info() { gum style --$INFO_STYLE "ℹ $1"; }
@@ -377,7 +379,7 @@ Rules:
   # Try local LLM first if requested
   if [[ "$use_local" == "true" ]] && check_local_llm; then
     log_debug "Using local LLM (Ollama)"
-    local result=$(echo "$prompt" | gum spin --spinner dot --title "Generating with local LLM..." -- ollama run codellama --quiet 2>/dev/null || echo "")
+    local result=$(echo "$prompt" | gum spin --spinner dots --title "Generating with local LLM..." --spinner.foreground="13" -- ollama run codellama --quiet 2>/dev/null || echo "")
     if [[ -n "$result" ]]; then
       echo "$result"
       return 0
@@ -387,7 +389,7 @@ Rules:
   
   # Call remote LLM with spinner
   if command -v llm &>/dev/null; then
-    echo "$prompt" | gum spin --spinner dot --title "Generating commit message..." -- llm -m "$model" --no-stream 2>/dev/null
+    echo "$prompt" | gum spin --spinner dots --title "Generating commit message..." --spinner.foreground="13" -- llm -m "$model" --no-stream 2>/dev/null
   else
     log_error "llm CLI not found. Please install: pip install llm"
     return 1
@@ -418,7 +420,7 @@ interactive_stage() {
   fi
   
   log_info "Select files to stage:"
-  local selected_files=$(echo "$unstaged_files" | gum choose --no-limit --height 10 --header "Select files to stage (Space to select, Enter to confirm):")
+  local selected_files=$(echo "$unstaged_files" | gum choose --no-limit --height 10 --header "Select files to stage (Space to select, Enter to confirm):" --selected.foreground="10")
   
   if [[ -n "$selected_files" ]]; then
     echo "$selected_files" | xargs git add
@@ -436,6 +438,18 @@ main() {
     log_error "Not a git repository"
     exit 1
   fi
+  
+  # Show header
+  gum style \
+    --foreground 13 \
+    --border-foreground 13 \
+    --border double \
+    --align center \
+    --width 50 \
+    --margin "1 2" \
+    --padding "1 2" \
+    "🚀 Git Commit Message Generator" \
+    "Enhanced with Gum"
   
   # Load configuration
   load_config
@@ -469,7 +483,7 @@ main() {
         exit 0
         ;;
       -h|--help) 
-        gum style --border normal --padding "1 2" --margin "1" --$INFO_STYLE \
+        gum style --border double --padding "1 2" --margin "1" --border-foreground 14 --$HEADER_STYLE \
           "$(cat << 'EOF'
 Git Commit Message Generator - Gum Enhanced
 
@@ -518,7 +532,7 @@ EOF
   local staged_status=$(git diff --cached --name-status)
   if [[ -z "$staged_status" ]]; then
     log_error "No staged changes found"
-    if gum confirm --$WARNING_STYLE "Would you like to interactively stage files?"; then
+    if gum confirm "Would you like to interactively stage files?"; then
       interactive_stage
       staged_status=$(git diff --cached --name-status)
       if [[ -z "$staged_status" ]]; then
@@ -543,7 +557,7 @@ EOF
   # Dry run mode
   if [[ "$dry_run" == "true" ]]; then
     local tokens=$(estimate_tokens "$staged_diff")
-    gum style --border normal --padding "1 2" --$INFO_STYLE \
+    gum style --border normal --padding "1 2" --border-foreground 14 --$INFO_STYLE \
       "Token estimate: $tokens (max: $MAX_TOKENS)
 Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
     exit 0
@@ -554,7 +568,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
     if ! get_api_key >/dev/null; then
       log_error "OpenAI API key not found"
       gum style --$DIM_STYLE "Get your API key from: https://platform.openai.com/api-keys"
-      api_key=$(gum input --placeholder "Enter your OpenAI API key" --password)
+      api_key=$(gum input --placeholder "Enter your OpenAI API key" --password --prompt.foreground="14")
       if [[ -z "$api_key" ]]; then
         log_error "API key is required"
         exit 1
@@ -578,7 +592,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
   
   # Display generated message with formatting
   echo
-  gum style --border rounded --padding "1 2" --border-foreground 220 --$SUCCESS_STYLE \
+  gum style --border rounded --padding "1 2" --border-foreground 10 --$HEADER_STYLE \
     "Generated message:" \
     "" \
     "$commit_message"
@@ -592,13 +606,13 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
   while true; do
     echo
     local choice=$(gum choose \
-      "$(gum style --$SUCCESS_STYLE 'Use this message')" \
-      "$(gum style --$WARNING_STYLE 'Edit message')" \
-      "$(gum style --$WARNING_STYLE 'Regenerate')" \
-      "$(gum style --$WARNING_STYLE 'Add context')" \
-      "$(gum style --$INFO_STYLE 'View diff')" \
-      "$(gum style --$ERROR_STYLE 'Cancel')" \
-      --header "What would you like to do?")
+      "$(gum style --foreground 10 '✓ Use this message')" \
+      "$(gum style --foreground 11 '✏️  Edit message')" \
+      "$(gum style --foreground 11 '🔄 Regenerate')" \
+      "$(gum style --foreground 11 '➕ Add context')" \
+      "$(gum style --foreground 14 '👁  View diff')" \
+      "$(gum style --foreground 9 '✗ Cancel')" \
+      --header "What would you like to do?" --cursor.foreground="13")
     
     case "$choice" in
       *"Use this message"*)
@@ -616,7 +630,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
         ;;
       *"Edit message"*)
         # Edit message with gum
-        commit_message=$(echo "$commit_message" | gum write --width 72 --height 10 --header "Edit commit message:")
+        commit_message=$(echo "$commit_message" | gum write --width 72 --height 10 --header "Edit commit message:" --header.foreground="14")
         
         # Re-validate
         if ! validate_commit_message "$commit_message"; then
@@ -624,7 +638,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
         fi
         
         echo
-        gum style --border rounded --padding "1 2" --$INFO_STYLE \
+        gum style --border rounded --padding "1 2" --border-foreground 14 --$INFO_STYLE \
           "Updated message:" \
           "" \
           "$commit_message"
@@ -636,13 +650,13 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
           continue
         fi
         echo
-        gum style --border rounded --padding "1 2" --$SUCCESS_STYLE \
+        gum style --border rounded --padding "1 2" --border-foreground 10 --$SUCCESS_STYLE \
           "New message:" \
           "" \
           "$commit_message"
         ;;
       *"Add context"*)
-        new_context=$(gum input --placeholder "Enter additional context" --width 50)
+        new_context=$(gum input --placeholder "Enter additional context" --width 50 --prompt.foreground="14")
         context="${context:+$context. }$new_context"
         commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$context" "$model" "$use_local")
         if [[ -z "$commit_message" ]]; then
@@ -650,14 +664,14 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
           continue
         fi
         echo
-        gum style --border rounded --padding "1 2" --$SUCCESS_STYLE \
+        gum style --border rounded --padding "1 2" --border-foreground 10 --$SUCCESS_STYLE \
           "New message with context:" \
           "" \
           "$commit_message"
         ;;
       *"View diff"*)
         # Show diff with gum pager
-        git diff --cached | gum pager
+        git diff --cached --color=always | gum pager
         ;;
       *"Cancel"*)
         log_info "Commit cancelled"

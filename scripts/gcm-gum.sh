@@ -8,8 +8,8 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || echo .git)"
 readonly CACHE_DIR="${GIT_DIR}/gcm-cache"
 readonly CONFIG_FILE="${GCM_CONFIG:-.gcmrc}"
-readonly MAX_DIFF_SIZE=${GCM_MAX_DIFF_SIZE:-50000}  # Max characters to send to API
-readonly MAX_TOKENS=${GCM_MAX_TOKENS:-2000}        # Max estimated tokens
+readonly MAX_DIFF_SIZE=${GCM_MAX_DIFF_SIZE:-100000} # Max characters to send to API
+readonly MAX_TOKENS=${GCM_MAX_TOKENS:-4000}         # Max estimated tokens
 readonly DEFAULT_MODEL=${GCM_MODEL:-gpt-4o-mini}
 readonly CACHE_TTL=${GCM_CACHE_TTL:-604800}        # Cache TTL in seconds (1 week)
 
@@ -88,7 +88,8 @@ estimate_tokens() {
   local word_count=$(echo "$text" | wc -w | tr -d ' ')
   
   # Use character-based estimation for code-heavy content
-  local estimated_tokens=$((char_count / 3))
+  # Better estimation: ~4 chars per token for code diffs
+  local estimated_tokens=$((char_count / 4))
   
   log_debug "Characters: $char_count, Words: $word_count, Estimated tokens: $estimated_tokens"
   echo "$estimated_tokens"
@@ -224,10 +225,10 @@ create_sample_config() {
 model=gpt-4o-mini
 
 # Maximum tokens for prompt (affects cost)
-max_tokens=2000
+max_tokens=4000
 
 # Maximum diff size in characters
-max_diff_size=50000
+max_diff_size=100000
 
 # Cache TTL in seconds (604800 = 1 week)
 cache_ttl=604800
@@ -372,14 +373,21 @@ Rules:
   # Estimate tokens
   local tokens=$(estimate_tokens "$prompt")
   if [[ $tokens -gt $MAX_TOKENS ]]; then
-    log_error "Prompt too large ($tokens tokens). Please stage fewer changes."
+    log_error "Prompt too large ($tokens tokens, max: $MAX_TOKENS)"
+    log_warning "Options:"
+    log_warning "  1. Stage fewer files"
+    log_warning "  2. Set GCM_MAX_TOKENS environment variable"
+    log_warning "  3. Use a model with higher token limit"
     return 1
+  elif [[ $tokens -gt $((MAX_TOKENS * 80 / 100)) ]]; then
+    log_warning "Approaching token limit: $tokens/$MAX_TOKENS tokens"
   fi
   
   # Try local LLM first if requested
   if [[ "$use_local" == "true" ]] && check_local_llm; then
     log_debug "Using local LLM (Ollama)"
-    local result=$(echo "$prompt" | gum spin --spinner dots --title "Generating with local LLM..." --spinner.foreground="13" -- ollama run codellama --quiet 2>/dev/null || echo "")
+    log_info "Generating with local LLM..."
+    local result=$(echo "$prompt" | ollama run codellama --quiet 2>/dev/null)
     if [[ -n "$result" ]]; then
       echo "$result"
       return 0
@@ -387,9 +395,11 @@ Rules:
     log_warning "Local LLM failed, falling back to API"
   fi
   
-  # Call remote LLM with spinner
+  # Call remote LLM
   if command -v llm &>/dev/null; then
-    echo "$prompt" | gum spin --spinner dots --title "Generating commit message..." --spinner.foreground="13" -- llm -m "$model" --no-stream 2>/dev/null
+    # Show status message to stderr so it doesn't mix with output
+    gum style --foreground 13 "🤖 Generating commit message..." >&2
+    echo "$prompt" | llm --no-stream -m "$model" 2>/dev/null
   else
     log_error "llm CLI not found. Please install: pip install llm"
     return 1
@@ -401,10 +411,12 @@ validate_commit_message() {
   local message="$1"
   # Only validate the first line (header)
   local first_line=$(echo "$message" | head -1)
-  local pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([a-z0-9\-]+\))?!?: .{1,72}$'
+  # Fixed regex: allow multiple path separators and mixed case in scope
+  local pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([a-zA-Z0-9\-/._]+\))?!?: .{1,72}$'
   
   if [[ ! "$first_line" =~ $pattern ]]; then
-    log_warning "Generated message doesn't match conventional format"
+    log_debug "Message validation failed: $first_line"
+    log_debug "Pattern: $pattern"
     return 1
   fi
   return 0
@@ -585,10 +597,8 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
     exit 1
   fi
   
-  # Validate message
-  if ! validate_commit_message "$commit_message"; then
-    log_warning "Invalid format. Edit before committing."
-  fi
+  # Validate message (silently for initial generation)
+  validate_commit_message "$commit_message" >/dev/null 2>&1
   
   # Display generated message with formatting
   echo
@@ -632,10 +642,8 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
         # Edit message with gum
         commit_message=$(echo "$commit_message" | gum write --width 72 --height 10 --header "Edit commit message:" --header.foreground="14")
         
-        # Re-validate
-        if ! validate_commit_message "$commit_message"; then
-          log_warning "Edited message doesn't match conventional format"
-        fi
+        # Re-validate (silently)
+        validate_commit_message "$commit_message" >/dev/null 2>&1
         
         echo
         gum style --border rounded --padding "1 2" --border-foreground 14 --$INFO_STYLE \

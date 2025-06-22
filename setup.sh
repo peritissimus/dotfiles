@@ -240,6 +240,9 @@ fi
 log "Setting up Alacritty..."
 create_symlink "$DOTFILES_DIR/alacritty" "$CONFIG_HOME/alacritty"
 
+log "Setting up Ghostty..."
+create_symlink "$DOTFILES_DIR/ghostty/config" "$CONFIG_HOME/ghostty/config"
+
 log "Setting up Neovim..."
 create_symlink "$DOTFILES_DIR/nvim" "$CONFIG_HOME/nvim"
 

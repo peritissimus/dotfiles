@@ -3,7 +3,7 @@
 # Font Configuration
 font-family = FiraCode Nerd Font
 font-size = 12
-font-thicken = true
+font-style = SemiBold
 
 # Window Configuration
 # window-padding-x = 8

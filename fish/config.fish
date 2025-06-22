@@ -90,7 +90,5 @@ function update_pr --description "Update PR description with AI-generated summar
 end
 set -gx PATH $PATH /opt/homebrew/Cellar/tmuxinator/3.3.3/libexec
 
-# Load Linear CLI aliases
-source /Users/peritissimus/.config/fish/linear_aliases.fish
 # Garmin Connect IQ SDK
 set -x PATH $PATH "/Users/peritissimus/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-8.2.0-2025-05-27-67ddf1dcb/bin"

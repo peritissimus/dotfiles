@@ -4,12 +4,18 @@ format = """
 $directory\
 $git_branch\
 $git_status\
+$docker_context\
+$golang\
 $nodejs\
 $python\
-$cmd_duration\
-$time\
+$jobs\
+$status\
 $line_break\
 $character"""
+
+right_format = """
+$cmd_duration\
+$time"""
 
 [character]
 success_symbol = "[❯](cyan)"
@@ -40,27 +46,91 @@ staged = "[+](green)"
 renamed = "[»](blue)"
 deleted = "[✘](red)"
 
-[nodejs]
+[docker_context]
+format = "[$symbol$context]($style) "
+symbol = " "
+style = "blue"
+only_with_files = false
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile"]
+detect_folders = []
+disabled = false
+
+[golang]
 format = "[$symbol$version]($style) "
+symbol = " "
+style = "cyan"
+detect_extensions = ["go"]
+detect_files = ["go.mod", "go.sum", "glide.yaml", "Gopkg.yml", "Gopkg.lock", ".go-version"]
+detect_folders = ["Godeps"]
+
+[nodejs]
+format = "[$symbol($version )]($style)"
 symbol = "󰎙 " # nf-dev-nodejs_small
-detect_files = ["package.json", ".node-version", ".nvmrc"]
+style = "green"
+detect_extensions = ["js", "mjs", "cjs", "ts", "mts", "cts"]
+detect_files = ["package.json", ".node-version", ".nvmrc", "tsconfig.json"]
+detect_folders = ["node_modules"]
 disabled = false
 
 [python]
-format = "[$symbol$version]($style) "
+format = "[$symbol($version )]($style)"
 symbol = "󰌠 "
-detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "Pipfile", "__init__.py"]
+style = "yellow"
+detect_extensions = ["py"]
+detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "Pipfile", "tox.ini", "setup.py", "__init__.py"]
+detect_folders = [".venv", "venv", ".virtualenv"]
 disabled = false
 
 [fill]
 disabled = true # Removed fill for compactness
 
+[jobs]
+format = "[$symbol$number]($style) "
+symbol = "✦ "
+style = "yellow"
+number_threshold = 1
+symbol_threshold = 1
+
+[status]
+format = "[$symbol$status]($style) "
+symbol = "✖ "
+success_symbol = ""
+style = "red"
+disabled = false
+
 [cmd_duration]
 disabled = false
-format = "[$duration]($style)"
+format = "[$duration]($style) "
 min_time = 2000
+style = "yellow dimmed"
 
 [time]
 disabled = false
-format = " [$time]($style)"
+format = "[$time]($style) "
 style = "dimmed"
+time_format = "%T"
+
+[custom.nx]
+command = '''
+dir="$PWD"
+while [ "$dir" != "/" ]; do
+  if [ -f "$dir/nx.json" ]; then
+    echo "nx"
+    exit 0
+  fi
+  dir=$(dirname "$dir")
+done
+'''
+when = '''
+dir="$PWD"
+while [ "$dir" != "/" ]; do
+  [ -f "$dir/nx.json" ] && exit 0
+  dir=$(dirname "$dir")
+done
+exit 1
+'''
+format = "[$symbol$output]($style) "
+symbol = "⬢ "
+style = "purple"
+description = "Shows Nx workspace name when in monorepo"
+disabled = true

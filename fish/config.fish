@@ -1,4 +1,3 @@
-# Place at the top since it affects everything below
 set fish_greeting
 
 # Group environment variables together

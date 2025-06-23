@@ -6,9 +6,9 @@ font-size = 12
 font-style = Medium 
 
 # Window Configuration
-# window-padding-x = 8
-# window-padding-y = 8
-# window-decoration = none 
+window-padding-x = 8
+window-padding-y = 8
+window-decoration = none 
 background-opacity = 0.8
 background-blur-radius = 30
 macos-option-as-alt = true

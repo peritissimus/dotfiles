@@ -13,14 +13,19 @@ readonly MAX_TOKENS=${GCM_MAX_TOKENS:-4000}         # Max estimated tokens
 readonly DEFAULT_MODEL=${GCM_MODEL:-gpt-4o-mini}
 readonly CACHE_TTL=${GCM_CACHE_TTL:-604800}        # Cache TTL in seconds (1 week)
 
-# Gum styles using terminal colors
-readonly ERROR_STYLE="foreground=9"       # Bright Red
-readonly SUCCESS_STYLE="foreground=10"    # Bright Green
-readonly WARNING_STYLE="foreground=11"    # Bright Yellow
-readonly INFO_STYLE="foreground=14"       # Bright Cyan
-readonly DIM_STYLE="foreground=8"         # Bright Black (Gray)
-readonly ACCENT_STYLE="foreground=13"     # Bright Magenta
-readonly HEADER_STYLE="foreground=12"     # Bright Blue
+# Gum styles using grey shades and blue accent colors
+readonly PRIMARY_COLOR="foreground=12"    # Blue as primary color
+readonly SECONDARY_COLOR="foreground=14"  # Light blue (cyan) as secondary color
+readonly GREY_LIGHT="foreground=15"       # Light grey
+readonly GREY_MEDIUM="foreground=7"       # Medium grey  
+readonly GREY_DARK="foreground=8"         # Dark grey
+readonly ERROR_STYLE="foreground=9"       # Keep red for errors
+readonly SUCCESS_STYLE="$PRIMARY_COLOR"   # Use primary for success
+readonly WARNING_STYLE="$SECONDARY_COLOR" # Use secondary for warnings
+readonly INFO_STYLE="$GREY_LIGHT"        # Light grey for info
+readonly DIM_STYLE="$GREY_DARK"          # Dark grey for dim text
+readonly ACCENT_STYLE="$PRIMARY_COLOR"   # Primary for accents
+readonly HEADER_STYLE="$PRIMARY_COLOR"   # Primary for headers
 
 # Logging utilities using gum
 log_info() { gum style --$INFO_STYLE "ℹ $1"; }
@@ -398,7 +403,7 @@ Rules:
   # Call remote LLM
   if command -v llm &>/dev/null; then
     # Show status message to stderr so it doesn't mix with output
-    gum style --foreground 13 "🤖 Generating commit message..." >&2
+    gum style --$ACCENT_STYLE "🤖 Generating commit message..." >&2
     echo "$prompt" | llm --no-stream -m "$model" 2>/dev/null
   else
     log_error "llm CLI not found. Please install: pip install llm"
@@ -453,8 +458,8 @@ main() {
   
   # Show header
   gum style \
-    --foreground 13 \
-    --border-foreground 13 \
+    --$PRIMARY_COLOR \
+    --border-$PRIMARY_COLOR \
     --border double \
     --align center \
     --width 50 \
@@ -495,7 +500,7 @@ main() {
         exit 0
         ;;
       -h|--help) 
-        gum style --border double --padding "1 2" --margin "1" --border-foreground 14 --$HEADER_STYLE \
+        gum style --border double --padding "1 2" --margin "1" --border-$PRIMARY_COLOR --$HEADER_STYLE \
           "$(cat << 'EOF'
 Git Commit Message Generator - Gum Enhanced
 
@@ -569,7 +574,7 @@ EOF
   # Dry run mode
   if [[ "$dry_run" == "true" ]]; then
     local tokens=$(estimate_tokens "$staged_diff")
-    gum style --border normal --padding "1 2" --border-foreground 14 --$INFO_STYLE \
+    gum style --border normal --padding "1 2" --border-$GREY_MEDIUM --$INFO_STYLE \
       "Token estimate: $tokens (max: $MAX_TOKENS)
 Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
     exit 0
@@ -580,7 +585,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
     if ! get_api_key >/dev/null; then
       log_error "OpenAI API key not found"
       gum style --$DIM_STYLE "Get your API key from: https://platform.openai.com/api-keys"
-      api_key=$(gum input --placeholder "Enter your OpenAI API key" --password --prompt.foreground="14")
+      api_key=$(gum input --placeholder "Enter your OpenAI API key" --password --prompt.$PRIMARY_COLOR)
       if [[ -z "$api_key" ]]; then
         log_error "API key is required"
         exit 1
@@ -602,7 +607,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
   
   # Display generated message with formatting
   echo
-  gum style --border rounded --padding "1 2" --border-foreground 10 --$HEADER_STYLE \
+  gum style --border rounded --padding "1 2" --border-$PRIMARY_COLOR --$HEADER_STYLE \
     "Generated message:" \
     "" \
     "$commit_message"
@@ -616,13 +621,13 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
   while true; do
     echo
     local choice=$(gum choose \
-      "$(gum style --foreground 10 '✓ Use this message')" \
-      "$(gum style --foreground 11 '✏️  Edit message')" \
-      "$(gum style --foreground 11 '🔄 Regenerate')" \
-      "$(gum style --foreground 11 '➕ Add context')" \
-      "$(gum style --foreground 14 '👁  View diff')" \
-      "$(gum style --foreground 9 '✗ Cancel')" \
-      --header "What would you like to do?" --cursor.foreground="13")
+      "$(gum style --$PRIMARY_COLOR '✓ Use this message')" \
+      "$(gum style --$GREY_LIGHT '✏️  Edit message')" \
+      "$(gum style --$GREY_LIGHT '🔄 Regenerate')" \
+      "$(gum style --$GREY_LIGHT '➕ Add context')" \
+      "$(gum style --$GREY_MEDIUM '👁  View diff')" \
+      "$(gum style --$SECONDARY_COLOR '✗ Cancel')" \
+      --header "What would you like to do?" --cursor.$PRIMARY_COLOR)
     
     case "$choice" in
       *"Use this message"*)
@@ -646,7 +651,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
         validate_commit_message "$commit_message" >/dev/null 2>&1
         
         echo
-        gum style --border rounded --padding "1 2" --border-foreground 14 --$INFO_STYLE \
+        gum style --border rounded --padding "1 2" --border-$GREY_MEDIUM --$INFO_STYLE \
           "Updated message:" \
           "" \
           "$commit_message"
@@ -658,13 +663,13 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
           continue
         fi
         echo
-        gum style --border rounded --padding "1 2" --border-foreground 10 --$SUCCESS_STYLE \
+        gum style --border rounded --padding "1 2" --border-$PRIMARY_COLOR --$SUCCESS_STYLE \
           "New message:" \
           "" \
           "$commit_message"
         ;;
       *"Add context"*)
-        new_context=$(gum input --placeholder "Enter additional context" --width 50 --prompt.foreground="14")
+        new_context=$(gum input --placeholder "Enter additional context" --width 50 --prompt.$PRIMARY_COLOR)
         context="${context:+$context. }$new_context"
         commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$context" "$model" "$use_local")
         if [[ -z "$commit_message" ]]; then
@@ -672,7 +677,7 @@ Diff size: ${#staged_diff} characters (max: $MAX_DIFF_SIZE)"
           continue
         fi
         echo
-        gum style --border rounded --padding "1 2" --border-foreground 10 --$SUCCESS_STYLE \
+        gum style --border rounded --padding "1 2" --border-$PRIMARY_COLOR --$SUCCESS_STYLE \
           "New message with context:" \
           "" \
           "$commit_message"

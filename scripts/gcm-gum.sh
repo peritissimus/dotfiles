@@ -432,7 +432,7 @@ interactive_stage() {
   fi
   
   log_info "Select files to stage:"
-  local selected_files=$(echo "$unstaged_files" | gum choose --no-limit --height 10 --header "Select files to stage (Space to select, Enter to confirm):" --selected.foreground="10")
+  local selected_files=$(echo "$unstaged_files" | gum choose --no-limit --height 10 --header "Select files to stage (Space to select, Enter to confirm):")
   
   if [[ -n "$selected_files" ]]; then
     echo "$selected_files" | xargs git add

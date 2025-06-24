@@ -14,14 +14,14 @@ local function save_session(window)
     tabs = {},
     timestamp = os.time(),
   }
-  
+
   local tabs = window:mux_window():tabs()
   for _, tab in ipairs(tabs) do
     local tab_data = {
       title = tab:get_title(),
       panes = {},
     }
-    
+
     -- Get panes in the tab
     local panes = tab:panes_with_info()
     for _, pane_info in ipairs(panes) do
@@ -38,10 +38,10 @@ local function save_session(window)
         })
       end
     end
-    
+
     table.insert(session_data.tabs, tab_data)
   end
-  
+
   -- Write to file
   local file = io.open(session_file, 'w')
   if file then
@@ -58,23 +58,23 @@ local function restore_session(window)
     window:toast_notification('WezTerm', 'No saved session found', nil, 2000)
     return
   end
-  
+
   local content = file:read('*a')
   file:close()
-  
+
   local ok, session_data = pcall(wezterm.json_parse, content)
   if not ok then
     window:toast_notification('WezTerm', 'Failed to parse session file', nil, 2000)
     return
   end
-  
+
   -- Close all existing tabs except the first one
   local existing_tabs = window:mux_window():tabs()
   for i = #existing_tabs, 2, -1 do
     existing_tabs[i]:activate()
     window:perform_action(wezterm.action.CloseCurrentTab { confirm = false }, existing_tabs[i]:active_pane())
   end
-  
+
   -- Recreate tabs
   for i, tab_data in ipairs(session_data.tabs) do
     local tab, pane
@@ -92,9 +92,9 @@ local function restore_session(window)
         cwd = #tab_data.panes > 0 and tab_data.panes[1].cwd or wezterm.home_dir,
       }
     end
-    
+
     tab:set_title(tab_data.title)
-    
+
     -- Note: WezTerm doesn't support restoring exact pane layouts,
     -- so we'll just create a simple split layout
     if #tab_data.panes > 1 then
@@ -106,7 +106,7 @@ local function restore_session(window)
       end
     end
   end
-  
+
   -- Switch back to first tab
   window:perform_action(wezterm.action.ActivateTab(0), existing_tabs[1]:active_pane())
   window:toast_notification('WezTerm', 'Session restored!', nil, 2000)
@@ -121,8 +121,8 @@ config.font = wezterm.font_with_fallback {
   'FiraCode Nerd Font',
 }
 config.font_size = 12.0
-config.freetype_load_target = 'Normal' -- Changed from Light to Normal
-config.freetype_render_target = 'Normal' -- Changed from HorizontalLcd to Normal
+config.freetype_load_target = 'Normal'    -- Changed from Light to Normal
+config.freetype_render_target = 'Normal'  -- Changed from HorizontalLcd to Normal
 config.freetype_load_flags = 'NO_HINTING' -- Disable hinting for thinner rendering
 
 -- Window Configuration (matching Ghostty)
@@ -181,7 +181,7 @@ config.colors = {
   cursor_border = '#c0caf5',
   selection_fg = '#c0caf5',
   selection_bg = '#283457',
-  
+
   -- ANSI colors
   ansi = {
     '#1b1d2b', -- black
@@ -193,7 +193,7 @@ config.colors = {
     '#86e1fc', -- cyan
     '#828bb8', -- white
   },
-  
+
   -- Bright colors
   brights = {
     '#444a73', -- bright black
@@ -205,16 +205,16 @@ config.colors = {
     '#b2ebff', -- bright cyan
     '#c8d3f5', -- bright white
   },
-  
+
   -- Tab bar colors (matching tmux window status style)
   tab_bar = {
     background = '#171717', -- Keep dark background
     active_tab = {
-      bg_color = 'NONE', -- Transparent background like tmux
+      bg_color = 'NONE',    -- Transparent background like tmux
       fg_color = '#ebcb8b', -- Yellow - matching tmux active window
     },
     inactive_tab = {
-      bg_color = 'NONE', -- Transparent background like tmux
+      bg_color = 'NONE',    -- Transparent background like tmux
       fg_color = '#4c566a', -- Dark gray - matching tmux inactive window
     },
     inactive_tab_hover = {
@@ -428,8 +428,8 @@ config.keys = {
 local act = wezterm.action
 
 local function isViProcess(pane)
-  -- get_foreground_process_name On Linux, macOS and Windows, 
-  -- the process can be queried to get this path. Other operating systems 
+  -- get_foreground_process_name On Linux, macOS and Windows,
+  -- the process can be queried to get this path. Other operating systems
   -- (notably, FreeBSD and other unix systems) are not currently supported
   return pane:get_foreground_process_name():find('n?vim') ~= nil
   -- return pane:get_title():find("n?vim") ~= nil
@@ -438,7 +438,7 @@ end
 local function conditionalActivatePane(window, pane, pane_direction, vim_direction)
   if isViProcess(pane) then
     window:perform_action(
-      -- This should match the keybinds you set in Neovim.
+    -- This should match the keybinds you set in Neovim.
       act.SendKey({ key = vim_direction, mods = 'CTRL' }),
       pane
     )
@@ -517,26 +517,26 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   if #title == 0 then
     title = tab.active_pane.title
   end
-  
+
   -- Ensure title fits
   if #title > max_width - 6 then
     title = wezterm.truncate_right(title, max_width - 6) .. '…'
   end
-  
+
   local index = tab.tab_index + 1
-  local bg = 'NONE' -- Transparent like tmux
+  local bg = 'NONE'    -- Transparent like tmux
   local fg = '#4c566a' -- Inactive window color from tmux
   local intensity = 'Normal'
-  
+
   if tab.is_active then
-    bg = 'NONE' -- Keep transparent
-    fg = '#ebcb8b' -- Yellow - active window color from tmux  
+    bg = 'NONE'    -- Keep transparent
+    fg = '#ebcb8b' -- Yellow - active window color from tmux
     intensity = 'Bold'
   elseif hover then
     bg = '#1b1d2b' -- Slight background on hover
     fg = '#828bb8' -- Brighter text on hover
   end
-  
+
   -- Add Nerd Font icons based on common tab names
   local icon = ''
   local title_lower = title:lower()
@@ -579,10 +579,10 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   elseif title_lower:find('bash') or title_lower:find('zsh') then
     icon = ' '
   end
-  
+
   -- Match tmux window format: "1 ❯ title" for active, "1 ❭ title" for inactive
   local separator = tab.is_active and '❯' or '❭'
-  
+
   -- Format similar to tmux window-status-format
   return {
     { Background = { Color = bg } },
@@ -598,7 +598,7 @@ local function create_appledore_workspace(window)
     cwd = wezterm.home_dir .. "/dotfiles",
   }
   tab:set_title("dotfiles")
-  
+
   -- Split horizontally for git status
   local git_pane = build_pane:split {
     direction = 'Bottom',
@@ -606,7 +606,7 @@ local function create_appledore_workspace(window)
     cwd = wezterm.home_dir .. "/dotfiles",
   }
   git_pane:send_text("git status\n")
-  
+
   -- Split the bottom pane vertically for scripts
   local scripts_pane = git_pane:split {
     direction = 'Right',
@@ -614,16 +614,16 @@ local function create_appledore_workspace(window)
     cwd = wezterm.home_dir .. "/scripts",
   }
   scripts_pane:send_text("ls -la\n")
-  
+
   -- Send nvim command to main pane
   build_pane:send_text("nvim .\n")
-  
+
   -- Create remote tab
   local remote_tab, remote_pane = window:spawn_tab {
     cwd = wezterm.home_dir,
   }
   remote_tab:set_title("remote")
-  
+
   -- Split for htop
   local htop_pane = remote_pane:split {
     direction = 'Right',
@@ -631,7 +631,7 @@ local function create_appledore_workspace(window)
   }
   htop_pane:send_text("htop\n")
   remote_pane:send_text("clear\necho 'Ready for SSH connections'\n")
-  
+
   -- Switch back to first tab
   window:perform_action(wezterm.action.ActivateTab(0), build_pane)
 end
@@ -642,7 +642,7 @@ local function create_timely_workspace(window)
     cwd = wezterm.home_dir .. "/projects/pybench",
   }
   pybench_tab:set_title("pybench")
-  
+
   local pybench_pane2 = pybench_pane:split {
     direction = 'Bottom',
     size = 0.3,
@@ -651,13 +651,13 @@ local function create_timely_workspace(window)
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- Raft tab
   local raft_tab, raft_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/raft",
   }
   raft_tab:set_title("raft")
-  
+
   local raft_pane2 = raft_pane:split {
     direction = 'Bottom',
     size = 0.3,
@@ -666,53 +666,53 @@ local function create_timely_workspace(window)
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- Lambdas tab
   local lambdas_tab, lambdas_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/lambdas-prod",
   }
   lambdas_tab:set_title("lambdas")
-  
+
   lambdas_pane:send_text("startenv | nvim\n")
-  
+
   local lambdas_pane2 = lambdas_pane:split {
     direction = 'Bottom',
     size = 0.3,
   }
   lambdas_pane2:send_text("startenv | git fetch\n")
-  
+
   local lambdas_pane3 = lambdas_pane2:split {
     direction = 'Right',
     size = 0.5,
   }
   lambdas_pane3:send_text("startenv\n")
-  
+
   local lambdas_pane4 = lambdas_pane3:split {
     direction = 'Right',
     size = 0.5,
   }
   lambdas_pane4:send_text("startenv\n")
-  
+
   -- Mononest tab
   local mononest_tab, mononest_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/mononest",
   }
   mononest_tab:set_title("mononest")
-  
+
   mononest_pane:send_text("startenv\nnvim\n")
-  
+
   local mononest_pane2 = mononest_pane:split {
     direction = 'Bottom',
     size = 0.3,
   }
   mononest_pane2:send_text("startenv\ngit fetch\n")
-  
+
   -- Dotfiles tab
   local dotfiles_tab, dotfiles_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/dotfiles",
   }
   dotfiles_tab:set_title("dotfiles")
-  
+
   -- Switch back to first tab
   window:perform_action(wezterm.action.ActivateTab(0), pybench_pane)
 end
@@ -724,7 +724,7 @@ local function create_zoca_workspace(window)
     cwd = wezterm.home_dir .. "/projects/pybench",
   }
   pybench_tab:set_title("pybench")
-  
+
   local pybench_pane2 = pybench_pane:split {
     direction = 'Bottom',
     size = 0.3,
@@ -733,13 +733,13 @@ local function create_zoca_workspace(window)
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- Raft tab
   local raft_tab, raft_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/raft",
   }
   raft_tab:set_title("raft")
-  
+
   local raft_pane2 = raft_pane:split {
     direction = 'Bottom',
     size = 0.3,
@@ -748,13 +748,13 @@ local function create_zoca_workspace(window)
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- WWW tab
   local www_tab, www_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/zoca-websites",
   }
   www_tab:set_title("www")
-  
+
   local www_pane2 = www_pane:split {
     direction = 'Bottom',
     size = 0.3,
@@ -763,61 +763,61 @@ local function create_zoca_workspace(window)
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- Mononest tab
   local mononest_tab, mononest_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/projects/mononest",
   }
   mononest_tab:set_title("mononest")
-  
+
   mononest_pane:send_text("startenv\nnvim\n")
-  
+
   local mononest_pane2 = mononest_pane:split {
     direction = 'Bottom',
     size = 0.3,
   }
   mononest_pane2:send_text("startenv\ngit fetch\n")
-  
+
   -- Dotfiles tab
   local dotfiles_tab, dotfiles_pane = window:spawn_tab {
     cwd = wezterm.home_dir .. "/dotfiles",
   }
   dotfiles_tab:set_title("dotfiles")
-  
+
   -- Servers tab
   local servers_tab, servers_pane = window:spawn_tab {
     cwd = wezterm.home_dir,
   }
   servers_tab:set_title("servers")
-  
+
   servers_pane:send_text("redis-server\n")
-  
+
   local redis_cli_pane = servers_pane:split {
     direction = 'Right',
     size = 0.5,
   }
   redis_cli_pane:send_text("redis-cli\n")
-  
+
   local servers_pane3 = servers_pane:split {
     direction = 'Bottom',
     size = 0.5,
   }
-  
+
   local servers_pane4 = redis_cli_pane:split {
     direction = 'Bottom',
     size = 0.5,
   }
-  
+
   local servers_pane5 = servers_pane3:split {
     direction = 'Right',
     size = 0.5,
   }
-  
+
   local servers_pane6 = servers_pane4:split {
     direction = 'Right',
     size = 0.5,
   }
-  
+
   -- Switch back to first tab
   window:perform_action(wezterm.action.ActivateTab(0), pybench_pane)
 end
@@ -830,8 +830,8 @@ table.insert(config.keys, {
     title = 'Launch Workspace',
     choices = {
       { label = 'appledore', id = 'appledore' },
-      { label = 'timely', id = 'timely' },
-      { label = 'zoca', id = 'zoca' },
+      { label = 'timely',    id = 'timely' },
+      { label = 'zoca',      id = 'zoca' },
     },
     action = wezterm.action_callback(function(window, pane, id, label)
       if id == 'appledore' then
@@ -874,14 +874,14 @@ Available Workspaces (Ctrl-A W):
   • appledore - Dotfiles development environment
     - dotfiles: nvim, git status, scripts listing
     - remote: SSH ready + htop monitoring
-    
+
   • timely - Work projects setup
     - pybench: 3-pane development layout
     - raft: 3-pane development layout
     - lambdas: nvim + git + 2 shells (with startenv)
     - mononest: nvim + git fetch (with startenv)
     - dotfiles: single pane
-    
+
   • zoca - Full development environment
     - pybench: 3-pane development layout
     - raft: 3-pane development layout
@@ -893,10 +893,10 @@ Available Workspaces (Ctrl-A W):
 Session Commands:
   Ctrl-A S - Save current session
   Ctrl-A R - Restore saved session
-  
+
 Current Session Info:
 ]]
-    
+
     -- Add current tabs info
     local tabs = window:mux_window():tabs()
     info = info .. "  Active tabs: " .. #tabs .. "\n"
@@ -904,7 +904,7 @@ Current Session Info:
       local panes = tab:panes()
       info = info .. "  " .. i .. ". " .. tab:get_title() .. " (" .. #panes .. " panes)\n"
     end
-    
+
     -- Check if saved session exists
     local file = io.open(session_file, 'r')
     if file then
@@ -919,7 +919,7 @@ Current Session Info:
     else
       info = info .. "\n  No saved session found"
     end
-    
+
     -- Create a temporary pane to show the info
     local temp_pane = pane:split {
       direction = 'Right',
@@ -933,7 +933,7 @@ Current Session Info:
 
 -- List all keybindings
 table.insert(config.keys, {
-  key = 'h',
+  key = '0',
   mods = 'LEADER',
   action = wezterm.action_callback(function(window, pane)
     local help = [[
@@ -974,7 +974,7 @@ Leader key: Ctrl-A
 
 Press Enter to close this help...
 ]]
-    
+
     -- Create a temporary pane to show help
     local help_pane = pane:split {
       direction = 'Right',
@@ -1002,7 +1002,7 @@ wezterm.on('gui-startup', function(cmd)
     -- If started with arguments, don't restore session
     return
   end
-  
+
   -- Check if session file exists and is recent (less than 24 hours old)
   local file = io.open(session_file, 'r')
   if file then

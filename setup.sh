@@ -136,6 +136,7 @@ if [ "$OS" = "Darwin" ]; then
     "xh"
     "neovim"
     "tmux"
+    "zellij"
     "raycast"
     "lazygit"
     "lazydocker"
@@ -148,6 +149,22 @@ if [ "$OS" = "Darwin" ]; then
     "zoxide"
     "starship"
   )
+
+  # Install cask packages
+  log "Installing cask packages..."
+  CASK_PACKAGES=(
+    "wezterm"
+  )
+
+  for package in "${CASK_PACKAGES[@]}"; do
+    if ! brew list --cask "$package" >/dev/null 2>&1; then
+      log "Installing $package..."
+      brew install --cask "$package"
+      success "$package installed successfully!"
+    else
+      success "$package is already installed"
+    fi
+  done
 
   for package in "${PACKAGES[@]}"; do
     install_brew_package "$package"
@@ -257,6 +274,12 @@ create_symlink "$DOTFILES_DIR/starship/starship.toml" "$CONFIG_HOME/starship.tom
 
 log "Setting up Tmuxinator..."
 create_symlink "$DOTFILES_DIR/tmuxinator" "$CONFIG_HOME/tmuxinator"
+
+log "Setting up Zellij..."
+create_symlink "$DOTFILES_DIR/zellij/config.kdl" "$CONFIG_HOME/zellij/config.kdl"
+
+log "Setting up WezTerm..."
+create_symlink "$DOTFILES_DIR/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 
 # OS-specific symlinks
 if [ "$OS" = "Darwin" ]; then

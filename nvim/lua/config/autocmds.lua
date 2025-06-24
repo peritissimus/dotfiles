@@ -19,3 +19,5 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.opt.wrap = true
     end,
 })
+
+

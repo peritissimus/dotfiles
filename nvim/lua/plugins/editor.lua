@@ -25,21 +25,24 @@ return {
 			end, { desc = "Toggle CSV View" })
 		end,
 	},
+	-- Navigator.nvim for seamless navigation between nvim and terminal multiplexer
 	{
-		"christoomey/vim-tmux-navigator",
-		cmd = {
-			"TmuxNavigateLeft",
-			"TmuxNavigateDown",
-			"TmuxNavigateUp",
-			"TmuxNavigateRight",
-			"TmuxNavigatePrevious",
-		},
+		"numToStr/Navigator.nvim",
+		lazy = false,
+		config = function()
+			require("Navigator").setup({
+				-- Auto save modified files when moving to mux pane
+				auto_save = "current",
+				-- Disable navigation in these filetypes
+				disable_on_zoom = true,
+			})
+		end,
 		keys = {
-			{ "<c-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
-			{ "<c-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
-			{ "<c-k>", "<cmd><C-U>TmuxNavigateUp<cr>" },
-			{ "<c-l>", "<cmd><C-U>TmuxNavigateRight<cr>" },
-			{ "<c-\\>", "<cmd><C-U>TmuxNavigatePrevious<cr>" },
+			{ "<C-h>", "<CMD>NavigatorLeft<CR>", mode = { "n", "t" }, desc = "Navigator Left" },
+			{ "<C-j>", "<CMD>NavigatorDown<CR>", mode = { "n", "t" }, desc = "Navigator Down" },
+			{ "<C-k>", "<CMD>NavigatorUp<CR>", mode = { "n", "t" }, desc = "Navigator Up" },
+			{ "<C-l>", "<CMD>NavigatorRight<CR>", mode = { "n", "t" }, desc = "Navigator Right" },
+			{ "<C-\\>", "<CMD>NavigatorPrevious<CR>", mode = { "n", "t" }, desc = "Navigator Previous" },
 		},
 	},
 }

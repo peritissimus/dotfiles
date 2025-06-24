@@ -1,0 +1,43 @@
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+    }
+    
+    // Python development layout
+    tab name="code" focus=true {
+        pane split_direction="vertical" {
+            pane size="65%" {
+                command "nvim"
+            }
+            pane size="35%" split_direction="horizontal" {
+                pane name="repl" {
+                    command "python"
+                }
+                pane name="terminal"
+            }
+        }
+    }
+    
+    tab name="tests" {
+        pane split_direction="horizontal" {
+            pane {
+                command "pytest"
+                args "-v" "--watch"
+            }
+            pane name="coverage" {
+                command "pytest"
+                args "--cov" "--cov-report=term-missing"
+            }
+        }
+    }
+    
+    tab name="docs" {
+        pane {
+            command "python"
+            args "-m" "http.server" "8000" "--directory" "docs/_build/html"
+        }
+    }
+}

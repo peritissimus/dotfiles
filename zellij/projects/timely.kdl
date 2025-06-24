@@ -1,0 +1,70 @@
+// Timely Project Configuration
+// Based on tmuxinator timely.yml
+
+layout {
+    cwd "/Users/peritissimus"
+    
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+    }
+    
+    tab name="pybench" focus=true {
+        cwd "/Users/peritissimus/projects/pybench"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="raft" {
+        cwd "/Users/peritissimus/projects/raft"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="lambdas" {
+        cwd "/Users/peritissimus/projects/lambdas"
+        pane split_direction="horizontal" {
+            pane size="60%" {
+                command "bash"
+                args "-c" "startenv | nvim"
+            }
+            pane size="20%" {
+                command "bash"
+                args "-c" "startenv | git status"
+            }
+            pane size="20%" {
+                command "bash"
+                args "-c" "startenv && exec fish"
+            }
+        }
+    }
+    
+    tab name="mononest" {
+        cwd "/Users/peritissimus/projects/mononest"
+        pane split_direction="horizontal" {
+            pane size="60%" {
+                command "bash"
+                args "-c" "startenv && exec fish"
+            }
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="dotfiles" {
+        cwd "/Users/peritissimus/dotfiles"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+}

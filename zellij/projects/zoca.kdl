@@ -1,0 +1,83 @@
+// Zoca Project Configuration
+// Based on tmuxinator zoca.yml
+
+layout {
+    cwd "/Users/peritissimus"
+    
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+    }
+    
+    tab name="pybench" {
+        cwd "/Users/peritissimus/projects/pybench"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="raft" {
+        cwd "/Users/peritissimus/projects/raft"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="www" {
+        cwd "/Users/peritissimus/projects/zoca-websites"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="mononest" focus=true {
+        cwd "/Users/peritissimus/projects/mononest"
+        pane split_direction="horizontal" {
+            pane size="60%" {
+                command "bash"
+                args "-c" "startenv && exec fish"
+            }
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="dotfiles" {
+        cwd "/Users/peritissimus/dotfiles"
+        pane split_direction="horizontal" {
+            pane size="60%"
+            pane size="20%"
+            pane size="20%"
+        }
+    }
+    
+    tab name="servers" {
+        cwd "/Users/peritissimus/projects/basicblog"
+        pane split_direction="horizontal" {
+            pane size="40%" split_direction="vertical" {
+                pane {
+                    command "redis-server"
+                }
+                pane
+            }
+            pane size="60%" split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+            }
+        }
+    }
+}

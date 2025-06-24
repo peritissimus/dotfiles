@@ -1,0 +1,41 @@
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+    }
+    
+    // Web development layout
+    tab name="code" focus=true {
+        pane split_direction="vertical" {
+            pane size="60%" {
+                command "nvim"
+            }
+            pane size="40%" split_direction="horizontal" {
+                pane name="server" {
+                    command "npm"
+                    args "run" "dev"
+                }
+                pane name="terminal"
+            }
+        }
+    }
+    
+    tab name="tests" {
+        pane split_direction="horizontal" {
+            pane {
+                command "npm"
+                args "run" "test:watch"
+            }
+            pane name="coverage" {
+                command "npm" 
+                args "run" "test:coverage"
+            }
+        }
+    }
+    
+    tab name="browser" {
+        pane
+    }
+}

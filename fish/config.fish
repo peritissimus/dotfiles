@@ -2,7 +2,7 @@ set fish_greeting
 
 # Group environment variables together
 set -gx EDITOR nvim
-set -gx JAVA_HOME (/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 > /dev/null | grep 'java.home' | awk '{print $3}')
+set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 | grep 'java.home' | awk '{print \$3}'")
 set -gx PATH $HOME/.gem/bin $PATH
 
 # Development tools setup

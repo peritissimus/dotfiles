@@ -22,7 +22,7 @@ alt-shift-period = 'move-workspace-to-monitor next'
 alt-shift-comma = 'move-workspace-to-monitor prev'
 
 # Terminal
-alt-enter = 'exec-and-forget open -n /Applications/Ghostty.app'
+alt-enter = 'exec-and-forget open -n /Applications/Alacritty.app'
 
 # Window focus
 alt-h = 'focus --boundaries-action wrap-around-the-workspace left'

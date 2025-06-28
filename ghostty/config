@@ -67,3 +67,5 @@ quit-after-last-window-closed = true
 # Copy on select
 copy-on-select = true
 clipboard-paste-protection = false
+
+ keybind = global:cmd+grave_accent=toggle_quick_terminal

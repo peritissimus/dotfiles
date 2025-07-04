@@ -9,6 +9,9 @@ set -gx PATH $HOME/.gem/bin $PATH
 ## Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+## Docker
+set -gx DOCKER_HOST "unix://$HOME/.colima/default/docker.sock"
+
 ## NVM (consider using fnm instead - it's faster)
 set -gx NVM_DIR ~/.nvm
 function nvm
@@ -56,6 +59,7 @@ alias mux="tmuxinator"
 alias c2p="code2prompt"
 alias gcm="~/dotfiles/scripts/gcm.sh"
 alias qdays="~/dotfiles/scripts/qdays.sh"
+alias pf="~/dotfiles/scripts/prettier.sh"
 
 ## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
@@ -91,3 +95,7 @@ set -gx PATH $PATH /opt/homebrew/Cellar/tmuxinator/3.3.3/libexec
 
 # Garmin Connect IQ SDK
 set -x PATH $PATH "/Users/peritissimus/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-8.2.0-2025-05-27-67ddf1dcb/bin"
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

@@ -55,6 +55,7 @@ return {
           jsonc = { "prettierd", "prettier" },
           markdown = { "prettierd", "prettier" },
           yaml = { "prettierd", "prettier" },
+          swift = { "swiftformat" },
         },
 
         ---@type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>

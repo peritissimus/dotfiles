@@ -17,6 +17,8 @@ return {
         "css-lsp",
         "ruff-lsp",
         "basedpyright",
+        "sourcekit",
+        "swiftformat",
       })
     end,
   },
@@ -145,6 +147,18 @@ return {
           root_dir = require("lspconfig").util.root_pattern("nx.json", "package.json"),
           settings = {
             workingDirectory = { mode = "auto" },
+          },
+        },
+        sourcekit = {
+          enabled = true,
+          filetypes = { "swift", "objective-c", "objective-cpp" },
+          root_dir = require("lspconfig").util.root_pattern("Package.swift", ".git"),
+          capabilities = {
+            workspace = {
+              didChangeWatchedFiles = {
+                dynamicRegistration = true,
+              },
+            },
           },
         },
         -- Disable unused servers

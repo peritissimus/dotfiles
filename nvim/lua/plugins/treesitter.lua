@@ -24,6 +24,7 @@ return {
         "terraform",
         "hcl",
         "astro",
+        "swift",
       },
 
       -- matchup = {

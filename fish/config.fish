@@ -49,6 +49,10 @@ atuin init fish | source
 # bat configuration
 set -gx BAT_THEME "Dracula"
 
+# eza configuration
+set -gx EZA_CONFIG_DIR "$HOME/.config/eza"
+
+
 # Aliases (grouped by functionality)
 ## Development tools
 alias startenv=". .venv/bin/activate.fish"
@@ -70,10 +74,10 @@ alias linear="npm run dev --"
 ## Modern CLI tool replacements
 alias cat="bat"
 alias find="fd"
-alias ls="ls"
-alias ll="ls -l"
-alias la="ls -la"
-alias tree="broot"
+alias ls="eza"
+alias ll="eza -l"
+alias la="eza -la"
+alias tree="eza --tree"
 
 function update_pr --description "Update PR description with AI-generated summary"
     set pr_number $argv[1]

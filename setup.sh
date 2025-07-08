@@ -143,6 +143,7 @@ if [ "$OS" = "Darwin" ]; then
     "git-delta"
     "atuin"
     "bat"
+    "eza"
     "fd"
     "btop"
     "broot"
@@ -280,6 +281,9 @@ create_symlink "$DOTFILES_DIR/zellij/config.kdl" "$CONFIG_HOME/zellij/config.kdl
 
 log "Setting up WezTerm..."
 create_symlink "$DOTFILES_DIR/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
+
+log "Setting up Eza..."
+create_symlink "$DOTFILES_DIR/eza" "$CONFIG_HOME/eza"
 
 # OS-specific symlinks
 if [ "$OS" = "Darwin" ]; then

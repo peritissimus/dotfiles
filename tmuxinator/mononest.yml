@@ -1,0 +1,69 @@
+# /Users/peritissimus/.config/tmuxinator/mononest.yml
+
+name: mononest
+root: ~/projects/mononest/
+
+windows:
+  - main:
+      root: ~/projects/mononest/mononest-main/
+      layout: even-horizontal
+      panes:
+        - nvim
+        -
+        - git status
+
+  - base:
+      root: ~/projects/mononest/mononest-base/
+      layout: main-horizontal
+      panes:
+        - nvim
+        -
+        - git status
+
+  - staging:
+      root: ~/projects/mononest/mononest-staging/
+      layout: main-horizontal
+      panes:
+        - nvim
+        -
+        - git status
+
+  - l2b:
+      root: ~/projects/mononest/mononest-l2b/
+      layout: main-horizontal
+      panes:
+        - nvim
+        -
+        - git status
+
+  - localstack:
+      root: ~/projects/mononest/mononest-localstack/
+      layout: main-horizontal
+      panes:
+        - nvim
+        -
+        - aws --endpoint-url=http://localhost:4566 s3 ls
+
+  - docker:
+      root: ~/projects/mononest/
+      layout: even-horizontal
+      panes:
+        - docker ps
+        -
+        - htop
+
+  - database:
+      root: ~/projects/mononest/
+      layout: even-horizontal
+      panes:
+        - psql
+        - redis-cli
+        -
+
+  - tests:
+      root: ~/projects/mononest/mononest-main/
+      layout: main-horizontal
+      panes:
+        - npm run test:watch
+        - npm run lint:fix
+        - npm run typecheck

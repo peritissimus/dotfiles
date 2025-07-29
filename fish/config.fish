@@ -12,10 +12,15 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ## Docker
 set -gx DOCKER_HOST "unix://$HOME/.colima/default/docker.sock"
 
-## NVM (consider using fnm instead - it's faster)
+## NVM (Node Version Manager)
 set -gx NVM_DIR ~/.nvm
 function nvm
-    bass source (brew --prefix nvm)/nvm.sh --no-use ';' nvm $argv
+    bass source $NVM_DIR/nvm.sh --no-use ';' nvm $argv
+end
+
+# Load default node version on shell startup
+if test -s "$NVM_DIR/nvm.sh"
+    bass source $NVM_DIR/nvm.sh --no-use ';' nvm use default
 end
 
 ## Go

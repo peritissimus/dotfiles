@@ -84,6 +84,8 @@ alias ll="eza -l"
 alias la="eza -la"
 alias tree="eza --tree"
 
+alias monopgcli="PGPASSWORD=mononest pgcli -h postgres.mononest.local -p 5433 -U mononest -d mononest_dev"
+
 function update_pr --description "Update PR description with AI-generated summary"
     set pr_number $argv[1]
     
@@ -108,3 +110,6 @@ set -x PATH $PATH "/Users/peritissimus/Library/Application Support/Garmin/Connec
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+
+
+

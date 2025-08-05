@@ -17,7 +17,6 @@ return {
         "css-lsp",
         "ruff-lsp",
         "basedpyright",
-        "swiftformat",
       })
     end,
   },

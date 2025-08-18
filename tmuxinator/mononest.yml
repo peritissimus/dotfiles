@@ -6,64 +6,76 @@ root: ~/projects/mononest/
 windows:
   - main:
       root: ~/projects/mononest/mononest-main/
-      layout: even-horizontal
+      layout: tiled
       panes:
-        - nvim
-        -
-        - git status
+        - nvim # Main editor
+        - npm run dev # Development server
+        - git status # Git status
+        -  # Terminal for commands
+        - lazygit # Git UI
+        -  # Test runner
 
   - base:
       root: ~/projects/mononest/mononest-base/
-      layout: main-horizontal
+      layout: main-vertical
       panes:
-        - nvim
-        -
-        - git status
+        - nvim # Main editor
+        - npm run dev # Development server
+        -  # Test watcher
+        -  # Terminal for commands
+        - git log --oneline -10 # Git history
 
   - staging:
       root: ~/projects/mononest/mononest-staging/
-      layout: main-horizontal
+      layout: main-vertical
       panes:
-        - nvim
-        -
-        - git status
+        - nvim # Main editor
+        -  # Build process
+        -  # Linting
+        -  # Terminal for deployment
+        - git diff --staged # Staged changes
 
   - l2b:
       root: ~/projects/mononest/mononest-l2b/
-      layout: main-horizontal
+      layout: tiled
       panes:
-        - nvim
-        -
-        - git status
+        - nvim # Main editor
+        -  # Development server
+        -  # Terminal for commands
+        -  # Type checking
+        -  # Log monitoring
 
   - localstack:
       root: ~/projects/mononest/mononest-localstack/
-      layout: main-horizontal
+      layout: tiled
       panes:
-        - nvim
-        -
-        - aws --endpoint-url=http://localhost:4566 s3 ls
+        - nvim # Main editor
+        - npm run localstack:troubleshoot # LocalStack service
+        - aws --endpoint-url=http://localhost:4566 s3 ls # S3 monitoring
+        - aws --endpoint-url=http://localhost:4566 sqs list-queues # SQS monitoring
+        -  # AWS CLI commands
+        - npm run localstack:logs # LocalStack logs
 
-  - docker:
+  - infra:
       root: ~/projects/mononest/
-      layout: even-horizontal
+      layout: tiled
       panes:
-        - docker ps
-        -
-        - htop
-
-  - database:
-      root: ~/projects/mononest/
-      layout: even-horizontal
-      panes:
-        - psql
-        - redis-cli
-        -
+        - docker ps -a # All containers
+        -  # Docker logs
+        - htop # System monitoring
+        -  # PostgreSQL CLI
+        -  # Redis CLI
+        - docker stats # Container stats
+        - netstat -tlnp # Network connections
+        - df -h # Disk usage
 
   - tests:
       root: ~/projects/mononest/mononest-main/
-      layout: main-horizontal
+      layout: tiled
       panes:
-        - npm run test:watch
-        - npm run lint:fix
-        - npm run typecheck
+        -  # Unit tests
+        -  # E2E tests
+        -  # Linting
+        -  # Type checking
+        -  # Coverage report
+        -  # Terminal for test commands

@@ -113,3 +113,8 @@ set --export PATH $BUN_INSTALL/bin $PATH
 
 
 
+
+# Added by LM Studio CLI (lms)
+set -gx PATH $PATH /Users/peritissimus/.lmstudio/bin
+# End of LM Studio CLI section
+

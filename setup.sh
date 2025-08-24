@@ -285,6 +285,12 @@ create_symlink "$DOTFILES_DIR/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 log "Setting up Eza..."
 create_symlink "$DOTFILES_DIR/eza" "$CONFIG_HOME/eza"
 
+log "Setting up Claude..."
+create_symlink "$DOTFILES_DIR/claude" "$HOME/.claude"
+
+log "Setting up OpenCode..."
+create_symlink "$DOTFILES_DIR/opencode" "$CONFIG_HOME/opencode"
+
 # OS-specific symlinks
 if [ "$OS" = "Darwin" ]; then
   log "Setting up macOS-specific configurations..."

@@ -1,0 +1,57 @@
+# /Users/peritissimus/.config/tmuxinator/raft.yml
+
+name: raft
+root: ~/projects/raft/
+
+windows:
+  - editor:
+      root: ~/projects/raft/
+      layout: tiled
+      panes:
+        - nvim # Main editor
+        -  # Development server
+        - git status # Git status
+        -  # Terminal for commands
+        - lazygit # Git UI
+        -  # Test runner
+
+  - server:
+      root: ~/projects/raft/
+      layout: main-vertical
+      panes:
+        -  # Raft server/node 1
+        -  # Raft server/node 2
+        -  # Raft server/node 3
+        -  # Client/CLI
+        - tail -f raft.log # Log monitoring
+
+  - testing:
+      root: ~/projects/raft/
+      layout: tiled
+      panes:
+        -  # Unit tests
+        -  # Integration tests
+        -  # Benchmark tests
+        -  # Coverage report
+        -  # Terminal for test commands
+        -  # Linting
+
+  - monitoring:
+      root: ~/projects/raft/
+      layout: tiled
+      panes:
+        - htop # System monitoring
+        -  # Network monitoring
+        -  # Raft cluster status
+        -  # Performance metrics
+        - watch -n 1 'ps aux | grep raft' # Process monitoring
+        -  # Terminal for debug commands
+
+  - docs:
+      root: ~/projects/raft/
+      layout: main-vertical
+      panes:
+        - nvim README.md # Documentation
+        -  # API documentation
+        -  # Terminal for doc generation
+        - git log --oneline -10 # Git history

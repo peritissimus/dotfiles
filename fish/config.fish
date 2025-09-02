@@ -5,6 +5,8 @@ set -gx EDITOR nvim
 set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 | grep 'java.home' | awk '{print \$3}'")
 set -gx PATH $HOME/.gem/bin $PATH
 
+set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
+
 # Development tools setup
 ## Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"

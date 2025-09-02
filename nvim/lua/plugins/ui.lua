@@ -78,7 +78,7 @@ return {
 		opts = {
 			options = {
 				-- globalstatus = false,
-				theme = "kanagawa",
+				theme = "everforest",
 			},
 		},
 	},

@@ -17,34 +17,34 @@ normal.family = "FiraCode Nerd Font"
 
 size = 11
 
-# Kanagawa Dragon theme colors
+# Everforest theme colors
 [colors.primary]
-background = '#181616'
-foreground = '#c5c9c5'
+background = '#1a1a1a'
+foreground = '#d3c6aa'
 
 [colors.normal]
-black = '#0d0c0c'
-red = '#c4746e'
-green = '#8a9a7b'
-yellow = '#c4b28a'
-blue = '#8ba4b0'
-magenta = '#a292a3'
-cyan = '#8ea4a2'
-white = '#C8C093'
+black = '#475258'
+red = '#e67e80'
+green = '#a7c080'
+yellow = '#dbbc7f'
+blue = '#7fbbb3'
+magenta = '#d699b6'
+cyan = '#83c092'
+white = '#d3c6aa'
 
 [colors.bright]
-black = '#a6a69c'
-red = '#E46876'
-green = '#87a987'
-yellow = '#E6C384'
-blue = '#7fb4ca'
-magenta = '#938aa9'
-cyan = '#7aa89f'
-white = '#c5c9c5'
+black = '#475258'
+red = '#e67e80'
+green = '#a7c080'
+yellow = '#dbbc7f'
+blue = '#7fbbb3'
+magenta = '#d699b6'
+cyan = '#83c092'
+white = '#d3c6aa'
 
 [colors.selection]
-background = '#2d4f67'
-text = '#c5c9c5'
+background = '#503946'
+text = '#d3c6aa'
 
 # Tmux window switching with Cmd+number
 [[keyboard.bindings]]

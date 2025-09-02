@@ -19,7 +19,7 @@ size = 11
 
 # Everforest theme colors
 [colors.primary]
-background = '#1a1a1a'
+background = '#0d0d0d'
 foreground = '#d3c6aa'
 
 [colors.normal]

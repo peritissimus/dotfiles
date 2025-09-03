@@ -7,7 +7,7 @@ padding.y = 8
 
 decorations = "Buttonless"
 
-opacity = 0.8
+opacity = 0.5
 blur = true
 
 option_as_alt = "Both"
@@ -19,7 +19,7 @@ size = 11
 
 # Tokyo Night theme colors
 [colors.primary]
-background = '#1a1b26'
+background = '#0d0d0d'
 foreground = '#c0caf5'
 
 [colors.normal]

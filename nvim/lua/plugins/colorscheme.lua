@@ -14,8 +14,7 @@ return {
 	-- },
 	{
 		"sainnhe/everforest",
-		lazy = false,
-		priority = 1000,
+		lazy = true,
 		config = function()
 			-- Configure everforest
 			vim.g.everforest_style = "medium" -- Available: 'hard', 'medium', 'soft'
@@ -43,14 +42,26 @@ return {
 	},
 	{
 		"folke/tokyonight.nvim",
-		lazy = true,
+		lazy = false,
+		priority = 1000,
 		opts = {
 			style = "night",
 			transparent = true,
 			styles = {
-				sibdebars = "transparent",
+				sidebars = "transparent",
 				floats = "transparent",
 			},
 		},
+		config = function()
+			require("tokyonight").setup({
+				style = "night",
+				transparent = true,
+				styles = {
+					sidebars = "transparent",
+					floats = "transparent",
+				},
+			})
+			vim.cmd("colorscheme tokyonight-night")
+		end,
 	},
 }

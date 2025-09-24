@@ -58,7 +58,7 @@ return {
       },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      require("nvim-treesitter.config").setup(opts)
       require("nvim-treesitter.install").compilers = { "zig", "clang", "gcc" }
       -- Filetype detection for Astro
       vim.filetype.add({ extension = { astro = "astro" } })

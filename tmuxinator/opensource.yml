@@ -1,0 +1,89 @@
+# /Users/peritissimus/.config/tmuxinator/opensource.yml
+
+name: opensource
+root: ~/projects/opensource/
+
+windows:
+  - editor:
+      root: ~/projects/opensource/
+      layout: tiled
+      panes:
+        - nvim # Main editor
+        -  # Build/compile
+        - git status # Git status
+        -  # Terminal for commands
+        - lazygit # Git UI
+        -  # Testing
+
+  - projects:
+      root: ~/projects/opensource/
+      layout: main-vertical
+      panes:
+        - ls -la # Project list
+        - gh repo list --limit 20 # GitHub repos
+        -  # Project 1 terminal
+        -  # Project 2 terminal
+        -  # Project 3 terminal
+
+  - contributions:
+      root: ~/projects/opensource/
+      layout: tiled
+      panes:
+        - gh issue list --assignee @me # My issues
+        - gh pr list --author @me # My PRs
+        - gh pr list --search "is:pr is:open review-requested:@me" # Review requests
+        -  # Fork management
+        -  # Upstream sync
+        -  # Terminal
+
+  - development:
+      root: ~/projects/opensource/
+      layout: tiled
+      panes:
+        -  # Development server
+        -  # Database/services
+        -  # API testing
+        -  # Frontend dev server
+        - docker ps # Container status
+        -  # Terminal for dev commands
+
+  - testing:
+      root: ~/projects/opensource/
+      layout: tiled
+      panes:
+        -  # Unit tests
+        -  # Integration tests
+        -  # Linting
+        -  # Type checking
+        -  # Coverage
+        -  # CI/CD logs
+
+  - community:
+      root: ~/projects/opensource/
+      layout: main-vertical
+      panes:
+        - gh issue list --label "good first issue" --limit 10 # Good first issues
+        - gh issue list --label "help wanted" --limit 10 # Help wanted
+        -  # Discussion forums
+        -  # Documentation
+        - gh search repos --topic hacktoberfest --sort stars # Trending projects
+
+  - monitoring:
+      root: ~/projects/opensource/
+      layout: tiled
+      panes:
+        - htop # System monitoring
+        - watch -n 5 'gh api /notifications | jq length' # GitHub notifications
+        -  # Build status
+        -  # Performance monitoring
+        - df -h # Disk usage
+        -  # Network monitoring
+
+  - docs:
+      root: ~/projects/opensource/
+      layout: main-vertical
+      panes:
+        - nvim README.md # Documentation
+        -  # API docs
+        -  # Contributing guide
+        - git log --oneline -15 # Recent commits

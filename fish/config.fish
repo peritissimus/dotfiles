@@ -122,3 +122,9 @@ set --export PATH $BUN_INSTALL/bin $PATH
 set -gx PATH $PATH /Users/peritissimus/.lmstudio/bin
 # End of LM Studio CLI section
 
+
+
+
+
+
+

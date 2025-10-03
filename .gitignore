@@ -12,3 +12,12 @@ raycast/extensions
 .DS_Store
 node_modules
 *.log
+
+# Claude Code cache/temporary files
+claude/file-history/
+claude/history.jsonl
+claude/plugins/
+claude/projects/
+claude/shell-snapshots/
+claude/statsig/
+claude/todos/

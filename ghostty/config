@@ -4,6 +4,7 @@
 font-family = FiraCode Nerd Font
 font-size = 12
 font-style = Medium 
+adjust-cell-width = "-10%"
 
 # Window Configuration
 window-padding-x = 8
@@ -13,6 +14,7 @@ background-opacity = 0.8
 background-blur-radius = 30
 macos-option-as-alt = true
 macos-titlebar-style = hidden
+
 
 # Terminal
 term = xterm-256color

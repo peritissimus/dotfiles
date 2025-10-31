@@ -90,6 +90,17 @@ alias tree="eza --tree"
 
 alias monopgcli="PGPASSWORD=mononest pgcli -h postgres.mononest.local -p 5433 -U mononest -d mononest_dev"
 
+## Obsidian
+function obs --description "Open a file in Obsidian vault 'NoteBook'"
+    if test (count $argv) -eq 0
+        echo "Usage: obs <file_path>"
+        return 1
+    end
+
+    set file_path $argv[1]
+    open "obsidian://open?vault=NoteBook&file=$file_path"
+end
+
 function update_pr --description "Update PR description with AI-generated summary"
     set pr_number $argv[1]
     

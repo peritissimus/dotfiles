@@ -25,6 +25,7 @@ return {
         "hcl",
         "astro",
         "swift",
+        "glsl",
       },
 
       -- matchup = {
@@ -63,6 +64,10 @@ return {
       -- Filetype detection for Astro
       vim.filetype.add({ extension = { astro = "astro" } })
       vim.treesitter.language.register("astro", "astro")
+
+      -- Filetype detection for GLSL shaders
+      vim.filetype.add({ extension = { fs = "glsl", vs = "glsl" } })
+      vim.treesitter.language.register("glsl", "glsl")
 
       -- -- MDX
       -- vim.filetype.add({

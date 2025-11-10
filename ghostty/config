@@ -8,7 +8,7 @@ adjust-cell-width = "-10%"
 
 # Window Configuration
 window-padding-x = 8
-# window-padding-y = 8
+window-padding-y = 8
 window-decoration = none 
 background-opacity = 0.8
 background-blur-radius = 30

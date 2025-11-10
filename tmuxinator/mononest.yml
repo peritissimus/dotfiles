@@ -8,59 +8,28 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: tiled
       panes:
-        - nvim # Main editor [develop]
+        - nvim # Main editor
         -  # Development server
         - git status # Git status
         -  # Terminal for commands
         - lazygit # Git UI
         -  # Test runner
 
-  - main:
-      root: ~/projects/mononest/mononest-main/
-      layout: main-vertical
-      panes:
-        - nvim # Main editor [feat/website-generator]
-        -  # Development server
-        -  # Test watcher
-        -  # Terminal for commands
-        - git log --oneline -10 # Git history
-
   - staging:
       root: ~/projects/mononest/mononest-staging/
       layout: main-vertical
       panes:
-        - nvim # Main editor [staging]
+        - nvim # Main editor
         -  # Build process
         -  # Linting
         -  # Terminal for deployment
         - git diff --staged # Staged changes
 
-  - context:
-      root: ~/projects/mononest/mononest-context/
-      layout: tiled
-      panes:
-        - nvim # Main editor [feat/context]
-        -  # Development server
-        -  # Terminal for commands
-        -  # Test runner
-        - git status # Git status
-        -  # Log monitoring
-
-  - l2b:
-      root: ~/projects/mononest/mononest-l2b/
-      layout: tiled
-      panes:
-        - nvim # Main editor [terraform-deploy]
-        -  # Terraform commands
-        -  # Terminal for infrastructure
-        -  # Type checking
-        - git status # Git status
-
   - localstack:
       root: ~/projects/mononest/mononest-localstack/
       layout: tiled
       panes:
-        - nvim # Main editor [localstack]
+        - nvim # Main editor
         - npm run localstack:troubleshoot # LocalStack service
         - aws --endpoint-url=http://localhost:4566 s3 ls # S3 monitoring
         - aws --endpoint-url=http://localhost:4566 sqs list-queues # SQS monitoring
@@ -81,7 +50,7 @@ windows:
         - df -h # Disk usage
 
   - tests:
-      root: ~/projects/mononest/mononest-main/
+      root: ~/projects/mononest/mononest-base/
       layout: tiled
       panes:
         -  # Unit tests

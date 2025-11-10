@@ -70,16 +70,4 @@ quit-after-last-window-closed = true
 copy-on-select = true
  clipboard-paste-protection = false
 
- # Keybindings
- keybind = global:cmd+grave_accent=toggle_quick_terminal
-
- # Tmux window switching with Cmd+number (send Meta+1..9)
- keybind = app:cmd+1=send_text all "\x1b1"
- keybind = app:cmd+2=send_text all "\x1b2"
- keybind = app:cmd+3=send_text all "\x1b3"
- keybind = app:cmd+4=send_text all "\x1b4"
- keybind = app:cmd+5=send_text all "\x1b5"
- keybind = app:cmd+6=send_text all "\x1b6"
- keybind = app:cmd+7=send_text all "\x1b7"
- keybind = app:cmd+8=send_text all "\x1b8"
- keybind = app:cmd+9=send_text all "\x1b9"
+ 

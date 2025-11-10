@@ -11,8 +11,8 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-context.sh"
   },
+  "alwaysThinkingEnabled": false,
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "model": "haiku"
+  }
 }

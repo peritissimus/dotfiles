@@ -4,20 +4,46 @@ name: appledore
 root: ~/
 
 windows:
+  - NoteBook:
+      root: ~/NoteBook
+      layout: main-horizontal
+      panes:
+        - nvim .
+        - git status
+
   - dotfiles:
       root: ~/dotfiles
       layout: main-horizontal
       panes:
         - nvim .
         - git status
-        - >
-          cd ~/scripts;
-          ls -la
 
-  - remote:
-      layout: even-horizontal
+  - artifex:
+      root: ~/projects/artifex
+      layout: main-horizontal
       panes:
+        - nvim .
         - >
           clear;
-          echo "Ready for SSH connections"
-        - htop
+          echo "Run: npm run dev"
+        - git status
+
+  - astranote:
+      root: ~/projects/astranote
+      layout: main-horizontal
+      panes:
+        - nvim .
+        - >
+          clear;
+          echo "Xcode project ready"
+        - git status
+
+  - stone:
+      root: ~/projects/stone
+      layout: main-horizontal
+      panes:
+        - nvim .
+        - >
+          clear;
+          echo "Run: pnpm run dev"
+        - git status

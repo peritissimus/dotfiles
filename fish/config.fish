@@ -73,6 +73,7 @@ alias c2p="code2prompt"
 alias gcm="~/dotfiles/scripts/gcm.sh"
 alias qdays="~/dotfiles/scripts/qdays.sh"
 alias pf="~/dotfiles/scripts/prettier.sh"
+alias yz='yazi'
 
 ## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
@@ -139,3 +140,6 @@ set -gx PATH $PATH /Users/peritissimus/.lmstudio/bin
 
 
 
+
+# Added by Antigravity
+fish_add_path /Users/peritissimus/.antigravity/antigravity/bin

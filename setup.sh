@@ -58,6 +58,52 @@ install_brew_package() {
   fi
 }
 
+# Function to install package based on OS
+install_package() {
+  local package=$1
+  local apt_package=${2:-$package}  # Use second arg for apt name if different
+
+  case "$OS" in
+  "Darwin")
+    install_brew_package "$package"
+    ;;
+  "Linux")
+    if command_exists apt-get; then
+      if ! dpkg -l | grep -q "^ii  $apt_package "; then
+        log "Installing $apt_package..."
+        sudo apt-get update -qq && sudo apt-get install -y "$apt_package"
+        success "$apt_package installed successfully!"
+      else
+        success "$apt_package is already installed"
+      fi
+    elif command_exists dnf; then
+      if ! rpm -q "$apt_package" >/dev/null 2>&1; then
+        log "Installing $apt_package..."
+        sudo dnf install -y "$apt_package"
+        success "$apt_package installed successfully!"
+      else
+        success "$apt_package is already installed"
+      fi
+    elif command_exists pacman; then
+      if ! pacman -Q "$apt_package" >/dev/null 2>&1; then
+        log "Installing $apt_package..."
+        sudo pacman -S --noconfirm "$apt_package"
+        success "$apt_package installed successfully!"
+      else
+        success "$apt_package is already installed"
+      fi
+    else
+      error "No supported package manager found (apt/dnf/pacman)"
+      return 1
+    fi
+    ;;
+  *)
+    error "Unsupported OS: $OS"
+    return 1
+    ;;
+  esac
+}
+
 # Function to download and install font
 install_font() {
   local font_url=$1
@@ -117,82 +163,114 @@ esac
 
 log "Setting up dotfiles..."
 
-# macOS-specific setup
+# Package manager setup based on OS
 if [ "$OS" = "Darwin" ]; then
-  # Install Homebrew
   install_homebrew
+elif [ "$OS" = "Linux" ]; then
+  log "Using system package manager for Linux"
+  if command_exists apt-get; then
+    sudo apt-get update -qq
+  fi
+fi
 
-  # Install required packages
-  log "Installing required packages..."
-  PACKAGES=(
-    "fish"
-    "node"
-    "go"
-    "jq"
-    "yq"
-    "fzf"
-    "ripgrep"
-    "gh"
-    "xh"
-    "neovim"
-    "tmux"
-    "zellij"
-    "raycast"
-    "lazygit"
-    "lazydocker"
-    "git-delta"
-    "atuin"
-    "bat"
-    "eza"
-    "fd"
-    "btop"
-    "broot"
-    "zoxide"
-    "starship"
-  )
+# Install required packages (OS-agnostic with package name mapping)
+log "Installing required packages..."
+
+# Format: "brew_name:apt_name:dnf_name:pacman_name" (use same name if identical across distros)
+declare -A PACKAGE_MAP=(
+  ["fish"]="fish:fish:fish:fish"
+  ["node"]="node:nodejs:nodejs:nodejs"
+  ["go"]="go:golang-go:golang:go"
+  ["jq"]="jq:jq:jq:jq"
+  ["yq"]="yq:yq:yq:yq"
+  ["fzf"]="fzf:fzf:fzf:fzf"
+  ["ripgrep"]="ripgrep:ripgrep:ripgrep:ripgrep"
+  ["gh"]="gh:gh:gh:github-cli"
+  ["xh"]="xh:xh:xh:xh"
+  ["neovim"]="neovim:neovim:neovim:neovim"
+  ["tmux"]="tmux:tmux:tmux:tmux"
+  ["zellij"]="zellij:zellij:zellij:zellij"
+  ["lazygit"]="lazygit:lazygit:lazygit:lazygit"
+  ["lazydocker"]="lazydocker:lazydocker:lazydocker:lazydocker"
+  ["git-delta"]="git-delta:git-delta:git-delta:git-delta"
+  ["atuin"]="atuin:atuin:atuin:atuin"
+  ["bat"]="bat:bat:bat:bat"
+  ["eza"]="eza:eza:eza:eza"
+  ["fd"]="fd:fd-find:fd-find:fd"
+  ["btop"]="btop:btop:btop:btop"
+  ["broot"]="broot:broot:broot:broot"
+  ["zoxide"]="zoxide:zoxide:zoxide:zoxide"
+  ["starship"]="starship:starship:starship:starship"
+)
+
+for brew_name in "${!PACKAGE_MAP[@]}"; do
+  IFS=':' read -r brew apt dnf pacman <<< "${PACKAGE_MAP[$brew_name]}"
+
+  case "$OS" in
+  "Darwin")
+    install_package "$brew"
+    ;;
+  "Linux")
+    if command_exists apt-get; then
+      install_package "$apt" "$apt"
+    elif command_exists dnf; then
+      install_package "$dnf" "$dnf"
+    elif command_exists pacman; then
+      install_package "$pacman" "$pacman"
+    fi
+    ;;
+  esac
+done
+
+# macOS-specific packages
+if [ "$OS" = "Darwin" ]; then
+  # Raycast (macOS only)
+  install_brew_package "raycast"
 
   # Install cask packages
   log "Installing cask packages..."
-  CASK_PACKAGES=(
-    "wezterm"
-  )
+  if ! brew list --cask "wezterm" >/dev/null 2>&1; then
+    log "Installing wezterm..."
+    brew install --cask "wezterm"
+    success "wezterm installed successfully!"
+  else
+    success "wezterm is already installed"
+  fi
+fi
 
-  for package in "${CASK_PACKAGES[@]}"; do
-    if ! brew list --cask "$package" >/dev/null 2>&1; then
-      log "Installing $package..."
-      brew install --cask "$package"
-      success "$package installed successfully!"
-    else
-      success "$package is already installed"
-    fi
-  done
+# Set Fish as default shell (OS-aware)
+FISH_PATH=""
+if [ "$OS" = "Darwin" ]; then
+  FISH_PATH="/opt/homebrew/bin/fish"
+elif [ "$OS" = "Linux" ]; then
+  FISH_PATH="$(command -v fish)"
+fi
 
-  for package in "${PACKAGES[@]}"; do
-    install_brew_package "$package"
-  done
-
-  # Set Fish as default shell if it isn't already
-  if ! grep -q "/opt/homebrew/bin/fish" /etc/shells; then
+if [ -n "$FISH_PATH" ] && command_exists fish; then
+  if ! grep -q "$FISH_PATH" /etc/shells; then
     log "Adding Fish to /etc/shells..."
-    echo "/opt/homebrew/bin/fish" | sudo tee -a /etc/shells
+    echo "$FISH_PATH" | sudo tee -a /etc/shells
     success "Fish added to /etc/shells"
   fi
 
-  if [ "$SHELL" != "/opt/homebrew/bin/fish" ]; then
+  if [ "$SHELL" != "$FISH_PATH" ]; then
     log "Setting Fish as default shell..."
-    chsh -s /opt/homebrew/bin/fish
+    chsh -s "$FISH_PATH"
     success "Fish set as default shell"
   fi
+fi
 
-  # Install Rust
-  if ! command_exists rustc; then
-    log "Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    success "Rust installed successfully!"
-  else
-    success "Rust is already installed"
-  fi
+# Install Rust (OS-agnostic)
+if ! command_exists rustc; then
+  log "Installing Rust..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  success "Rust installed successfully!"
+else
+  success "Rust is already installed"
+fi
 
+# Setup Fisher (OS-agnostic, requires Fish)
+if command_exists fish; then
   # Clean up existing Fisher plugins
   if [ -f "$HOME/.config/fish/functions/fisher.fish" ]; then
     log "Removing existing Fisher plugins..."
@@ -209,50 +287,13 @@ if [ "$OS" = "Darwin" ]; then
   log "Installing Fisher plugins..."
   fish -c 'fisher install edc/bass'
   success "Fisher plugins installed successfully!"
-
-  # Install Nerd Fonts if not present
-  log "Checking Nerd Fonts..."
-
-  # Define font files to check (common font files from these packages)
-  MESLO_FILES=("MesloLGS NF Regular.ttf" "MesloLGS NF Bold.ttf" "MesloLGS NF Italic.ttf")
-  FIRA_FILES=("FiraCode Regular Nerd Font Complete.ttf" "FiraCode Bold Nerd Font Complete.ttf")
-
-  # Check Meslo
-  MESLO_INSTALLED=true
-  for font in "${MESLO_FILES[@]}"; do
-    if [ ! -f "$FONT_DIR/$font" ]; then
-      MESLO_INSTALLED=false
-      break
-    fi
-  done
-
-  # Check FiraCode
-  FIRA_INSTALLED=true
-  for font in "${FIRA_FILES[@]}"; do
-    if [ ! -f "$FONT_DIR/$font" ]; then
-      FIRA_INSTALLED=false
-      break
-    fi
-  done
-
-  # Install only missing fonts
-  MESLO_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip"
-  FIRA_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
-
-  # if [ "$MESLO_INSTALLED" = false ]; then
-  #     log "Installing Meslo Nerd Font..."
-  #     install_font "$MESLO_URL" "Meslo"
-  # else
-  #     success "Meslo Nerd Font is already installed"
-  # fi
-  #
-  # if [ "$FIRA_INSTALLED" = false ]; then
-  #     log "Installing FiraCode Nerd Font..."
-  #     install_font "$FIRA_URL" "FiraCode"
-  # else
-  #     success "FiraCode Nerd Font is already installed"
-  # fi
 fi
+
+# Install Nerd Fonts (commented out but kept for reference)
+# log "Checking Nerd Fonts..."
+# MESLO_FILES=("MesloLGS NF Regular.ttf" "MesloLGS NF Bold.ttf" "MesloLGS NF Italic.ttf")
+# FIRA_FILES=("FiraCode Regular Nerd Font Complete.ttf" "FiraCode Bold Nerd Font Complete.ttf")
+# ... (font installation code)
 
 # Create common symlinks
 log "Setting up Alacritty..."

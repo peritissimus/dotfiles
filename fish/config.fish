@@ -135,11 +135,7 @@ set -gx PATH $PATH /Users/peritissimus/.lmstudio/bin
 # End of LM Studio CLI section
 
 
-
-
-
-
-
-
 # Added by Antigravity
 fish_add_path /Users/peritissimus/.antigravity/antigravity/bin
+
+set -gx PATH "/opt/homebrew/opt/postgresql@16/bin" $PATH

@@ -6,7 +6,7 @@ root: ~/projects/mononest/
 windows:
   - base:
       root: ~/projects/mononest/mononest-base/
-      layout: tiled
+      layout: main-vertical
       panes:
         - nvim # Main editor
         -  # Development server
@@ -15,19 +15,38 @@ windows:
         - lazygit # Git UI
         -  # Test runner
 
-  - staging:
-      root: ~/projects/mononest/mononest-staging/
+  - develop:
+      root: ~/projects/mononest/mononest-develop/
+      layout: main-vertical
+      panes:
+        - nvim # Main editor
+        -  # Development server
+        - git status # Git status
+        -  # Terminal for commands
+        - lazygit # Git UI
+        -  # Test runner
+
+  - main:
+      root: ~/projects/mononest/mononest-main/
       layout: main-vertical
       panes:
         - nvim # Main editor
         -  # Build process
-        -  # Linting
         -  # Terminal for deployment
         - git diff --staged # Staged changes
 
+  - drizzle-fix:
+      root: ~/projects/mononest/mononest-drizzle-fix/
+      layout: main-vertical
+      panes:
+        - nvim # Main editor
+        -  # Development server
+        - git status # Git status
+        - lazygit # Git UI
+
   - localstack:
       root: ~/projects/mononest/mononest-localstack/
-      layout: tiled
+      layout: main-vertical
       panes:
         - nvim # Main editor
         - npm run localstack:troubleshoot # LocalStack service

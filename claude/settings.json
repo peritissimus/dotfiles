@@ -12,6 +12,15 @@
     "command": "bash ~/.claude/statusline-context.sh"
   },
   "alwaysThinkingEnabled": false,
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    }
+  },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
   }

@@ -139,3 +139,11 @@ set -gx PATH $PATH /Users/peritissimus/.lmstudio/bin
 fish_add_path /Users/peritissimus/.antigravity/antigravity/bin
 
 set -gx PATH "/opt/homebrew/opt/postgresql@16/bin" $PATH
+
+
+function envsource
+    for line in (cat $argv | grep -v '^#' | grep -v '^$')
+        set item (string split -m 1 '=' $line)
+        set -gx $item[1] $item[2]
+    end
+end

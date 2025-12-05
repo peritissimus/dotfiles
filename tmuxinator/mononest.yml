@@ -35,8 +35,8 @@ windows:
         -  # Terminal for deployment
         - git diff --staged # Staged changes
 
-  - drizzle-fix:
-      root: ~/projects/mononest/mononest-drizzle-fix/
+  - lambda-refactor:
+      root: ~/projects/mononest/mononest-lambda-refactor/
       layout: main-vertical
       panes:
         - nvim # Main editor
@@ -44,16 +44,14 @@ windows:
         - git status # Git status
         - lazygit # Git UI
 
-  - localstack:
-      root: ~/projects/mononest/mononest-localstack/
+  - nx-upgrade:
+      root: ~/projects/mononest/mononest-nx-upgrade/
       layout: main-vertical
       panes:
         - nvim # Main editor
-        - npm run localstack:troubleshoot # LocalStack service
-        - aws --endpoint-url=http://localhost:4566 s3 ls # S3 monitoring
-        - aws --endpoint-url=http://localhost:4566 sqs list-queues # SQS monitoring
-        -  # AWS CLI commands
-        -  # LocalStack logs
+        -  # Development server
+        - git status # Git status
+        - lazygit # Git UI
 
   - infra:
       root: ~/projects/mononest/

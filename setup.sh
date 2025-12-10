@@ -177,34 +177,37 @@ fi
 log "Installing required packages..."
 
 # Format: "brew_name:apt_name:dnf_name:pacman_name" (use same name if identical across distros)
-declare -A PACKAGE_MAP=(
-  ["fish"]="fish:fish:fish:fish"
-  ["node"]="node:nodejs:nodejs:nodejs"
-  ["go"]="go:golang-go:golang:go"
-  ["jq"]="jq:jq:jq:jq"
-  ["yq"]="yq:yq:yq:yq"
-  ["fzf"]="fzf:fzf:fzf:fzf"
-  ["ripgrep"]="ripgrep:ripgrep:ripgrep:ripgrep"
-  ["gh"]="gh:gh:gh:github-cli"
-  ["xh"]="xh:xh:xh:xh"
-  ["neovim"]="neovim:neovim:neovim:neovim"
-  ["tmux"]="tmux:tmux:tmux:tmux"
-  ["zellij"]="zellij:zellij:zellij:zellij"
-  ["lazygit"]="lazygit:lazygit:lazygit:lazygit"
-  ["lazydocker"]="lazydocker:lazydocker:lazydocker:lazydocker"
-  ["git-delta"]="git-delta:git-delta:git-delta:git-delta"
-  ["atuin"]="atuin:atuin:atuin:atuin"
-  ["bat"]="bat:bat:bat:bat"
-  ["eza"]="eza:eza:eza:eza"
-  ["fd"]="fd:fd-find:fd-find:fd"
-  ["btop"]="btop:btop:btop:btop"
-  ["broot"]="broot:broot:broot:broot"
-  ["zoxide"]="zoxide:zoxide:zoxide:zoxide"
-  ["starship"]="starship:starship:starship:starship"
+# Using a simple array instead of associative array for bash 3.2 compatibility
+PACKAGES=(
+  "fish:fish:fish:fish"
+  "node:nodejs:nodejs:nodejs"
+  "go:golang-go:golang:go"
+  "jq:jq:jq:jq"
+  "yq:yq:yq:yq"
+  "fzf:fzf:fzf:fzf"
+  "ripgrep:ripgrep:ripgrep:ripgrep"
+  "gh:gh:gh:github-cli"
+  "xh:xh:xh:xh"
+  "neovim:neovim:neovim:neovim"
+  "tmux:tmux:tmux:tmux"
+  "zellij:zellij:zellij:zellij"
+  "lazygit:lazygit:lazygit:lazygit"
+  "lazydocker:lazydocker:lazydocker:lazydocker"
+  "git-delta:git-delta:git-delta:git-delta"
+  "atuin:atuin:atuin:atuin"
+  "bat:bat:bat:bat"
+  "eza:eza:eza:eza"
+  "fd:fd-find:fd-find:fd"
+  "btop:btop:btop:btop"
+  "broot:broot:broot:broot"
+  "zoxide:zoxide:zoxide:zoxide"
+  "starship:starship:starship:starship"
 )
 
-for brew_name in "${!PACKAGE_MAP[@]}"; do
-  IFS=':' read -r brew apt dnf pacman <<< "${PACKAGE_MAP[$brew_name]}"
+for package_spec in "${PACKAGES[@]}"; do
+  # Initialize variables to avoid unbound variable errors
+  brew="" apt="" dnf="" pacman=""
+  IFS=':' read -r brew apt dnf pacman <<< "$package_spec"
 
   case "$OS" in
   "Darwin")
@@ -255,8 +258,11 @@ if [ -n "$FISH_PATH" ] && command_exists fish; then
 
   if [ "$SHELL" != "$FISH_PATH" ]; then
     log "Setting Fish as default shell..."
-    chsh -s "$FISH_PATH"
-    success "Fish set as default shell"
+    if chsh -s "$FISH_PATH" 2>/dev/null; then
+      success "Fish set as default shell"
+    else
+      warn "Could not set Fish as default shell (requires password). Run 'chsh -s $FISH_PATH' manually."
+    fi
   fi
 fi
 
@@ -328,9 +334,6 @@ create_symlink "$DOTFILES_DIR/eza" "$CONFIG_HOME/eza"
 
 log "Setting up Claude..."
 create_symlink "$DOTFILES_DIR/claude" "$HOME/.claude"
-
-log "Setting up OpenCode..."
-create_symlink "$DOTFILES_DIR/opencode" "$CONFIG_HOME/opencode"
 
 # OS-specific symlinks
 if [ "$OS" = "Darwin" ]; then

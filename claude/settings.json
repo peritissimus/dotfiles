@@ -11,7 +11,7 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-context.sh"
   },
-  "alwaysThinkingEnabled": false,
+  "alwaysThinkingEnabled": true,
   "mcpServers": {
     "puppeteer": {
       "command": "npx",
@@ -27,6 +27,5 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "model": "sonnet"
+  }
 }

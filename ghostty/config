@@ -70,6 +70,13 @@ quit-after-last-window-closed = true
 copy-on-select = true
 clipboard-paste-protection = false
 
+# Quick Terminal Configuration
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-screen = main
+quick-terminal-animation-duration = 0.2
+quick-terminal-autohide = true
+
 # Tmux window switching with Cmd+number (sends Alt+number for tmux M-1 through M-9 bindings)
 # First unbind Ghostty's default tab switching
 keybind = super+digit_1=unbind

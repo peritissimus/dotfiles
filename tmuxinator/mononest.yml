@@ -1,78 +1,106 @@
 # /Users/peritissimus/.config/tmuxinator/mononest.yml
+# Nx Monorepo workspace - pnpm based
 
 name: mononest
 root: ~/projects/mononest/
 
 windows:
+  # ═══════════════════════════════════════════════════════════════════
+  # PRIMARY DEVELOPMENT (base branch)
+  # ═══════════════════════════════════════════════════════════════════
   - base:
       root: ~/projects/mononest/mononest-base/
       layout: main-vertical
       panes:
-        - nvim # Main editor
-        -  # Development server
-        - git status # Git status
-        -  # Terminal for commands
-        - lazygit # Git UI
-        -  # Test runner
+        - nvim
+        - # api-server: pnpm start:dev
+        - lazygit
 
+  # ═══════════════════════════════════════════════════════════════════
+  # DEVELOP BRANCH
+  # ═══════════════════════════════════════════════════════════════════
   - develop:
       root: ~/projects/mononest/mononest-develop/
       layout: main-vertical
       panes:
-        - nvim # Main editor
-        -  # Development server
-        - git status # Git status
-        -  # Terminal for commands
-        - lazygit # Git UI
-        -  # Test runner
+        - nvim
+        - # api-server: pnpm start:dev
+        - lazygit
 
+  # ═══════════════════════════════════════════════════════════════════
+  # MAIN BRANCH (production)
+  # ═══════════════════════════════════════════════════════════════════
   - main:
       root: ~/projects/mononest/mononest-main/
       layout: main-vertical
       panes:
-        - nvim # Main editor
-        -  # Build process
-        -  # Terminal for deployment
-        - git diff --staged # Staged changes
+        - nvim
+        - # builds: pnpm build:rspack:all:prod
+        - lazygit
 
+  # ═══════════════════════════════════════════════════════════════════
+  # FEATURE BRANCHES
+  # ═══════════════════════════════════════════════════════════════════
   - lambda-refactor:
       root: ~/projects/mononest/mononest-lambda-refactor/
       layout: main-vertical
       panes:
-        - nvim # Main editor
-        -  # Development server
-        - git status # Git status
-        - lazygit # Git UI
+        - nvim
+        - # lambda work
+        - lazygit
 
   - nx-upgrade:
       root: ~/projects/mononest/mononest-nx-upgrade/
       layout: main-vertical
       panes:
-        - nvim # Main editor
-        -  # Development server
-        - git status # Git status
-        - lazygit # Git UI
+        - nvim
+        - # nx migrate
+        - lazygit
 
-  - infra:
-      root: ~/projects/mononest/
-      layout: tiled
-      panes:
-        - docker ps -a # All containers
-        -  # Docker logs
-        - htop # System monitoring
-        -  # PostgreSQL CLI
-        -  # Redis CLI
-        - docker stats # Container stats
-        - netstat -tlnp # Network connections
-        - df -h # Disk usage
-
-  - tests:
+  # ═══════════════════════════════════════════════════════════════════
+  # SERVERS - Run multiple services
+  # ═══════════════════════════════════════════════════════════════════
+  - servers:
       root: ~/projects/mononest/mononest-base/
       layout: tiled
       panes:
-        -  # Unit tests
-        -  # E2E tests
-        -  # Linting
-        -  # Type checking
-        -  # Coverage report
-        -  # Terminal for test commands
+        - # api-server: pnpm start:dev
+        - # leads-server: nx serve leads-server
+        - # links-server: nx serve links-server
+        - # public-server: nx serve public-server
+        - # tasks-server: nx serve tasks-server
+        - # workers: nx serve serverless
+
+  # ═══════════════════════════════════════════════════════════════════
+  # INFRASTRUCTURE - Docker & Services
+  # ═══════════════════════════════════════════════════════════════════
+  - infra:
+      root: ~/projects/mononest/mononest-base/
+      layout: tiled
+      panes:
+        - docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        - # docker compose: docker-compose -f docker-compose.localstack.yml up
+        - # redis-cli
+        - # database: pnpm knex
+
+  # ═══════════════════════════════════════════════════════════════════
+  # TESTING & QA
+  # ═══════════════════════════════════════════════════════════════════
+  - tests:
+      root: ~/projects/mononest/mononest-base/
+      layout: even-horizontal
+      panes:
+        - # unit: pnpm test
+        - # e2e: nx e2e api-server-e2e
+        - # lint: pnpm lint
+        - # typecheck: pnpm typecheck
+
+  # ═══════════════════════════════════════════════════════════════════
+  # DOCUMENTATION & WIKI
+  # ═══════════════════════════════════════════════════════════════════
+  - docs:
+      root: ~/projects/mononest/
+      layout: main-horizontal
+      panes:
+        - nvim mononest.wiki/
+        - # preview docs

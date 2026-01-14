@@ -23,3 +23,6 @@ claude/statsig/
 claude/todos/
 claude/debug/
 claude/plans/
+claude/paste-cache
+claude/cache
+claude/stats-cache.json

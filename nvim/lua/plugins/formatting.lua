@@ -56,6 +56,7 @@ return {
           markdown = { "prettierd", "prettier" },
           yaml = { "prettierd", "prettier" },
           swift = { "swiftformat" },
+          rust = { "rustfmt" },
         },
 
         ---@type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>

@@ -91,4 +91,9 @@ right = 'resize width +10'
 enter = 'mode main'
 esc = 'mode main'
 
+# Exclude Quick Capture window from tiling
+[[on-window-detected]]
+if.app-id = 'com.stone-tauri.app'
+if.window-title-regex-substring = 'Quick Capture'
+run = 'layout floating'
 

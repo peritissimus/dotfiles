@@ -17,6 +17,7 @@ return {
         "css-lsp",
         "ruff-lsp",
         "basedpyright",
+        "rust-analyzer",
       })
     end,
   },

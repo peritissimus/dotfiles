@@ -1,11 +1,16 @@
 set fish_greeting
 
+# Enable vi mode for command line editing
+fish_vi_key_bindings
+
 # Group environment variables together
 set -gx EDITOR nvim
 set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 | grep 'java.home' | awk '{print \$3}'")
 set -gx PATH $HOME/.gem/bin $PATH
 
 set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
+set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
+set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
 
 # Development tools setup
 ## Homebrew
@@ -140,10 +145,12 @@ fish_add_path /Users/peritissimus/.antigravity/antigravity/bin
 
 set -gx PATH "/opt/homebrew/opt/postgresql@16/bin" $PATH
 
-
 function envsource
     for line in (cat $argv | grep -v '^#' | grep -v '^$')
         set item (string split -m 1 '=' $line)
         set -gx $item[1] $item[2]
     end
 end
+
+# opencode
+fish_add_path /Users/peritissimus/.opencode/bin

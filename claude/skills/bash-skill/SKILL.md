@@ -1,82 +1,75 @@
 ---
 name: bash-skill
-description: Use when working with bash scripts, shell commands, terminal automation, or system administration tasks. Applies to .sh files, shell scripting, CLI tools, and Unix/Linux operations.
+description: Expert system for generating production-grade, secure, and maintainable Bash scripts. Focuses on strict error handling, portability, and enterprise standards.
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
-# Bash Scripting Expert
+# Bash Scripting Specialist
 
 ## When to Apply
-- Writing or debugging bash/shell scripts
-- Creating CLI tools or automation scripts
-- System administration tasks
-- Working with .sh, .bash, or shell configuration files
+- Creating production/enterprise automation scripts
+- Writing CI/CD pipeline steps
+- Developing CLI tools for team distribution
+- Performing complex system administration tasks
+- Debugging or refactoring legacy shell scripts
+
+## Core Principles (The "Strict Mode")
+All scripts **MUST** start with the following safety preamble to fail fast and loudly:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+set -E
+```
+
+1.  **`set -e`**: Exit immediately if a command exits with a non-zero status.
+2.  **`set -u`**: Treat unset variables as an error.
+3.  **`set -o pipefail`**: Catch errors in piped commands (e.g., `cmd1 | cmd2` fails if `cmd1` fails).
+4.  **`set -E`**: Inherit trap handlers for shell functions and subshells.
 
 ## Best Practices
 
-### Script Structure
-- Always start with a shebang: `#!/usr/bin/env bash`
-- Use `set -euo pipefail` for safer scripts
-- Add meaningful comments for complex logic
+### 1. Robustness & Safety
+- **Always Quote Variables:** Use `"$var"` to prevent word splitting and globbing issues.
+- **Check Dependencies:** Verify required tools (`command -v cmd`) at the start of the script.
+- **Use `printf` over `echo`:** `printf` is more portable and reliable for formatted output.
+- **Avoid `eval`:** It is a security risk. Use arrays or functions instead.
+- **Immutable Variables:** Use `readonly` for constants (e.g., `readonly LOG_FILE="/tmp/log"`).
 
-### Variables
-- Quote variables: `"$var"` not `$var`
-- Use `${var}` for clarity in strings
-- Prefer `local` for function variables
-- Use lowercase for local vars, UPPERCASE for exports
+### 2. Code Style & Structure
+- **Shebang:** Always use `#!/usr/bin/env bash` for portability across systems (e.g., macOS vs Linux).
+- **Naming:**
+    - `UPPER_CASE` for exported environment variables and constants.
+    - `lower_case` for local variables and function names.
+    - `_leading_underscore` for private/internal variables.
+- **Functions:** Wrap logic in functions. Use `main` as the entry point.
+- **Scope:** Always declare function variables with `local`.
 
-### Conditionals
-- Use `[[ ]]` instead of `[ ]` for tests
-- Quote string comparisons: `[[ "$a" == "$b" ]]`
-- Use `-n` and `-z` for string length checks
+### 3. Error Handling & Logging
+- **Structured Logging:** Use timestamps and log levels (INFO, WARN, ERROR).
+- **StdErr:** Print logs and interactive messages to stderr (`>&2`), keeping stdout clean for piping data.
+- **Traps:** Use `trap cleanup EXIT` to ensure temporary files/locks are removed, even on failure.
 
-### Functions
-```bash
-my_function() {
-    local arg1="$1"
-    # function body
-}
-```
+### 4. Input Validation
+- **Argument Parsing:** Use a `while` loop with `case` (or `getopts`) to handle flags clearly.
+- **Validate Assumptions:** Check if files exist, variables are set, and arguments are valid numbers/strings before proceeding.
 
-### Error Handling
-- Check command exit codes
-- Use `|| exit 1` or `|| return 1` for critical commands
-- Provide meaningful error messages to stderr: `echo "Error: ..." >&2`
+### 5. Security
+- **Secrets:** Never hardcode secrets. Read them from environment variables or a secure vault.
+- **Temp Files:** Use `mktemp` to create secure temporary files with restricted permissions.
+- **Sudo:** Avoid using `sudo` inside scripts. Check if `EUID` is 0 if root is required, or let the user invoke the script with `sudo`.
 
-### Common Patterns
+## Common Workflow
+1.  **Initialize:** Start with the **Enterprise Script Template** (see PATTERNS.md).
+2.  **Plan:** Define the inputs, outputs, and dependencies.
+3.  **Implement:** Write functions for distinct tasks (SRP - Single Responsibility Principle).
+4.  **Verify:** Run `shellcheck` (if available) to catch common pitfalls.
+5.  **Test:** Use "dry-run" logic to test without side effects.
 
-**Safe file reading:**
-```bash
-while IFS= read -r line; do
-    echo "$line"
-done < "$file"
-```
-
-**Default values:**
-```bash
-name="${1:-default_value}"
-```
-
-**Check if command exists:**
-```bash
-if command -v git &>/dev/null; then
-    echo "git is installed"
-fi
-```
-
-**Parse arguments:**
-```bash
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -h|--help) show_help; exit 0 ;;
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) args+=("$1"); shift ;;
-    esac
-done
-```
-
-## Security
-- Never use `eval` with user input
-- Validate and sanitize inputs
-- Avoid hardcoding secrets
-- Use `mktemp` for temporary files
+## Quick Reference
+- **Check String Empty:** `[[ -z "$var" ]]`
+- **Check String Not Empty:** `[[ -n "$var" ]]`
+- **File Exists:** `[[ -f "$file" ]]`
+- **Dir Exists:** `[[ -d "$dir" ]]`
+- **Math:** `(( count++ ))` or `result=$(( a + b ))`
+- **Arrays:** `arr=("a" "b"); echo "${arr[0]}"`

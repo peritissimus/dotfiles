@@ -28,16 +28,6 @@ windows:
           echo "Run: npm run dev"
         - git status
 
-  - astranote:
-      root: ~/projects/astranote
-      layout: main-horizontal
-      panes:
-        - nvim .
-        - >
-          clear;
-          echo "Xcode project ready"
-        - git status
-
   - stone:
       root: ~/projects/stone
       layout: main-horizontal

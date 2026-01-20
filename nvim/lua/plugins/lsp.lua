@@ -161,7 +161,7 @@ return {
           -- Optional: Further optimize or remove custom commands
         end,
         eslint = function()
-          require("lazyvim.util").lsp.on_attach(function(client)
+          Snacks.util.lsp.on(function(client, buffer)
             if client.name == "eslint" then
               client.server_capabilities.documentFormattingProvider = true
             elseif client.name == "tsserver" then

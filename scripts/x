@@ -160,15 +160,16 @@ COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`/
 # Save working model to config
 echo "SAVED_GROQ_MODEL=\"$MODEL\"" >"$CONFIG_FILE"
 
-# Display command and ask for confirmation
-echo "----------"
-echo -e "$(UI.Color.Bold)$(UI.Color.Yellow)>>>$(UI.Color.Default) $COMMAND"
-read -p "Execute this command? (Y/n): " -n 1 -r
-echo
+# Display command beautifully
+echo -e "  $(UI.Color.Blue)│$(UI.Color.Yellow) $(UI.Color.Bold)$COMMAND$(UI.Color.Default)"
+echo -ne "  $(UI.Color.Blue)└─$(UI.Color.Default) $(UI.Color.DarkGray)execute? [Y/n] $(UI.Color.Default)"
+read -n 1 -r
+echo ""
 
 if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo -e "$(UI.Color.Yellow)Command execution cancelled$(UI.Color.Default)"
+  echo ""
   exit 0
 else
+  echo ""
   eval "$COMMAND"
 fi

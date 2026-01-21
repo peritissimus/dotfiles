@@ -3,7 +3,8 @@
 # Requires: bash 4+, llm CLI, git
 
 # Bootstrap bash-oo-framework
-source "$( cd "${BASH_SOURCE[0]%/*}" && pwd )/lib/oo-bootstrap.sh"
+SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
 
 import util/exception util/tryCatch UI/Color
 

@@ -1,6 +1,11 @@
-#!/usr/bin/env bash
+#!/opt/homebrew/bin/bash
+# qdays.sh - Display days remaining in current quarter
 
-# Get current date
+SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import UI/Color
+
+# Get current date info
 current_date=$(date +%s)
 current_month=$(date +%-m)
 current_year=$(date +%Y)
@@ -30,5 +35,5 @@ end_of_quarter=$(date -j -f "%Y-%m-%d" "$current_year-$end_month-$end_day" +%s 2
 # Calculate days remaining
 days_remaining=$(( ($end_of_quarter - $current_date) / 86400 + 1 ))
 
-# Output result
-echo "Q$quarter $current_year: $days_remaining days remaining"
+# Output result with colors
+echo -e "$(UI.Color.Cyan)Q$quarter $current_year:$(UI.Color.Default) $(UI.Color.Bold)$(UI.Color.Yellow)$days_remaining$(UI.Color.Default) $(UI.Color.Green)days remaining$(UI.Color.Default)"

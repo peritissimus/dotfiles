@@ -1,0 +1,61 @@
+#!/opt/homebrew/bin/bash
+# prettier.sh - Run prettier on all modified files in git status
+
+SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import util/exception UI/Color
+
+log_error() {
+  echo -e "$(UI.Color.Red)❌ $1$(UI.Color.Default)"
+}
+
+log_warning() {
+  echo -e "$(UI.Color.Yellow)⚠️  $1$(UI.Color.Default)"
+}
+
+log_info() {
+  echo -e "$(UI.Color.Blue)$1$(UI.Color.Default)"
+}
+
+log_success() {
+  echo -e "$(UI.Color.Green)$1$(UI.Color.Default)"
+}
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  log_error "Error: Not in a git repository"
+  exit 1
+fi
+
+# Get to git root directory
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# Get list of modified files (both staged and unstaged)
+FILES=$(git status --porcelain | grep -E '^(M|A|MM|AM| M)' | awk '{print $2}')
+
+if [ -z "$FILES" ]; then
+  log_warning "No modified files found in git status"
+  exit 0
+fi
+
+# Count files
+FILE_COUNT=$(echo "$FILES" | wc -l | tr -d ' ')
+
+log_info "🎨 Running Prettier on ${FILE_COUNT} modified file(s)..."
+echo ""
+
+# Process each file
+echo "$FILES" | while read -r file; do
+  if [ -f "$file" ]; then
+    # Try to format the file
+    if npx prettier --write "$file" 2>/dev/null; then
+      echo -e "  $(UI.Color.Green)✓$(UI.Color.Default) $file"
+    else
+      echo -e "  $(UI.Color.Yellow)−$(UI.Color.Default) $file $(UI.Color.Yellow)(not supported)$(UI.Color.Default)"
+    fi
+  fi
+done
+
+echo ""
+log_success "✨ Prettier formatting complete!"
+log_info "ℹ️  Files have been formatted in place."

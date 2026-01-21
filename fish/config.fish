@@ -18,6 +18,12 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # Ensure Homebrew bash (5.x) is used before system bash (3.2)
 fish_add_path --prepend /opt/homebrew/bin
 
+## Dotfiles scripts
+# Framework path for bash-oo-framework (used by scripts)
+set -gx BASH_OO_FRAMEWORK "$HOME/dotfiles/scripts/lib"
+# Add scripts to PATH so they're available as commands
+fish_add_path "$HOME/dotfiles/scripts"
+
 ## Docker
 set -gx DOCKER_HOST "unix://$HOME/.colima/default/docker.sock"
 
@@ -77,10 +83,10 @@ alias mux="tmuxinator"
 alias tt="tmux a -t"
 alias ts="tmux new -s"
 alias c2p="code2prompt"
-alias gcm="~/dotfiles/scripts/gcm.sh"
-alias qdays="~/dotfiles/scripts/qdays.sh"
-alias pf="~/dotfiles/scripts/prettier.sh"
 alias yz='yazi'
+
+## Dotfiles scripts (available via PATH, aliases for convenience/shorter names)
+alias pf="prettier"           # Run prettier on git modified files
 
 ## Git-related
 alias timelygit='GIT_SSH_COMMAND="ssh -i ~/.ssh/timely_key" git'
@@ -109,22 +115,6 @@ function obs --description "Open a file in Obsidian vault 'NoteBook'"
     open "obsidian://open?vault=NoteBook&file=$file_path"
 end
 
-function update_pr --description "Update PR description with AI-generated summary"
-    set pr_number $argv[1]
-    
-    if test -z "$pr_number"
-        echo "Please provide a PR number"
-        return 1
-    end
-    
-    # Generate the PR summary
-    ~/dotfiles/scripts/gpr.sh $pr_number
-    
-    # Update the PR with the generated summary
-    gh pr edit $pr_number --body-file pr_summary_$pr_number.md
-    
-    echo "PR #$pr_number description updated successfully!"
-end
 set -gx PATH $PATH /opt/homebrew/Cellar/tmuxinator/3.3.3/libexec
 
 # Garmin Connect IQ SDK

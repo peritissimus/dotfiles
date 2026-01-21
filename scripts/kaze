@@ -1,19 +1,24 @@
-#!/usr/bin/env bash
+#!/opt/homebrew/bin/bash
 
 # kaze.sh - Unified tool for creating and querying embeddings for project files
-# Version: 1.0.0
+# Version: 2.0.0
+
+# Bootstrap bash-oo-framework
+SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import UI/Color
 
 # DEFAULTS {{{
-set -e
+# Note: Removed 'set -e' as framework handles errors
 
-# Colors for better formatting
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Colors mapped to framework
+RED=$(UI.Color.Red)
+GREEN=$(UI.Color.Green)
+YELLOW=$(UI.Color.Yellow)
+BLUE=$(UI.Color.Blue)
+PURPLE=$(UI.Color.Magenta)
+CYAN=$(UI.Color.Cyan)
+NC=$(UI.Color.Default)
 
 # Default settings
 MODEL="text-embedding-3-small"

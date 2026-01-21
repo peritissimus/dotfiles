@@ -1,0 +1,68 @@
+#!/opt/homebrew/bin/bash
+# ywork.sh - Display work summary from git commits for yesterday
+
+SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import UI/Color
+
+# Configuration
+USERNAME="zocakushal"
+PROJECTS_DIR="/Users/peritissimus/projects"
+
+# Calculate yesterday's date in YYYY-MM-DD format
+YESTERDAY=$(date -v-1d +%Y-%m-%d)
+
+echo -e "$(UI.Color.Blue)📊 Work Summary for $(UI.Color.Bold)$USERNAME$(UI.Color.Default)$(UI.Color.Blue) on $(UI.Color.Yellow)$YESTERDAY$(UI.Color.Default)"
+echo -e "$(UI.Color.DarkGray)==================================================$(UI.Color.Default)"
+
+# Function to check commits in a repository
+check_repo_commits() {
+  local repo_path=$1
+  local repo_name=$(basename "$repo_path")
+
+  cd "$repo_path"
+
+  # Get all unique commits from yesterday by the specified user across all branches
+  local unique_commits=$(git log --author="$USERNAME" --since="$YESTERDAY 00:00" --until="$YESTERDAY 23:59" --all --format="%h|%s" | sort -u)
+
+  if [ -n "$unique_commits" ]; then
+    echo -e "\n$(UI.Color.Cyan)📁 $repo_name$(UI.Color.Default)"
+    echo -e "$(UI.Color.DarkGray)-------------------$(UI.Color.Default)"
+
+    # Output unique commits
+    echo "$unique_commits" | while IFS='|' read -r hash message; do
+      echo -e "  $(UI.Color.Yellow)•$(UI.Color.Default) $(UI.Color.DarkGray)${hash}:$(UI.Color.Default) ${message}"
+    done
+
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Initialize counters
+TOTAL_REPOS=0
+REPOS_WITH_COMMITS=0
+TOTAL_COMMITS=0
+
+# Process each project directory
+for project in "$PROJECTS_DIR"/*; do
+  if [ -d "$project/.git" ]; then
+    TOTAL_REPOS=$((TOTAL_REPOS + 1))
+
+    if check_repo_commits "$project"; then
+      REPOS_WITH_COMMITS=$((REPOS_WITH_COMMITS + 1))
+      # Count unique commits in this repo
+      cd "$project"
+      repo_commits=$(git log --author="$USERNAME" --since="$YESTERDAY 00:00" --until="$YESTERDAY 23:59" --all --format="%H %s" | sort -u | wc -l)
+      TOTAL_COMMITS=$((TOTAL_COMMITS + repo_commits))
+    fi
+  fi
+done
+
+echo -e "\n$(UI.Color.Green)📊 Summary$(UI.Color.Default)"
+echo -e "$(UI.Color.DarkGray)-------------------$(UI.Color.Default)"
+echo -e "$(UI.Color.White)Projects checked:$(UI.Color.Default) $(UI.Color.Yellow)$TOTAL_REPOS$(UI.Color.Default)"
+echo -e "$(UI.Color.White)Projects with activity:$(UI.Color.Default) $(UI.Color.Yellow)$REPOS_WITH_COMMITS$(UI.Color.Default)"
+echo -e "$(UI.Color.White)Total commits:$(UI.Color.Default) $(UI.Color.Bold)$(UI.Color.Green)$TOTAL_COMMITS$(UI.Color.Default)"
+echo -e "\n$(UI.Color.DarkGray)Report generated on $(date)$(UI.Color.Default)"

@@ -154,8 +154,8 @@ if [ -z "$COMMAND" ] || [ "$COMMAND" = "null" ]; then
   exit 1
 fi
 
-# Clean up command (remove any accidental markdown)
-COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | xargs)
+# Clean up command (remove any accidental markdown, preserve quotes)
+COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 # Copy command to clipboard (best-effort)
 command -v pbcopy >/dev/null 2>&1 && printf "%s" "$COMMAND" | pbcopy

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/opt/homebrew/bin/bash
 # gcm.sh - Git Commit Message Generator using LLM
 # Requires: bash 4+, llm CLI, git
 

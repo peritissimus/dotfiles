@@ -15,6 +15,8 @@ set -gx NX_TUI false
 # Development tools setup
 ## Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"
+# Ensure Homebrew bash (5.x) is used before system bash (3.2)
+fish_add_path --prepend /opt/homebrew/bin
 
 ## Docker
 set -gx DOCKER_HOST "unix://$HOME/.colima/default/docker.sock"

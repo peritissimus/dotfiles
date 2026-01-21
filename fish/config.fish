@@ -9,6 +9,7 @@ set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings
 set -gx PATH $HOME/.gem/bin $PATH
 
 set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
+set -gx GROQ_API_KEY (security find-generic-password -a "$USER" -s "GROQ_API_KEY" -w 2>/dev/null)
 set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
 set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
 set -gx NX_TUI false

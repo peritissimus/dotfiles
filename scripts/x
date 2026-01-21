@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Bootstrap bash-oo-framework
-SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
 import UI/Color
 
@@ -19,69 +19,69 @@ mkdir -p "$CONFIG_DIR"
 
 # Load saved config if exists
 if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
+  source "$CONFIG_FILE"
 fi
 
 # Help message
 show_help() {
-    echo ""
-    echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
-    echo "       x --version"
-    echo "       x --help"
-    echo ""
-    echo -e "$(UI.Color.Cyan)Example:$(UI.Color.Default) x get all the git branches"
-    echo ""
-    echo -e "$(UI.Color.Bold)Options:$(UI.Color.Default)"
-    echo "  --verbose    Enable debug output"
-    echo "  --version    Show version information"
-    echo "  --help, -h   Show this help message"
-    echo ""
-    echo -e "$(UI.Color.Bold)Description:$(UI.Color.Default)"
-    echo "  x converts natural language instructions into shell commands."
-    echo "  Uses Groq API (set GROQ_API_KEY environment variable)."
-    echo ""
-    echo -e "$(UI.Color.Bold)Available Models:$(UI.Color.Default)"
-    echo "  - meta-llama/llama-4-scout-17b-16e-instruct (default, fastest)"
-    echo "  - llama-3.3-70b-versatile (fast + capable)"
-    echo "  - llama-3.1-8b-instant"
-    echo "  - moonshotai/kimi-k2-instruct"
-    echo ""
-    echo "  Set GROQ_MODEL to override the default model."
+  echo ""
+  echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
+  echo "       x --version"
+  echo "       x --help"
+  echo ""
+  echo -e "$(UI.Color.Cyan)Example:$(UI.Color.Default) x get all the git branches"
+  echo ""
+  echo -e "$(UI.Color.Bold)Options:$(UI.Color.Default)"
+  echo "  --verbose    Enable debug output"
+  echo "  --version    Show version information"
+  echo "  --help, -h   Show this help message"
+  echo ""
+  echo -e "$(UI.Color.Bold)Description:$(UI.Color.Default)"
+  echo "  x converts natural language instructions into shell commands."
+  echo "  Uses Groq API (set GROQ_API_KEY environment variable)."
+  echo ""
+  echo -e "$(UI.Color.Bold)Available Models:$(UI.Color.Default)"
+  echo "  - meta-llama/llama-4-scout-17b-16e-instruct (default, fastest)"
+  echo "  - llama-3.3-70b-versatile (fast + capable)"
+  echo "  - llama-3.1-8b-instant"
+  echo "  - moonshotai/kimi-k2-instruct"
+  echo ""
+  echo "  Set GROQ_MODEL to override the default model."
 }
 
 # Handle --help flag
 if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
-    show_help
-    exit 0
+  show_help
+  exit 0
 fi
 
 # Handle --version flag
 if [[ "${1:-}" == "--version" ]]; then
-    echo "x version $VERSION"
-    exit 0
+  echo "x version $VERSION"
+  exit 0
 fi
 
 # Enable debug mode if --verbose flag is passed
 DEBUG=0
 if [[ "${1:-}" == "--verbose" ]]; then
-    DEBUG=1
-    shift
+  DEBUG=1
+  shift
 fi
 
 # Check for API key
 if [ -z "${GROQ_API_KEY:-}" ]; then
-    echo -e "$(UI.Color.Red)Error: GROQ_API_KEY not set$(UI.Color.Default)"
-    echo "Set it with: export GROQ_API_KEY='your-api-key'"
-    echo "Or add to Apple Keychain: security add-generic-password -a \"\$USER\" -s \"GROQ_API_KEY\" -w \"your-key\""
-    exit 1
+  echo -e "$(UI.Color.Red)Error: GROQ_API_KEY not set$(UI.Color.Default)"
+  echo "Set it with: export GROQ_API_KEY='your-api-key'"
+  echo "Or add to Apple Keychain: security add-generic-password -a \"\$USER\" -s \"GROQ_API_KEY\" -w \"your-key\""
+  exit 1
 fi
 
 # Check if instruction is provided
 if [ $# -eq 0 ]; then
-    echo -e "$(UI.Color.Yellow)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
-    echo ""
-    echo "Run 'x --help' for more information."
-    exit 1
+  echo -e "$(UI.Color.Yellow)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
+  echo ""
+  echo "Run 'x --help' for more information."
+  exit 1
 fi
 
 # Combine all arguments into instruction
@@ -115,10 +115,10 @@ Command:"
 
 # Build JSON payload
 JSON_PAYLOAD=$(jq -n \
-    --arg model "$MODEL" \
-    --arg system "$SYSTEM_PROMPT" \
-    --arg user "$USER_PROMPT" \
-    '{
+  --arg model "$MODEL" \
+  --arg system "$SYSTEM_PROMPT" \
+  --arg user "$USER_PROMPT" \
+  '{
         model: $model,
         messages: [
             {role: "system", content: $system},
@@ -132,33 +132,33 @@ JSON_PAYLOAD=$(jq -n \
 
 # Make API request
 RESPONSE=$(curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${GROQ_API_KEY}" \
-    -d "$JSON_PAYLOAD")
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${GROQ_API_KEY}" \
+  -d "$JSON_PAYLOAD")
 
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Response: $RESPONSE$(UI.Color.Default)" >&2
 
 # Check for errors
 if echo "$RESPONSE" | grep -q '"error"'; then
-    ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // .error // "Unknown error"')
-    echo -e "$(UI.Color.Red)Error: $ERROR_MSG$(UI.Color.Default)"
-    exit 1
+  ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // .error // "Unknown error"')
+  echo -e "$(UI.Color.Red)Error: $ERROR_MSG$(UI.Color.Default)"
+  exit 1
 fi
 
 # Extract command from response
 COMMAND=$(echo "$RESPONSE" | jq -r '.choices[0].message.content' 2>/dev/null)
 
 if [ -z "$COMMAND" ] || [ "$COMMAND" = "null" ]; then
-    echo -e "$(UI.Color.Red)Error: Failed to generate command$(UI.Color.Default)"
-    echo "API Response: $RESPONSE"
-    exit 1
+  echo -e "$(UI.Color.Red)Error: Failed to generate command$(UI.Color.Default)"
+  echo "API Response: $RESPONSE"
+  exit 1
 fi
 
 # Clean up command (remove any accidental markdown)
 COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | xargs)
 
 # Save working model to config
-echo "SAVED_GROQ_MODEL=\"$MODEL\"" > "$CONFIG_FILE"
+echo "SAVED_GROQ_MODEL=\"$MODEL\"" >"$CONFIG_FILE"
 
 # Display command and ask for confirmation
 echo "----------"
@@ -167,8 +167,8 @@ read -p "Execute this command? (Y/n): " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Nn]$ ]]; then
-    echo -e "$(UI.Color.Yellow)Command execution cancelled$(UI.Color.Default)"
-    exit 0
+  echo -e "$(UI.Color.Yellow)Command execution cancelled$(UI.Color.Default)"
+  exit 0
 else
-    eval "$COMMAND"
+  eval "$COMMAND"
 fi

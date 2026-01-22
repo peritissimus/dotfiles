@@ -1,0 +1,163 @@
+#!/opt/homebrew/bin/bash
+# q - Natural language to jq query converter using Groq API
+# Usage: cat file.json | q "get all names"
+
+set -euo pipefail
+
+# Bootstrap bash-oo-framework
+SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import UI/Color
+
+# Constants
+VERSION="1.0.0"
+DEFAULT_MODEL="meta-llama/llama-4-scout-17b-16e-instruct"
+
+# Help message
+show_help() {
+  echo ""
+  echo -e "$(UI.Color.Bold)q$(UI.Color.Default) - Natural language to jq queries"
+  echo ""
+  echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default)"
+  echo "  cat file.json | q <query>"
+  echo "  echo '{...}' | q <query>"
+  echo ""
+  echo -e "$(UI.Color.Cyan)Examples:$(UI.Color.Default)"
+  echo "  cat package.json | q keys"
+  echo "  cat data.json | q 'get all names'"
+  echo "  cat users.json | q 'filter where age > 30'"
+  echo "  cat api.json | q 'count items'"
+  echo ""
+  echo -e "$(UI.Color.Bold)Options:$(UI.Color.Default)"
+  echo "  -p, --preview    Show jq query without executing"
+  echo "  -v, --verbose    Show debug output"
+  echo "  --help, -h       Show this help"
+  echo "  --version        Show version"
+}
+
+# Handle flags
+if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  show_help
+  exit 0
+fi
+
+if [[ "${1:-}" == "--version" ]]; then
+  echo "q version $VERSION"
+  exit 0
+fi
+
+PREVIEW=0
+DEBUG=0
+
+while [[ "${1:-}" == -* ]]; do
+  case "$1" in
+    -p|--preview) PREVIEW=1; shift ;;
+    -v|--verbose) DEBUG=1; shift ;;
+    *) break ;;
+  esac
+done
+
+# Check for API key
+if [ -z "${GROQ_API_KEY:-}" ]; then
+  echo -e "$(UI.Color.Red)Error: GROQ_API_KEY not set$(UI.Color.Default)" >&2
+  exit 1
+fi
+
+# Check if we have a query
+if [ $# -eq 0 ]; then
+  echo -e "$(UI.Color.Yellow)Usage:$(UI.Color.Default) cat file.json | q <query>" >&2
+  exit 1
+fi
+
+QUERY="$*"
+
+# Read JSON from stdin
+if [ -t 0 ]; then
+  echo -e "$(UI.Color.Red)Error: No JSON input. Pipe JSON to q$(UI.Color.Default)" >&2
+  echo "Example: cat file.json | q '$QUERY'" >&2
+  exit 1
+fi
+
+JSON_INPUT=$(cat)
+
+# Sample the JSON for context (first 500 chars to avoid token limits)
+JSON_SAMPLE="${JSON_INPUT:0:500}"
+if [ ${#JSON_INPUT} -gt 500 ]; then
+  JSON_SAMPLE="${JSON_SAMPLE}..."
+fi
+
+MODEL="${GROQ_MODEL:-$DEFAULT_MODEL}"
+
+# Build prompt
+SYSTEM_PROMPT="You are a jq query generator. Convert natural language to jq filters.
+
+Rules:
+- Return ONLY the jq filter, nothing else
+- No explanations, no markdown, no backticks
+- Just the raw jq expression
+- Use correct jq syntax:
+  - 'keys' not '.keys' for getting object keys
+  - '.name' to access a field
+  - '.[]' to iterate arrays
+  - 'length' for counting
+  - 'select(.field > value)' for filtering
+  - 'map(.field)' to extract from arrays"
+
+USER_PROMPT="JSON sample:
+$JSON_SAMPLE
+
+Query: $QUERY
+
+jq expression:"
+
+[[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Query: $QUERY$(UI.Color.Default)" >&2
+
+# Build JSON payload
+JSON_PAYLOAD=$(jq -n \
+  --arg model "$MODEL" \
+  --arg system "$SYSTEM_PROMPT" \
+  --arg user "$USER_PROMPT" \
+  '{
+    model: $model,
+    messages: [
+      {role: "system", content: $system},
+      {role: "user", content: $user}
+    ],
+    temperature: 0.1,
+    max_tokens: 200
+  }')
+
+# Make API request
+RESPONSE=$(curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${GROQ_API_KEY}" \
+  -d "$JSON_PAYLOAD")
+
+[[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Response: $RESPONSE$(UI.Color.Default)" >&2
+
+# Check for errors
+if echo "$RESPONSE" | grep -q '"error"'; then
+  ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // .error // "Unknown error"')
+  echo -e "$(UI.Color.Red)Error: $ERROR_MSG$(UI.Color.Default)" >&2
+  exit 1
+fi
+
+# Extract jq query from response
+JQ_QUERY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content' 2>/dev/null)
+
+if [ -z "$JQ_QUERY" ] || [ "$JQ_QUERY" = "null" ]; then
+  echo -e "$(UI.Color.Red)Error: Failed to generate query$(UI.Color.Default)" >&2
+  exit 1
+fi
+
+# Clean up query
+JQ_QUERY=$(echo "$JQ_QUERY" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+if [[ $PREVIEW -eq 1 ]]; then
+  # Preview mode - just show the query
+  echo -e "$(UI.Color.DarkGray)jq '$(UI.Color.Cyan)$JQ_QUERY$(UI.Color.DarkGray)'$(UI.Color.Default)"
+else
+  # Execute the query
+  [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)jq '$JQ_QUERY'$(UI.Color.Default)" >&2
+  echo "$JSON_INPUT" | jq "$JQ_QUERY"
+fi

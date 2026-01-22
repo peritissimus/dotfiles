@@ -1,5 +1,5 @@
 #!/opt/homebrew/bin/bash
-# x - Natural language to shell command converter using Groq API
+# x - Natural language to shell command converter using Groq API or local MLX
 
 set -euo pipefail
 
@@ -9,8 +9,11 @@ source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
 import UI/Color
 
 # Constants
-VERSION="1.0.0"
-DEFAULT_MODEL="meta-llama/llama-4-scout-17b-16e-instruct"
+VERSION="1.1.0"
+DEFAULT_GROQ_MODEL="meta-llama/llama-4-scout-17b-16e-instruct"
+DEFAULT_LOCAL_MODEL="mlx-community/Llama-3.2-3B-Instruct-4bit"
+LOCAL_API_URL="http://localhost:8080/v1/chat/completions"
+GROQ_API_URL="https://api.groq.com/openai/v1/chat/completions"
 CONFIG_DIR="$HOME/.x"
 CONFIG_FILE="$CONFIG_DIR/config"
 
@@ -25,28 +28,37 @@ fi
 # Help message
 show_help() {
   echo ""
-  echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
+  echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) x [--local] [--verbose] <instruction>"
   echo "       x --version"
   echo "       x --help"
   echo ""
   echo -e "$(UI.Color.Cyan)Example:$(UI.Color.Default) x get all the git branches"
   echo ""
   echo -e "$(UI.Color.Bold)Options:$(UI.Color.Default)"
+  echo "  --local      Use local MLX server (localhost:8080)"
   echo "  --verbose    Enable debug output"
   echo "  --version    Show version information"
   echo "  --help, -h   Show this help message"
   echo ""
   echo -e "$(UI.Color.Bold)Description:$(UI.Color.Default)"
   echo "  x converts natural language instructions into shell commands."
-  echo "  Uses Groq API (set GROQ_API_KEY environment variable)."
+  echo "  Supports both Groq API and local MLX server."
   echo ""
-  echo -e "$(UI.Color.Bold)Available Models:$(UI.Color.Default)"
+  echo -e "$(UI.Color.Bold)Backends:$(UI.Color.Default)"
+  echo "  $(UI.Color.Cyan)Local MLX:$(UI.Color.Default)"
+  echo "    Use --local flag or set X_LOCAL=1"
+  echo "    Start server: mlx_lm.server --model mlx-community/Llama-3.2-3B-Instruct-4bit"
+  echo "    Set X_MODEL to override the local model."
+  echo ""
+  echo "  $(UI.Color.Cyan)Groq API:$(UI.Color.Default)"
+  echo "    Set GROQ_API_KEY environment variable"
+  echo "    Set GROQ_MODEL to override the default model."
+  echo ""
+  echo -e "$(UI.Color.Bold)Available Groq Models:$(UI.Color.Default)"
   echo "  - meta-llama/llama-4-scout-17b-16e-instruct (default, fastest)"
   echo "  - llama-3.3-70b-versatile (fast + capable)"
   echo "  - llama-3.1-8b-instant"
   echo "  - moonshotai/kimi-k2-instruct"
-  echo ""
-  echo "  Set GROQ_MODEL to override the default model."
 }
 
 # Handle --help flag
@@ -61,24 +73,54 @@ if [[ "${1:-}" == "--version" ]]; then
   exit 0
 fi
 
-# Enable debug mode if --verbose flag is passed
+# Parse flags
 DEBUG=0
-if [[ "${1:-}" == "--verbose" ]]; then
-  DEBUG=1
-  shift
-fi
+USE_LOCAL="${X_LOCAL:-0}"
 
-# Check for API key
-if [ -z "${GROQ_API_KEY:-}" ]; then
-  echo -e "$(UI.Color.Red)Error: GROQ_API_KEY not set$(UI.Color.Default)"
-  echo "Set it with: export GROQ_API_KEY='your-api-key'"
-  echo "Or add to Apple Keychain: security add-generic-password -a \"\$USER\" -s \"GROQ_API_KEY\" -w \"your-key\""
-  exit 1
+while [[ "${1:-}" == --* ]]; do
+  case "${1:-}" in
+    --verbose)
+      DEBUG=1
+      shift
+      ;;
+    --local)
+      USE_LOCAL=1
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Determine backend and validate requirements
+if [[ "$USE_LOCAL" == "1" ]]; then
+  API_URL="$LOCAL_API_URL"
+  MODEL="${X_MODEL:-${SAVED_LOCAL_MODEL:-$DEFAULT_LOCAL_MODEL}}"
+  AUTH_HEADER=""
+
+  # Check if local server is running
+  if ! curl -s --connect-timeout 1 "http://localhost:8080/v1/models" >/dev/null 2>&1; then
+    echo -e "$(UI.Color.Red)Error: Local MLX server not running$(UI.Color.Default)"
+    echo "Start it with: mlx_lm.server --model $DEFAULT_LOCAL_MODEL"
+    exit 1
+  fi
+else
+  # Check for Groq API key
+  if [ -z "${GROQ_API_KEY:-}" ]; then
+    echo -e "$(UI.Color.Red)Error: GROQ_API_KEY not set$(UI.Color.Default)"
+    echo "Set it with: export GROQ_API_KEY='your-api-key'"
+    echo "Or use local MLX: x --local <instruction>"
+    exit 1
+  fi
+  API_URL="$GROQ_API_URL"
+  MODEL="${GROQ_MODEL:-${SAVED_GROQ_MODEL:-$DEFAULT_GROQ_MODEL}}"
+  AUTH_HEADER="Authorization: Bearer ${GROQ_API_KEY}"
 fi
 
 # Check if instruction is provided
 if [ $# -eq 0 ]; then
-  echo -e "$(UI.Color.Yellow)Usage:$(UI.Color.Default) x [--verbose] <instruction>"
+  echo -e "$(UI.Color.Yellow)Usage:$(UI.Color.Default) x [--local] [--verbose] <instruction>"
   echo ""
   echo "Run 'x --help' for more information."
   exit 1
@@ -86,9 +128,6 @@ fi
 
 # Combine all arguments into instruction
 INSTRUCTION="$*"
-
-# Set model (from env, config, or default)
-MODEL="${GROQ_MODEL:-${SAVED_GROQ_MODEL:-$DEFAULT_MODEL}}"
 
 # Build system prompt
 SYSTEM_PROMPT="You are a shell command generator. Convert the user's natural language instruction into a shell command.
@@ -110,6 +149,7 @@ Instruction: ${INSTRUCTION}
 
 Command:"
 
+[[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Backend: $([ "$USE_LOCAL" == "1" ] && echo "Local MLX" || echo "Groq API")$(UI.Color.Default)" >&2
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Using model: $MODEL$(UI.Color.Default)" >&2
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Instruction: $INSTRUCTION$(UI.Color.Default)" >&2
 
@@ -128,13 +168,19 @@ JSON_PAYLOAD=$(jq -n \
         max_tokens: 500
     }')
 
-[[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Sending request to Groq...$(UI.Color.Default)" >&2
+[[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Sending request to $API_URL$(UI.Color.Default)" >&2
 
 # Make API request
-RESPONSE=$(curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${GROQ_API_KEY}" \
-  -d "$JSON_PAYLOAD")
+if [[ -n "$AUTH_HEADER" ]]; then
+  RESPONSE=$(curl -s -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -H "$AUTH_HEADER" \
+    -d "$JSON_PAYLOAD")
+else
+  RESPONSE=$(curl -s -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
+fi
 
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Response: $RESPONSE$(UI.Color.Default)" >&2
 
@@ -154,14 +200,18 @@ if [ -z "$COMMAND" ] || [ "$COMMAND" = "null" ]; then
   exit 1
 fi
 
-# Clean up command (remove any accidental markdown, preserve quotes)
-COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+# Clean up command (remove any accidental markdown, special tokens, preserve quotes)
+COMMAND=$(echo "$COMMAND" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/<|eot_id|>//g' | sed 's/<|end_of_text|>//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 # Copy command to clipboard (best-effort)
 command -v pbcopy >/dev/null 2>&1 && printf "%s" "$COMMAND" | pbcopy
 
 # Save working model to config
-echo "SAVED_GROQ_MODEL=\"$MODEL\"" >"$CONFIG_FILE"
+if [[ "$USE_LOCAL" == "1" ]]; then
+  echo "SAVED_LOCAL_MODEL=\"$MODEL\"" >"$CONFIG_FILE"
+else
+  echo "SAVED_GROQ_MODEL=\"$MODEL\"" >"$CONFIG_FILE"
+fi
 
 # Display command beautifully
 echo -e "  $(UI.Color.Blue)│$(UI.Color.Yellow) $(UI.Color.Bold)$COMMAND$(UI.Color.Default)"

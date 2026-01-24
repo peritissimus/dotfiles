@@ -1,34 +1,45 @@
 #!/opt/homebrew/bin/bash
-# gcm.sh - Git Commit Message Generator using LLM
-# Requires: bash 4+, llm CLI, git
+# gcm - Git Commit Message Generator using LLM APIs
+# Supports: Local MLX, Groq, OpenAI
+
+set -euo pipefail
 
 # Bootstrap bash-oo-framework
-SCRIPT_DIR="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
-
-import util/exception util/tryCatch UI/Color
-
-#################
-### NAMESPACE ###
-#################
-
-namespace gcm
+import UI/Color
 
 #################
 ### CONSTANTS ###
 #################
 
-readonly VERSION="2.0.0"
-readonly DEFAULT_MODEL="gpt-4o-mini"
+readonly VERSION="3.0.0"
+
+# API URLs
+LOCAL_API_URL="http://localhost:8080/v1/chat/completions"
+GROQ_API_URL="https://api.groq.com/openai/v1/chat/completions"
+OPENAI_API_URL="https://api.openai.com/v1/chat/completions"
+
+# Default models
+DEFAULT_LOCAL_MODEL="mlx-community/Llama-3.2-3B-Instruct-4bit"
+DEFAULT_GROQ_MODEL="meta-llama/llama-4-scout-17b-16e-instruct"
+DEFAULT_OPENAI_MODEL="gpt-4o-mini"
+
+# Config
+CONFIG_DIR="$HOME/.gcm"
+CONFIG_FILE="$CONFIG_DIR/config"
+
+# Create config directory if needed
+mkdir -p "$CONFIG_DIR"
+
+# Load saved config if exists
+if [ -f "$CONFIG_FILE" ]; then
+  source "$CONFIG_FILE"
+fi
 
 ###############
 ### HELPERS ###
 ###############
-
-# Logging with colors
-log_header() {
-  echo -e "$(UI.Color.Bold)$(UI.Color.Blue)⚡️ $1$(UI.Color.Default)"
-}
 
 log_info() {
   echo -e "$(UI.Color.Cyan)$1$(UI.Color.Default)"
@@ -38,57 +49,46 @@ log_success() {
   echo -e "$(UI.Color.Green)$1$(UI.Color.Default)"
 }
 
-log_warning() {
-  echo -e "$(UI.Color.Yellow)$1$(UI.Color.Default)"
-}
-
 log_error() {
-  echo -e "$(UI.Color.Red)❌ $1$(UI.Color.Default)"
+  echo -e "$(UI.Color.Red)$1$(UI.Color.Default)"
 }
 
 log_debug() {
-  echo -e "$(UI.Color.DarkGray) $1$(UI.Color.Default)"
+  echo -e "$(UI.Color.DarkGray)$1$(UI.Color.Default)"
 }
 
-# Print fancy ASCII banner
-print_banner() {
-  echo -e "$(UI.Color.Bold)$(UI.Color.Cyan)"
-  cat <<'EOF'
- ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓██████████████▓▒░
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒▒▓███▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
- ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░
-
-EOF
-  echo -e "$(UI.Color.Default)"
-}
-
-# Check if LLM CLI is installed
-check_llm() {
-  if ! command -v llm &>/dev/null; then
-    log_info "LLM CLI is not installed. Installing now..."
-    brew install llm || {
-      e="Failed to install LLM CLI" throw
-    }
-  fi
-}
-
-# Check if OpenAI API key is set
-check_openai_key() {
-  if ! llm keys get openai &>/dev/null; then
-    log_warning "OpenAI API key is not set in the llm CLI."
-    read -p "Please enter your OpenAI API key: " openai_key
-    llm keys set openai --value "$openai_key"
-    log_success "OpenAI API key has been set in the llm CLI."
-  fi
+print_usage() {
+  echo ""
+  echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) gcm [options]"
+  echo ""
+  echo -e "$(UI.Color.Bold)Backend Options:$(UI.Color.Default)"
+  echo "  --groq           Use Groq API (default, fastest)"
+  echo "  --openai         Use OpenAI API"
+  echo "  --local          Use local MLX server (localhost:8080)"
+  echo ""
+  echo -e "$(UI.Color.Bold)Other Options:$(UI.Color.Default)"
+  echo "  -p, --preview    Preview commit message without committing"
+  echo "  -c, --context    Additional context for the commit"
+  echo "  -m, --model      Override the model for selected backend"
+  echo "  -v, --verbose    Enable debug output"
+  echo "  -h, --help       Show this help message"
+  echo "  --version        Show version"
+  echo ""
+  echo -e "$(UI.Color.Bold)Environment Variables:$(UI.Color.Default)"
+  echo "  GCM_BACKEND      Default backend: local, groq, openai"
+  echo "  GROQ_API_KEY     API key for Groq"
+  echo "  OPENAI_API_KEY   API key for OpenAI"
+  echo ""
+  echo -e "$(UI.Color.Bold)Examples:$(UI.Color.Default)"
+  echo "  gcm                              # Auto: Groq > OpenAI > local"
+  echo "  gcm -p                           # Preview without committing"
+  echo "  gcm --openai -m gpt-4o           # Use GPT-4o"
+  echo "  gcm -c 'Part of auth refactor'   # With context"
 }
 
 # Get project structure (respecting .gitignore)
 get_project_structure() {
-  git ls-files |
+  git ls-files 2>/dev/null |
     while IFS= read -r file; do
       dirname "$file"
     done |
@@ -104,7 +104,7 @@ get_project_structure() {
 
 # Get primary language(s) of the project
 get_project_languages() {
-  git ls-files |
+  git ls-files 2>/dev/null |
     while IFS= read -r file; do
       extension="${file##*.}"
       if [[ "$extension" != "$file" ]]; then
@@ -127,32 +127,63 @@ get_staged_changes() {
 
 # Get Nx project graph if available
 get_nx_graph() {
-  if [[ -f "nx.json" ]]; then
-    log_info "Nx project detected, generating dependency graph..."
+  if [[ -f "nx.json" ]] && command -v nx &>/dev/null; then
     nx graph --file=project-graph.json >/dev/null 2>&1
     if [[ -f "project-graph.json" ]]; then
       jq '{
-        nodes: (
-          .graph.nodes | to_entries | map({
-            name: .value.name,
-            type: .value.type
-          })
-        ),
-        dependencies: (
-          .graph.dependencies | to_entries | map({
-            source: .key,
-            targets: (.value | map(.target))
-          })
-        )
-      }' project-graph.json >simplified-graph.json
-      cat simplified-graph.json
-      rm project-graph.json simplified-graph.json
-    else
-      return 1
+        nodes: (.graph.nodes | to_entries | map({name: .value.name, type: .value.type})),
+        dependencies: (.graph.dependencies | to_entries | map({source: .key, targets: (.value | map(.target))}))
+      }' project-graph.json 2>/dev/null
+      rm -f project-graph.json
     fi
-  else
-    return 1
   fi
+}
+
+#############################
+### API CALL              ###
+#############################
+
+call_llm_api() {
+  local prompt="$1"
+  local api_url="$2"
+  local model="$3"
+  local auth_header="$4"
+
+  local json_payload
+  json_payload=$(jq -n \
+    --arg model "$model" \
+    --arg prompt "$prompt" \
+    '{
+      model: $model,
+      messages: [
+        {role: "user", content: $prompt}
+      ],
+      temperature: 0.3,
+      max_tokens: 500
+    }')
+
+  local response
+  if [[ -n "$auth_header" ]]; then
+    response=$(curl -s -X POST "$api_url" \
+      -H "Content-Type: application/json" \
+      -H "$auth_header" \
+      -d "$json_payload")
+  else
+    response=$(curl -s -X POST "$api_url" \
+      -H "Content-Type: application/json" \
+      -d "$json_payload")
+  fi
+
+  # Check for errors
+  if echo "$response" | grep -q '"error"'; then
+    local error_msg
+    error_msg=$(echo "$response" | jq -r '.error.message // .error // "Unknown error"')
+    log_error "API Error: $error_msg"
+    exit 1
+  fi
+
+  # Extract content
+  echo "$response" | jq -r '.choices[0].message.content // empty'
 }
 
 #############################
@@ -165,12 +196,16 @@ generate_commit_message() {
   local project_structure="$3"
   local project_languages="$4"
   local additional_context="$5"
-  local model="$6"
+  local api_url="$6"
+  local model="$7"
+  local auth_header="$8"
 
   # Add context section to prompt if provided
   local context_section=""
   if [[ -n "$additional_context" ]]; then
-    context_section="Additional Context: $additional_context\n\n"
+    context_section="Additional Context: $additional_context
+
+"
   fi
 
   # Get Nx graph if available
@@ -178,55 +213,48 @@ generate_commit_message() {
   nx_graph=$(get_nx_graph 2>/dev/null || echo "")
   local nx_section=""
   if [[ -n "$nx_graph" ]]; then
-    nx_section="Project Graph:\n$nx_graph\n\n"
+    nx_section="Project Graph:
+$nx_graph
+
+"
   fi
 
-  local prompt="
-Generate a precise and meaningful conventional commit message strictly following the Conventional Commits specification (https://www.conventionalcommits.org/).
+  local prompt="Generate a precise and meaningful conventional commit message strictly following the Conventional Commits specification.
 ${context_section}${nx_section}
 COMMIT STRUCTURE REQUIREMENTS:
-1. HEADER (REQUIRED):
-   <type>(<scope>): <description>
-2. BODY (CONDITIONAL):
-   [blank line]
-   <body>
-3. FOOTER (OPTIONAL for breaking changes):
-   [blank line]
-   BREAKING CHANGE: <description>
+1. HEADER (REQUIRED): <type>(<scope>): <description>
+2. BODY (CONDITIONAL): [blank line] <body>
+3. FOOTER (OPTIONAL): BREAKING CHANGE: <description>
 
-TYPE (REQUIRED) - Analyze the diff carefully to determine the most accurate type:
-- feat: A new feature or functionality that didn't exist before
-- fix: A bug fix addressing incorrect behavior
-- docs: Documentation changes only
-- style: Formatting changes that don't affect code meaning
-- refactor: Code restructuring without behavior changes
-- perf: Performance improvements
-- test: Changes to test files or testing infrastructure
-- build: Changes affecting build system or external dependencies
-- ci: Changes to CI configuration
-- chore: Other changes that don't modify src or test files
+TYPE (REQUIRED):
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation only
+- style: Formatting (no code change)
+- refactor: Code restructuring
+- perf: Performance improvement
+- test: Tests
+- build: Build system/dependencies
+- ci: CI configuration
+- chore: Other changes
 
-SCOPE (RECOMMENDED):
-- Specific component, module, or area affected
-- Use filename or directory when the scope is clear
-- Omit scope when changes affect multiple areas
+SCOPE: Component/module affected (omit if multiple areas)
 
-DESCRIPTION (REQUIRED):
-- Use imperative, present tense (\"add\" not \"added\")
-- Start with lowercase
-- No period at the end
-- Keep under 72 characters
+DESCRIPTION:
+- Imperative present tense (\"add\" not \"added\")
+- Lowercase start, no period
+- Under 72 characters
 
 BODY (ONLY INCLUDE WHEN):
-1. Changes affect multiple components requiring explanation
-2. Complex implementation details need clarification
-3. Breaking changes require migration instructions
-4. Bug fixes should explain root cause and solution
+- Changes affect multiple components
+- Complex implementation needs explanation
+- Breaking changes need migration info
+- Bug fixes should explain root cause
 
-Context Information:
+Context:
 Modified Files: ${files}
-Project Languages: ${project_languages}
-Project Structure:
+Languages: ${project_languages}
+Structure:
 ${project_structure}
 
 Changes:
@@ -234,31 +262,9 @@ Changes:
 ${diff}
 \`\`\`
 
-OUTPUT FORMAT:
-- Return ONLY the commit message text
-- Do not include any markdown tags or backticks
-- Include body ONLY when criteria above are met
-"
-  echo "$prompt" | llm --no-stream -m "$model"
-}
+OUTPUT: Return ONLY the commit message text. No markdown, no backticks, no explanation."
 
-################
-### COMMANDS ###
-################
-
-print_usage() {
-  echo "Usage: $0 [-p|--preview] [-c|--context \"context\"] [-m|--model MODEL]"
-  echo
-  echo "Options:"
-  echo "  -p, --preview    Preview the commit message without creating a commit"
-  echo "  -c, --context    Provide additional context for the commit message"
-  echo "  -m, --model      Specify the LLM model to use (default: $DEFAULT_MODEL)"
-  echo "  -h, --help       Show this help message"
-  echo
-  echo "Examples:"
-  echo "  $0 -c \"This change is part of the auth refactoring\""
-  echo "  $0 -p -c \"Fixing bug from issue #123\""
-  echo "  $0 -m gpt-4o"
+  call_llm_api "$prompt" "$api_url" "$model" "$auth_header"
 }
 
 ##############
@@ -266,49 +272,63 @@ print_usage() {
 ##############
 
 main() {
-  log_header "Git Commit Message Generator v${VERSION}"
-
   # Check if we're in a git repository
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log_error "Not a git repository"
     exit 1
   fi
 
-  check_llm
-  check_openai_key
-
   local preview=false
   local context=""
-  local model="$DEFAULT_MODEL"
+  local model_override=""
+  local debug=0
+  local backend="${GCM_BACKEND:-auto}"
 
   # Parse command line arguments
   while [[ $# -gt 0 ]]; do
     case $1 in
+      --local)
+        backend="local"
+        shift
+        ;;
+      --groq)
+        backend="groq"
+        shift
+        ;;
+      --openai)
+        backend="openai"
+        shift
+        ;;
       -p|--preview)
         preview=true
         shift
         ;;
       -c|--context)
-        if [[ -z "$2" ]]; then
+        if [[ -z "${2:-}" ]]; then
           log_error "--context requires an argument"
-          print_usage
           exit 1
         fi
         context="$2"
         shift 2
         ;;
       -m|--model)
-        if [[ -z "$2" ]]; then
+        if [[ -z "${2:-}" ]]; then
           log_error "--model requires an argument"
-          print_usage
           exit 1
         fi
-        model="$2"
+        model_override="$2"
         shift 2
         ;;
+      -v|--verbose)
+        debug=1
+        shift
+        ;;
       -h|--help)
-        print_banner
         print_usage
+        exit 0
+        ;;
+      --version)
+        echo "gcm version $VERSION"
         exit 0
         ;;
       *)
@@ -319,11 +339,64 @@ main() {
     esac
   done
 
+  # Auto-detect backend if not specified
+  if [[ "$backend" == "auto" ]]; then
+    if [[ -n "${GROQ_API_KEY:-}" ]]; then
+      backend="groq"
+    elif [[ -n "${OPENAI_API_KEY:-}" ]]; then
+      backend="openai"
+    elif curl -s --connect-timeout 1 "http://localhost:8080/v1/models" >/dev/null 2>&1; then
+      backend="local"
+    else
+      log_error "No backend available"
+      echo "Set GROQ_API_KEY, OPENAI_API_KEY, or start local MLX server"
+      exit 1
+    fi
+  fi
+
+  # Configure backend
+  local api_url model auth_header=""
+  case "$backend" in
+    local)
+      api_url="$LOCAL_API_URL"
+      model="${model_override:-${SAVED_LOCAL_MODEL:-$DEFAULT_LOCAL_MODEL}}"
+      if ! curl -s --connect-timeout 1 "http://localhost:8080/v1/models" >/dev/null 2>&1; then
+        log_error "Local MLX server not running"
+        echo "Start it with: mlx_lm.server --model $DEFAULT_LOCAL_MODEL"
+        exit 1
+      fi
+      ;;
+    groq)
+      if [[ -z "${GROQ_API_KEY:-}" ]]; then
+        log_error "GROQ_API_KEY not set"
+        exit 1
+      fi
+      api_url="$GROQ_API_URL"
+      model="${model_override:-${SAVED_GROQ_MODEL:-$DEFAULT_GROQ_MODEL}}"
+      auth_header="Authorization: Bearer ${GROQ_API_KEY}"
+      ;;
+    openai)
+      if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+        log_error "OPENAI_API_KEY not set"
+        exit 1
+      fi
+      api_url="$OPENAI_API_URL"
+      model="${model_override:-${SAVED_OPENAI_MODEL:-$DEFAULT_OPENAI_MODEL}}"
+      auth_header="Authorization: Bearer ${OPENAI_API_KEY}"
+      ;;
+    *)
+      log_error "Unknown backend: $backend"
+      exit 1
+      ;;
+  esac
+
+  [[ $debug -eq 1 ]] && log_debug "Backend: $backend, Model: $model"
+
   # Check for staged changes
   local staged_files
   staged_files=$(get_staged_files)
   if [[ -z "$staged_files" ]]; then
-    log_error "No staged changes found. Stage your changes using 'git add' first."
+    log_error "No staged changes. Use 'git add' first."
     exit 1
   fi
 
@@ -334,27 +407,56 @@ main() {
     exit 1
   fi
 
-  log_info " Analyzing repository..."
-  log_debug " ├─ Scanning project structure"
-  local project_structure
-  project_structure=$(get_project_structure)
+  log_info "Analyzing changes..."
+  [[ $debug -eq 1 ]] && log_debug "Staged files: $staged_files"
 
-  log_debug " ├─ Detecting languages"
-  local project_languages
+  local project_structure project_languages
+  project_structure=$(get_project_structure)
   project_languages=$(get_project_languages)
 
-  log_debug " └─ Generating commit message"
+  [[ $debug -eq 1 ]] && log_debug "Languages: $project_languages"
 
   local commit_message
-  commit_message=$(generate_commit_message "$staged_files" "$staged_diff" "$project_structure" "$project_languages" "$context" "$model")
+  commit_message=$(generate_commit_message \
+    "$staged_files" \
+    "$staged_diff" \
+    "$project_structure" \
+    "$project_languages" \
+    "$context" \
+    "$api_url" \
+    "$model" \
+    "$auth_header")
+
+  # Clean up any markdown artifacts
+  commit_message=$(echo "$commit_message" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+  if [[ -z "$commit_message" ]]; then
+    log_error "Failed to generate commit message"
+    exit 1
+  fi
+
+  # Save working model to config
+  case "$backend" in
+    local)  echo "SAVED_LOCAL_MODEL=\"$model\"" > "$CONFIG_FILE" ;;
+    groq)   echo "SAVED_GROQ_MODEL=\"$model\"" > "$CONFIG_FILE" ;;
+    openai) echo "SAVED_OPENAI_MODEL=\"$model\"" > "$CONFIG_FILE" ;;
+  esac
 
   if [[ "$preview" == true ]]; then
-    log_info "Preview of commit message:"
+    log_info "Preview:"
     echo -e "$(UI.Color.Yellow)$(UI.Color.Bold)$commit_message$(UI.Color.Default)"
   else
-    git commit -m "$commit_message" -n
-    log_success "\nCommit created successfully!"
-    echo -e "$(UI.Color.DarkGray)$commit_message$(UI.Color.Default)"
+    echo -e "  $(UI.Color.Blue)│$(UI.Color.Default) $(UI.Color.Yellow)$(UI.Color.Bold)$commit_message$(UI.Color.Default)"
+    echo -ne "  $(UI.Color.Blue)└─$(UI.Color.Default) $(UI.Color.DarkGray)commit? [Y/n] $(UI.Color.Default)"
+    read -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+      exit 0
+    else
+      git commit -m "$commit_message" -n
+      log_success "Committed!"
+    fi
   fi
 }
 

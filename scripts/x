@@ -129,8 +129,34 @@ fi
 # Combine all arguments into instruction
 INSTRUCTION="$*"
 
-# Build system prompt
+# Build system prompt based on OS
+OS_NAME=$(uname -s)
+if [[ "$OS_NAME" == "Darwin" ]]; then
+  OS_HINTS="- macOS with BSD commands (NOT GNU/Linux)
+- ps: use 'ps aux | sort -k 4 -nr | head' for memory sorting (NO --sort flag)
+- Use pipe + sort instead of GNU long options
+- Use pbcopy/pbpaste for clipboard, open instead of xdg-open"
+else
+  OS_HINTS="- This is Linux with GNU coreutils
+- GNU-style long options are supported (--sort, --color, etc.)"
+fi
+
+TOOL_PREFS="Preferred tools and patterns:
+- rg (ripgrep) for search: rg pattern, rg -i pattern, rg -g '*.ts' pattern
+- fd for finding files: fd pattern, fd -e ts, fd -g '*service.ts'
+- xh for HTTP: xh get URL, xh post URL key=value key:=123 (use := for numbers/booleans)
+- jq for JSON: pipe to jq '.', jq -r '.field', jq '.array[]'
+- ll/eza for listing (not ls)
+- z for directory jumping
+- pbcopy/pbpaste for clipboard"
+
 SYSTEM_PROMPT="You are a shell command generator. Convert the user's natural language instruction into a shell command.
+
+Platform:
+$OS_HINTS
+
+Tool preferences:
+$TOOL_PREFS
 
 Rules:
 - Return ONLY the shell command, nothing else
@@ -140,14 +166,8 @@ Rules:
 - Use pipes (|) and operators (&&, ||) as needed
 - If multiple commands are needed, combine them with && or ;"
 
-USER_PROMPT="Context:
-- Current directory: $(pwd)
-- Shell: ${SHELL}
-- OS: $(uname -s)
-
-Instruction: ${INSTRUCTION}
-
-Command:"
+USER_PROMPT="pwd: $(pwd)
+Task: ${INSTRUCTION}"
 
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Backend: $([ "$USE_LOCAL" == "1" ] && echo "Local MLX" || echo "Groq API")$(UI.Color.Default)" >&2
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Using model: $MODEL$(UI.Color.Default)" >&2
@@ -164,8 +184,8 @@ JSON_PAYLOAD=$(jq -n \
             {role: "system", content: $system},
             {role: "user", content: $user}
         ],
-        temperature: 0.1,
-        max_tokens: 500
+        temperature: 0,
+        max_tokens: 200
     }')
 
 [[ $DEBUG -eq 1 ]] && echo -e "$(UI.Color.DarkGray)DEBUG: Sending request to $API_URL$(UI.Color.Default)" >&2

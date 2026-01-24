@@ -219,50 +219,21 @@ $nx_graph
 "
   fi
 
-  local prompt="Generate a precise and meaningful conventional commit message strictly following the Conventional Commits specification.
+  local prompt="You are a commit message generator. Output ONLY the commit message, nothing else.
+
+Format: <type>(<scope>): <description>
+
+Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore
+Scope: file or module name (optional)
+Description: imperative, lowercase, no period, <72 chars
+
+Add body only for breaking changes or complex multi-file changes.
 ${context_section}${nx_section}
-COMMIT STRUCTURE REQUIREMENTS:
-1. HEADER (REQUIRED): <type>(<scope>): <description>
-2. BODY (CONDITIONAL): [blank line] <body>
-3. FOOTER (OPTIONAL): BREAKING CHANGE: <description>
+Files: ${files}
 
-TYPE (REQUIRED):
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation only
-- style: Formatting (no code change)
-- refactor: Code restructuring
-- perf: Performance improvement
-- test: Tests
-- build: Build system/dependencies
-- ci: CI configuration
-- chore: Other changes
-
-SCOPE: Component/module affected (omit if multiple areas)
-
-DESCRIPTION:
-- Imperative present tense (\"add\" not \"added\")
-- Lowercase start, no period
-- Under 72 characters
-
-BODY (ONLY INCLUDE WHEN):
-- Changes affect multiple components
-- Complex implementation needs explanation
-- Breaking changes need migration info
-- Bug fixes should explain root cause
-
-Context:
-Modified Files: ${files}
-Languages: ${project_languages}
-Structure:
-${project_structure}
-
-Changes:
 \`\`\`diff
 ${diff}
-\`\`\`
-
-OUTPUT: Return ONLY the commit message text. No markdown, no backticks, no explanation."
+\`\`\`"
 
   call_llm_api "$prompt" "$api_url" "$model" "$auth_header"
 }
@@ -427,8 +398,18 @@ main() {
     "$model" \
     "$auth_header")
 
-  # Clean up any markdown artifacts
-  commit_message=$(echo "$commit_message" | sed 's/^```[a-z]*//g' | sed 's/```$//g' | sed 's/^`//g' | sed 's/`$//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  # Clean up response: remove markdown, preamble, quotes
+  commit_message=$(echo "$commit_message" | \
+    sed 's/^```[a-z]*//g' | \
+    sed 's/```$//g' | \
+    sed 's/^`//g' | \
+    sed 's/`$//g' | \
+    sed '/^[Hh]ere is/d' | \
+    sed '/^[Tt]his is/d' | \
+    sed '/^[Bb]ased on/d' | \
+    sed '/^I have/d' | \
+    sed '/^$/d' | \
+    sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
   if [[ -z "$commit_message" ]]; then
     log_error "Failed to generate commit message"

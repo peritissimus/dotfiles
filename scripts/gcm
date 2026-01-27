@@ -67,6 +67,7 @@ print_usage() {
   echo "  --local          Use local MLX server (localhost:8080)"
   echo ""
   echo -e "$(UI.Color.Bold)Other Options:$(UI.Color.Default)"
+  echo "  -a, --auto       Auto-approve (commit without confirmation)"
   echo "  -p, --preview    Preview commit message without committing"
   echo "  -c, --context    Additional context for the commit"
   echo "  -m, --model      Override the model for selected backend"
@@ -81,8 +82,8 @@ print_usage() {
   echo ""
   echo -e "$(UI.Color.Bold)Examples:$(UI.Color.Default)"
   echo "  gcm                              # Auto: Groq > OpenAI > local"
-  echo "  gcm -p                           # Preview without committing"
-  echo "  gcm --openai -m gpt-4o           # Use GPT-4o"
+  echo "  gcm -a                           # Auto-approve commit"
+  echo "  gcm -p                           # Preview only"
   echo "  gcm -c 'Part of auth refactor'   # With context"
 }
 
@@ -115,14 +116,42 @@ get_project_languages() {
     awk '{print $2}' | tr '\n' ',' | sed 's/,$//'
 }
 
+# Size threshold for ignoring data files (5KB)
+LARGE_FILE_THRESHOLD=5120
+
 # Get staged files
 get_staged_files() {
   git diff --cached --name-only
 }
 
-# Get staged changes
+# Get large data files to ignore (json, sql > threshold)
+get_ignored_files() {
+  git diff --cached --name-only | while IFS= read -r file; do
+    if [[ "$file" =~ \.(json|sql)$ ]] && [[ -f "$file" ]]; then
+      local size
+      size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+      if [[ "$size" -gt "$LARGE_FILE_THRESHOLD" ]]; then
+        echo "$file"
+      fi
+    fi
+  done
+}
+
+# Get staged changes (excluding large json/sql files)
 get_staged_changes() {
-  git diff --cached
+  local ignored
+  ignored=$(get_ignored_files)
+
+  if [[ -n "$ignored" ]]; then
+    # Build exclusion args
+    local exclude_args=()
+    while IFS= read -r file; do
+      exclude_args+=(":(exclude)$file")
+    done <<< "$ignored"
+    git diff --cached -- . "${exclude_args[@]}"
+  else
+    git diff --cached
+  fi
 }
 
 # Get Nx project graph if available
@@ -250,6 +279,7 @@ main() {
   fi
 
   local preview=false
+  local auto_approve=false
   local context=""
   local model_override=""
   local debug=0
@@ -272,6 +302,10 @@ main() {
         ;;
       -p|--preview)
         preview=true
+        shift
+        ;;
+      -a|--auto)
+        auto_approve=true
         shift
         ;;
       -c|--context)
@@ -371,6 +405,11 @@ main() {
     exit 1
   fi
 
+  # Check for ignored large files
+  local ignored_files
+  ignored_files=$(get_ignored_files)
+  [[ $debug -eq 1 ]] && [[ -n "$ignored_files" ]] && log_debug "Ignoring large files: $ignored_files"
+
   local staged_diff
   staged_diff=$(get_staged_changes)
   if [[ -z "$staged_diff" ]]; then
@@ -378,7 +417,6 @@ main() {
     exit 1
   fi
 
-  log_info "Analyzing changes..."
   [[ $debug -eq 1 ]] && log_debug "Staged files: $staged_files"
 
   local project_structure project_languages
@@ -423,11 +461,27 @@ main() {
     openai) echo "SAVED_OPENAI_MODEL=\"$model\"" > "$CONFIG_FILE" ;;
   esac
 
+  # Copy to clipboard
+  command -v pbcopy >/dev/null 2>&1 && printf "%s" "$commit_message" | pbcopy
+
+  # Display commit message with box drawing
+  local first_line rest_lines
+  first_line=$(echo "$commit_message" | head -n1)
+  rest_lines=$(echo "$commit_message" | tail -n +2)
+
+  echo -e "  $(UI.Color.Blue)│$(UI.Color.Default) $(UI.Color.Yellow)$(UI.Color.Bold)$first_line$(UI.Color.Default)"
+  if [[ -n "$rest_lines" ]]; then
+    echo "$rest_lines" | while IFS= read -r line; do
+      echo -e "  $(UI.Color.Blue)│$(UI.Color.Default) $(UI.Color.DarkGray)$line$(UI.Color.Default)"
+    done
+  fi
+
   if [[ "$preview" == true ]]; then
-    log_info "Preview:"
-    echo -e "$(UI.Color.Yellow)$(UI.Color.Bold)$commit_message$(UI.Color.Default)"
+    echo -e "  $(UI.Color.Blue)└─$(UI.Color.Default) $(UI.Color.DarkGray)copied to clipboard$(UI.Color.Default)"
+  elif [[ "$auto_approve" == true ]]; then
+    echo -e "  $(UI.Color.Blue)└─$(UI.Color.Default) $(UI.Color.DarkGray)committing...$(UI.Color.Default)"
+    git commit -m "$commit_message" -n
   else
-    echo -e "  $(UI.Color.Blue)│$(UI.Color.Default) $(UI.Color.Yellow)$(UI.Color.Bold)$commit_message$(UI.Color.Default)"
     echo -ne "  $(UI.Color.Blue)└─$(UI.Color.Default) $(UI.Color.DarkGray)commit? [Y/n] $(UI.Color.Default)"
     read -n 1 -r
     echo ""
@@ -436,7 +490,6 @@ main() {
       exit 0
     else
       git commit -m "$commit_message" -n
-      log_success "Committed!"
     fi
   fi
 }

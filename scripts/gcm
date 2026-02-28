@@ -57,6 +57,27 @@ log_debug() {
   echo -e "$(UI.Color.DarkGray)$1$(UI.Color.Default)"
 }
 
+# Get current time in milliseconds
+now_ms() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    python3 -c 'import time; print(int(time.time() * 1000))'
+  else
+    date +%s%3N
+  fi
+}
+
+# Format bytes to human readable
+format_bytes() {
+  local bytes=$1
+  if [[ $bytes -lt 1024 ]]; then
+    echo "${bytes}B"
+  elif [[ $bytes -lt 1048576 ]]; then
+    echo "$(( bytes / 1024 ))KB"
+  else
+    echo "$(( bytes / 1048576 ))MB"
+  fi
+}
+
 print_usage() {
   echo ""
   echo -e "$(UI.Color.Bold)Usage:$(UI.Color.Default) gcm [options]"
@@ -177,6 +198,7 @@ call_llm_api() {
   local api_url="$2"
   local model="$3"
   local auth_header="$4"
+  local debug="${5:-0}"
 
   local json_payload
   json_payload=$(jq -n \
@@ -190,6 +212,11 @@ call_llm_api() {
       temperature: 0.3,
       max_tokens: 500
     }')
+
+  local payload_size prompt_size
+  payload_size=${#json_payload}
+  prompt_size=${#prompt}
+  [[ $debug -eq 1 ]] && log_debug "Prompt size: $(format_bytes $prompt_size), Payload: $(format_bytes $payload_size)"
 
   local response
   if [[ -n "$auth_header" ]]; then
@@ -228,6 +255,7 @@ generate_commit_message() {
   local api_url="$6"
   local model="$7"
   local auth_header="$8"
+  local debug="${9:-0}"
 
   # Add context section to prompt if provided
   local context_section=""
@@ -264,7 +292,7 @@ Files: ${files}
 ${diff}
 \`\`\`"
 
-  call_llm_api "$prompt" "$api_url" "$model" "$auth_header"
+  call_llm_api "$prompt" "$api_url" "$model" "$auth_header" "$debug"
 }
 
 ##############
@@ -397,34 +425,49 @@ main() {
 
   [[ $debug -eq 1 ]] && log_debug "Backend: $backend, Model: $model"
 
+  local start_time step_start step_end
+
   # Check for staged changes
+  [[ $debug -eq 1 ]] && step_start=$(now_ms)
   local staged_files
   staged_files=$(get_staged_files)
   if [[ -z "$staged_files" ]]; then
     log_error "No staged changes. Use 'git add' first."
     exit 1
   fi
+  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "Get staged files: $((step_end - step_start))ms"
 
   # Check for ignored large files
+  [[ $debug -eq 1 ]] && step_start=$(now_ms)
   local ignored_files
   ignored_files=$(get_ignored_files)
+  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "Check ignored files: $((step_end - step_start))ms"
   [[ $debug -eq 1 ]] && [[ -n "$ignored_files" ]] && log_debug "Ignoring large files: $ignored_files"
 
+  [[ $debug -eq 1 ]] && step_start=$(now_ms)
   local staged_diff
   staged_diff=$(get_staged_changes)
   if [[ -z "$staged_diff" ]]; then
     log_error "No changes detected in staged files."
     exit 1
   fi
+  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "Get staged diff: $((step_end - step_start))ms"
 
-  [[ $debug -eq 1 ]] && log_debug "Staged files: $staged_files"
+  local file_count diff_size diff_lines
+  file_count=$(echo "$staged_files" | wc -l | tr -d ' ')
+  diff_size=${#staged_diff}
+  diff_lines=$(echo "$staged_diff" | wc -l | tr -d ' ')
+  [[ $debug -eq 1 ]] && log_debug "Staged: $file_count files, diff=$(format_bytes $diff_size) ($diff_lines lines)"
 
+  [[ $debug -eq 1 ]] && step_start=$(now_ms)
   local project_structure project_languages
   project_structure=$(get_project_structure)
   project_languages=$(get_project_languages)
+  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "Get project info: $((step_end - step_start))ms"
 
   [[ $debug -eq 1 ]] && log_debug "Languages: $project_languages"
 
+  [[ $debug -eq 1 ]] && start_time=$(now_ms)
   local commit_message
   commit_message=$(generate_commit_message \
     "$staged_files" \
@@ -434,7 +477,9 @@ main() {
     "$context" \
     "$api_url" \
     "$model" \
-    "$auth_header")
+    "$auth_header" \
+    "$debug")
+  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "LLM API call: $((step_end - start_time))ms"
 
   # Clean up response: remove markdown, preamble, quotes
   commit_message=$(echo "$commit_message" | \

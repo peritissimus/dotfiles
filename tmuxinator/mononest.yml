@@ -41,20 +41,20 @@ windows:
   # ═══════════════════════════════════════════════════════════════════
   # FEATURE BRANCHES
   # ═══════════════════════════════════════════════════════════════════
-  - lambda-refactor:
-      root: ~/projects/mononest/mononest-lambda-refactor/
+  - livekit:
+      root: ~/projects/mononest/mononest-livekit/
       layout: main-vertical
       panes:
         - nvim
-        - # lambda work
+        - # feat/lilly
         - lazygit
 
-  - nx-upgrade:
-      root: ~/projects/mononest/mononest-nx-upgrade/
+  - win:
+      root: ~/projects/mononest/mononest-win/
       layout: main-vertical
       panes:
         - nvim
-        - # nx migrate
+        - # hotfix/2.4.1
         - lazygit
 
   # ═══════════════════════════════════════════════════════════════════

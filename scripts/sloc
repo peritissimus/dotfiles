@@ -1,0 +1,292 @@
+#!/opt/homebrew/bin/bash
+# sloc - Fast Source Lines of Code Counter
+# Respects .gitignore, groups by language
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
+source "${BASH_OO_FRAMEWORK:-$SCRIPT_DIR/lib}/oo-bootstrap.sh"
+import UI/Color
+
+readonly VERSION="1.2.0"
+
+print_usage() {
+  cat << EOF
+
+$(UI.Color.Bold)Usage:$(UI.Color.Default) sloc [options] [directory]
+
+$(UI.Color.Bold)Options:$(UI.Color.Default)
+  -b, --by-file      Show breakdown by file
+  -e, --ext EXT      Only count specific extension(s), comma-separated
+  -x, --exclude EXT  Exclude extension(s), comma-separated
+  -t, --top N        Show top N entries (default: all)
+  -s, --sort FIELD   Sort by: lines, files, name (default: lines)
+  -j, --json         Output as JSON
+  -v, --verbose      Show progress
+  -h, --help         Show this help
+  --version          Show version
+
+$(UI.Color.Bold)Examples:$(UI.Color.Default)
+  sloc                      # Count in current directory
+  sloc src/                 # Count in src directory
+  sloc -e ts,tsx            # Only TypeScript files
+  sloc -x json,md           # Exclude JSON and Markdown
+  sloc -b -t 20             # Top 20 files by lines
+
+EOF
+}
+
+format_num() {
+  printf "%'d" "$1"
+}
+
+print_sep() {
+  printf "  $(UI.Color.DarkGray)%s$(UI.Color.Default)\n" \
+    "────────────────────────────────────────────────────────────────────"
+}
+
+main() {
+  local dir="."
+  local by_file=false
+  local only_ext=""
+  local exclude_ext=""
+  local top_n=0
+  local sort_by="lines"
+  local json_output=false
+  local verbose=false
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -b|--by-file) by_file=true; shift ;;
+      -e|--ext) only_ext="$2"; shift 2 ;;
+      -x|--exclude) exclude_ext="$2"; shift 2 ;;
+      -t|--top) top_n="$2"; shift 2 ;;
+      -s|--sort) sort_by="$2"; shift 2 ;;
+      -j|--json) json_output=true; shift ;;
+      -v|--verbose) verbose=true; shift ;;
+      -h|--help) print_usage; exit 0 ;;
+      --version) echo "sloc version $VERSION"; exit 0 ;;
+      -*) echo "Unknown option: $1"; exit 1 ;;
+      *) dir="$1"; shift ;;
+    esac
+  done
+
+  [[ ! -d "$dir" ]] && { echo "Error: '$dir' is not a directory"; exit 1; }
+  dir="$(cd "$dir" && pwd)"
+
+  [[ "$verbose" == true ]] && echo "Scanning $dir..."
+
+  # Get files and count lines in one pipeline using awk
+  local results
+  results=$(
+    # Get file list
+    if git -C "$dir" rev-parse --is-inside-work-tree &>/dev/null; then
+      (cd "$dir" && git ls-files --cached --others --exclude-standard 2>/dev/null)
+    else
+      find "$dir" -type f \
+        ! -path '*/.git/*' ! -path '*/node_modules/*' ! -path '*/__pycache__/*' \
+        ! -path '*/.venv/*' ! -path '*/dist/*' ! -path '*/build/*' \
+        ! -path '*/.next/*' ! -path '*/target/*' ! -path '*/vendor/*' \
+        ! -name '*.min.js' ! -name '*.min.css' ! -name 'package-lock.json' \
+        ! -name 'yarn.lock' ! -name 'pnpm-lock.yaml' 2>/dev/null | \
+        sed "s|^$dir/||"
+    fi | \
+    # Filter by extension using awk, output file paths
+    awk -v only="$only_ext" -v exclude="$exclude_ext" '
+    BEGIN {
+      # Binary/non-code extensions to skip
+      skip["png"]=1; skip["jpg"]=1; skip["jpeg"]=1; skip["gif"]=1; skip["ico"]=1
+      skip["svg"]=1; skip["webp"]=1; skip["bmp"]=1; skip["tiff"]=1
+      skip["mp3"]=1; skip["mp4"]=1; skip["wav"]=1; skip["avi"]=1; skip["mov"]=1
+      skip["zip"]=1; skip["tar"]=1; skip["gz"]=1; skip["bz2"]=1; skip["xz"]=1
+      skip["rar"]=1; skip["7z"]=1
+      skip["pdf"]=1; skip["doc"]=1; skip["docx"]=1; skip["xls"]=1; skip["xlsx"]=1
+      skip["exe"]=1; skip["dll"]=1; skip["so"]=1; skip["dylib"]=1; skip["a"]=1; skip["o"]=1
+      skip["woff"]=1; skip["woff2"]=1; skip["ttf"]=1; skip["eot"]=1; skip["otf"]=1
+      skip["pyc"]=1; skip["pyo"]=1; skip["class"]=1
+      skip["tfplan"]=1; skip["tfstate"]=1
+      skip["db"]=1; skip["sqlite"]=1; skip["sqlite3"]=1
+
+      n_only = split(only, only_arr, ",")
+      n_exclude = split(exclude, exclude_arr, ",")
+      for (i=1; i<=n_only; i++) only_set[tolower(only_arr[i])] = 1
+      for (i=1; i<=n_exclude; i++) exclude_set[tolower(exclude_arr[i])] = 1
+    }
+    {
+      file = $0
+      n = split(file, parts, "/")
+      basename = parts[n]
+      lbase = tolower(basename)
+
+      if (lbase ~ /^dockerfile/) ext = "dockerfile"
+      else if (lbase == "makefile" || lbase == "gnumakefile") ext = "makefile"
+      else if (lbase == "cmakelists.txt") ext = "cmake"
+      else if (lbase ~ /^\.(bash|zsh)/) ext = substr(lbase, 2, 4)
+      else if (lbase ~ /^\.vimrc/) ext = "vim"
+      else if (match(basename, /\.[^.]+$/)) ext = tolower(substr(basename, RSTART+1))
+      else next
+
+      # Skip binary files
+      if (ext in skip) next
+
+      if (n_only > 0 && !(ext in only_set)) next
+      if (ext in exclude_set) next
+      print file
+    }' > /tmp/sloc_files_$$
+
+    # Batch wc -l via xargs (much faster)
+    (cd "$dir" && xargs wc -l < /tmp/sloc_files_$$ 2>/dev/null) | \
+    grep -v " total$" | \
+    awk -v dir="$dir" '
+    BEGIN {
+      L["sh"]="Shell"; L["bash"]="Shell"; L["zsh"]="Shell"
+      L["py"]="Python"; L["pyw"]="Python"
+      L["js"]="JavaScript"; L["mjs"]="JavaScript"; L["cjs"]="JavaScript"
+      L["ts"]="TypeScript"; L["mts"]="TypeScript"; L["cts"]="TypeScript"
+      L["tsx"]="TSX"; L["jsx"]="JSX"
+      L["rb"]="Ruby"; L["rake"]="Ruby"; L["go"]="Go"; L["rs"]="Rust"
+      L["c"]="C"; L["h"]="C Header"
+      L["cpp"]="C++"; L["cc"]="C++"; L["cxx"]="C++"; L["hpp"]="C++ Header"
+      L["java"]="Java"; L["kt"]="Kotlin"; L["kts"]="Kotlin"
+      L["swift"]="Swift"; L["m"]="Objective-C"; L["mm"]="Objective-C"
+      L["cs"]="C#"; L["fs"]="F#"; L["fsx"]="F#"
+      L["php"]="PHP"; L["pl"]="Perl"; L["pm"]="Perl"
+      L["lua"]="Lua"; L["r"]="R"; L["scala"]="Scala"
+      L["clj"]="Clojure"; L["cljs"]="Clojure"; L["cljc"]="Clojure"
+      L["ex"]="Elixir"; L["exs"]="Elixir"; L["erl"]="Erlang"; L["hrl"]="Erlang"
+      L["hs"]="Haskell"; L["lhs"]="Haskell"; L["ml"]="OCaml"; L["mli"]="OCaml"
+      L["vim"]="Vim"; L["sql"]="SQL"; L["html"]="HTML"; L["htm"]="HTML"
+      L["css"]="CSS"; L["scss"]="SCSS"; L["sass"]="Sass"; L["less"]="Less"
+      L["json"]="JSON"; L["yaml"]="YAML"; L["yml"]="YAML"
+      L["toml"]="TOML"; L["xml"]="XML"
+      L["md"]="Markdown"; L["markdown"]="Markdown"; L["rst"]="reStructuredText"
+      L["tf"]="Terraform"; L["tfvars"]="Terraform"; L["hcl"]="HCL"
+      L["dockerfile"]="Dockerfile"; L["makefile"]="Makefile"; L["mk"]="Makefile"
+      L["cmake"]="CMake"; L["gradle"]="Gradle"
+      L["graphql"]="GraphQL"; L["gql"]="GraphQL"
+      L["proto"]="Protobuf"; L["zig"]="Zig"; L["nim"]="Nim"
+      L["v"]="V"; L["dart"]="Dart"; L["vue"]="Vue"; L["svelte"]="Svelte"
+      L["prisma"]="Prisma"; L["kdl"]="KDL"; L["fish"]="Fish"; L["nu"]="Nushell"
+    }
+    {
+      lines = $1
+      file = $2
+      if (lines == 0 || file == "") next
+
+      n = split(file, parts, "/")
+      basename = parts[n]
+      lbase = tolower(basename)
+
+      if (lbase ~ /^dockerfile/) ext = "dockerfile"
+      else if (lbase == "makefile" || lbase == "gnumakefile") ext = "makefile"
+      else if (match(basename, /\.[^.]+$/)) ext = tolower(substr(basename, RSTART+1))
+      else ext = ""
+
+      lang = (ext in L) ? L[ext] : ext
+      if (lang != "") print lang "\t" lines "\t" file
+    }'
+    rm -f /tmp/sloc_files_$$
+  )
+
+  [[ -z "$results" ]] && { echo "No source files found"; exit 0; }
+
+  # Aggregate with awk
+  local aggregated
+  aggregated=$(echo "$results" | awk -F'\t' '
+  {
+    lang = $1; lines = $2; file = $3
+    lang_files[lang]++
+    lang_lines[lang] += lines
+    file_lines[file] = lines
+    file_lang[file] = lang
+    total_files++
+    total_lines += lines
+  }
+  END {
+    # Output aggregated data
+    print "TOTALS\t" total_files "\t" total_lines
+    for (l in lang_files) print "LANG\t" l "\t" lang_files[l] "\t" lang_lines[l]
+    for (f in file_lines) print "FILE\t" f "\t" file_lines[f] "\t" file_lang[f]
+  }')
+
+  # Parse results
+  local total_files=0 total_lines=0
+  declare -A lang_files lang_lines file_lines file_lang
+
+  while IFS=$'\t' read -r type a b c d; do
+    case "$type" in
+      TOTALS) total_files="$a"; total_lines="$b" ;;
+      LANG) lang_files["$a"]="$b"; lang_lines["$a"]="$c" ;;
+      FILE) file_lines["$a"]="$b"; file_lang["$a"]="$c" ;;
+    esac
+  done <<< "$aggregated"
+
+  [[ "$verbose" == true ]] && echo "Found $total_files files, $total_lines lines"
+
+  # JSON output
+  if [[ "$json_output" == true ]]; then
+    local json_langs="["
+    local first=true
+    for lang in "${!lang_files[@]}"; do
+      [[ "$first" == true ]] && first=false || json_langs+=","
+      json_langs+="{\"language\":\"$lang\",\"files\":${lang_files[$lang]},\"lines\":${lang_lines[$lang]}}"
+    done
+    json_langs+="]"
+    echo "{\"directory\":\"$dir\",\"totalFiles\":$total_files,\"totalLines\":$total_lines,\"languages\":$json_langs}"
+    exit 0
+  fi
+
+  # Print results
+  echo ""
+  echo -e "  $(UI.Color.Bold)$(UI.Color.Blue)Source Lines of Code$(UI.Color.Default)"
+  echo -e "  $(UI.Color.DarkGray)$dir$(UI.Color.Default)"
+  echo ""
+
+  if [[ "$by_file" == true ]]; then
+    printf "  $(UI.Color.Bold)%-60s %10s  %-15s$(UI.Color.Default)\n" "File" "Lines" "Language"
+    print_sep
+
+    local sorted
+    case "$sort_by" in
+      name) sorted=$(for f in "${!file_lines[@]}"; do echo "$f"; done | sort) ;;
+      *) sorted=$(for f in "${!file_lines[@]}"; do printf '%d\t%s\n' "${file_lines[$f]}" "$f"; done | sort -rn | cut -f2) ;;
+    esac
+
+    local count=0
+    while IFS= read -r file; do
+      [[ -z "$file" ]] && continue
+      local display="$file"
+      [[ ${#display} -gt 58 ]] && display="...${display: -55}"
+      printf "  $(UI.Color.Cyan)%-60s$(UI.Color.Default) %10s  $(UI.Color.DarkGray)%-15s$(UI.Color.Default)\n" \
+        "$display" "$(format_num "${file_lines[$file]}")" "${file_lang[$file]}"
+      ((count++)) || true
+      [[ $top_n -gt 0 && $count -ge $top_n ]] && break
+    done <<< "$sorted"
+  else
+    printf "  $(UI.Color.Bold)%-20s %8s %12s$(UI.Color.Default)\n" "Language" "Files" "Lines"
+    print_sep
+
+    local sorted
+    case "$sort_by" in
+      name) sorted=$(for l in "${!lang_files[@]}"; do echo "$l"; done | sort) ;;
+      files) sorted=$(for l in "${!lang_files[@]}"; do printf '%d\t%s\n' "${lang_files[$l]}" "$l"; done | sort -rn | cut -f2) ;;
+      *) sorted=$(for l in "${!lang_lines[@]}"; do printf '%d\t%s\n' "${lang_lines[$l]}" "$l"; done | sort -rn | cut -f2) ;;
+    esac
+
+    local count=0
+    while IFS= read -r lang; do
+      [[ -z "$lang" ]] && continue
+      printf "  $(UI.Color.Cyan)%-20s$(UI.Color.Default) %8s %12s\n" \
+        "$lang" "$(format_num "${lang_files[$lang]}")" "$(format_num "${lang_lines[$lang]}")"
+      ((count++)) || true
+      [[ $top_n -gt 0 && $count -ge $top_n ]] && break
+    done <<< "$sorted"
+  fi
+
+  print_sep
+  printf "  $(UI.Color.Bold)$(UI.Color.Green)%-20s %8s %12s$(UI.Color.Default)\n" \
+    "Total" "$(format_num "$total_files")" "$(format_num "$total_lines")"
+  echo ""
+}
+
+main "$@"

@@ -1,0 +1,59 @@
+# /Users/peritissimus/.config/tmuxinator/zoca-react-native.yml
+
+name: zoca-react-native
+root: ~/projects/zoca-react-native
+
+on_project_first_start: git fetch --all --prune
+
+windows:
+  # Primary workspace - where you spend most time
+  - code:
+      layout: main-vertical
+      panes:
+        - nvim .
+        - git status
+
+  # Dev server - always visible/running
+  - metro:
+      panes:
+        - >
+          clear;
+          echo "npx expo start";
+          echo "npx expo start --ios";
+          echo "npx expo start --android"
+
+  # Version control
+  - git:
+      layout: even-horizontal
+      panes:
+        - git log --oneline -20
+        - git status
+
+  # Shell for ad-hoc commands
+  - shell:
+      layout: tiled
+      panes:
+        -
+        -
+
+  # Testing
+  - test:
+      layout: main-vertical
+      panes:
+        - >
+          clear;
+          echo "yarn test";
+          echo "yarn test --watch";
+          echo "yarn test --coverage"
+        -
+
+  # Device logs and debugging
+  - logs:
+      layout: even-horizontal
+      panes:
+        - >
+          clear;
+          echo "npx react-native log-ios";
+          echo "npx react-native log-android";
+          echo "adb logcat *:S ReactNative:V ReactNativeJS:V"
+        -

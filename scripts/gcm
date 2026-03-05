@@ -281,7 +281,7 @@ $nx_graph
 Format: <type>(<scope>): <description>
 
 Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore
-Scope: file or module name (optional)
+Scope: choose the most meaningful scope based on what changed - a folder (if many files in one dir changed), a file name without extension (if one file changed), a module, class, or function name (if changes are localized to one). Omit if changes are too broad.
 Description: imperative, lowercase, no period, <72 chars
 
 Add body only for breaking changes or complex multi-file changes.

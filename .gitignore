@@ -28,3 +28,6 @@ claude/cache
 claude/stats-cache.json
 claude/image-cache
 claude/telemetry
+claude/backups
+claude/tasks
+claude/mcp-needs-auth-cache.json

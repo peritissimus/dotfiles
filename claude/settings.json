@@ -18,9 +18,11 @@
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
+    "context7@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "mcpServers": {
     "puppeteer": {
@@ -33,6 +35,5 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "effortLevel": "high"
+  }
 }

@@ -13,7 +13,15 @@ windows:
       layout: main-vertical
       panes:
         - nvim
-        - # api-server: pnpm start:dev
+        -  # api-server: pnpm start:dev
+        - lazygit
+
+  - agents:
+      root: ~/projects/mononest/mononest-agents/
+      layout: main-vertical
+      panes:
+        - nvim
+        -  # api-server: pnpm start:dev
         - lazygit
 
   # ═══════════════════════════════════════════════════════════════════
@@ -24,7 +32,7 @@ windows:
       layout: main-vertical
       panes:
         - nvim
-        - # api-server: pnpm start:dev
+        -  # api-server: pnpm start:dev
         - lazygit
 
   # ═══════════════════════════════════════════════════════════════════
@@ -35,7 +43,7 @@ windows:
       layout: main-vertical
       panes:
         - nvim
-        - # builds: pnpm build:rspack:all:prod
+        -  # builds: pnpm build:rspack:all:prod
         - lazygit
 
   # ═══════════════════════════════════════════════════════════════════
@@ -46,7 +54,7 @@ windows:
       layout: main-vertical
       panes:
         - nvim
-        - # feat/lilly
+        -  # feat/lilly
         - lazygit
 
   - win:
@@ -54,7 +62,7 @@ windows:
       layout: main-vertical
       panes:
         - nvim
-        - # hotfix/2.4.1
+        -  # hotfix/2.4.1
         - lazygit
 
   # ═══════════════════════════════════════════════════════════════════
@@ -64,12 +72,12 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: tiled
       panes:
-        - # api-server: pnpm start:dev
-        - # leads-server: nx serve leads-server
-        - # links-server: nx serve links-server
-        - # public-server: nx serve public-server
-        - # tasks-server: nx serve tasks-server
-        - # workers: nx serve serverless
+        -  # api-server: pnpm start:dev
+        -  # leads-server: nx serve leads-server
+        -  # links-server: nx serve links-server
+        -  # public-server: nx serve public-server
+        -  # tasks-server: nx serve tasks-server
+        -  # workers: nx serve serverless
 
   # ═══════════════════════════════════════════════════════════════════
   # INFRASTRUCTURE - Docker & Services
@@ -79,21 +87,21 @@ windows:
       layout: tiled
       panes:
         - docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-        - # docker compose: docker-compose -f docker-compose.localstack.yml up
-        - # redis-cli
-        - # database: pnpm knex
+        -  # docker compose: docker-compose -f docker-compose.localstack.yml up
+        -  # redis-cli
+        -  # database: pnpm knex
 
-  # ═══════════════════════════════════════════════════════════════════
-  # TESTING & QA
-  # ═══════════════════════════════════════════════════════════════════
-  - tests:
-      root: ~/projects/mononest/mononest-base/
-      layout: even-horizontal
-      panes:
-        - # unit: pnpm test
-        - # e2e: nx e2e api-server-e2e
-        - # lint: pnpm lint
-        - # typecheck: pnpm typecheck
+  # # ═══════════════════════════════════════════════════════════════════
+  # # TESTING & QA
+  # # ═══════════════════════════════════════════════════════════════════
+  # - tests:
+  #     root: ~/projects/mononest/mononest-base/
+  #     layout: even-horizontal
+  #     panes:
+  #       - # unit: pnpm test
+  #       - # e2e: nx e2e api-server-e2e
+  #       - # lint: pnpm lint
+  #       - # typecheck: pnpm typecheck
 
   # ═══════════════════════════════════════════════════════════════════
   # DOCUMENTATION & WIKI
@@ -103,4 +111,4 @@ windows:
       layout: main-horizontal
       panes:
         - nvim mononest.wiki/
-        - # preview docs
+        -  # preview docs

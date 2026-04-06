@@ -147,3 +147,7 @@ end
 
 # opencode
 fish_add_path /Users/peritissimus/.opencode/bin
+
+# qlty
+set --export QLTY_INSTALL "$HOME/.qlty"
+set --export PATH $QLTY_INSTALL/bin $PATH

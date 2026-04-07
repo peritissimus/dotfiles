@@ -116,6 +116,32 @@ function obs --description "Open a file in Obsidian vault 'NoteBook'"
     open "obsidian://open?vault=NoteBook&file=$file_path"
 end
 
+## Keychain secret management
+function secret-add --description "Store a secret in macOS keychain"
+    if test (count $argv) -eq 0
+        echo "Usage: secret-add <service-name> [password]"
+        echo "Example: secret-add OPENAI_API_KEY"
+        return 1
+    end
+
+    set service_name $argv[1]
+
+    if test (count $argv) -ge 2
+        set password $argv[2]
+    else
+        read -s -P "Enter password for $service_name: " password
+    end
+
+    security add-generic-password -a "$USER" -s "$service_name" -w "$password" -U
+
+    if test $status -eq 0
+        echo "✓ Secret '$service_name' stored in keychain"
+    else
+        echo "✗ Failed to store secret"
+        return 1
+    end
+end
+
 set -gx PATH $PATH /opt/homebrew/Cellar/tmuxinator/3.3.3/libexec
 
 # Garmin Connect IQ SDK

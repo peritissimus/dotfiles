@@ -34,9 +34,11 @@ function nvm
     bass source $NVM_DIR/nvm.sh --no-use ';' nvm $argv
 end
 
-# Load default node version on shell startup
-if test -s "$NVM_DIR/nvm.sh"
-    bass source $NVM_DIR/nvm.sh --no-use ';' nvm use default
+# Only auto-select Node in interactive shells
+if status is-interactive
+    if test -s "$NVM_DIR/nvm.sh"
+        bass source $NVM_DIR/nvm.sh --no-use ';' nvm use default >/dev/null 2>&1
+    end
 end
 
 ## Go

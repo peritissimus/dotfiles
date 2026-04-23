@@ -108,35 +108,6 @@ print_usage() {
   echo "  gcm -c 'Part of auth refactor'   # With context"
 }
 
-# Get project structure (respecting .gitignore)
-get_project_structure() {
-  git ls-files 2>/dev/null |
-    while IFS= read -r file; do
-      dirname "$file"
-    done |
-    sort -u |
-    while IFS= read -r dir; do
-      if [[ "$dir" != "." ]]; then
-        depth=$(echo "$dir" | tr -cd '/' | wc -c)
-        padding=$(printf '%*s' $((depth * 2)) '')
-        echo "${padding}├── ${dir##*/}"
-      fi
-    done
-}
-
-# Get primary language(s) of the project
-get_project_languages() {
-  git ls-files 2>/dev/null |
-    while IFS= read -r file; do
-      extension="${file##*.}"
-      if [[ "$extension" != "$file" ]]; then
-        echo "$extension"
-      fi
-    done |
-    sort | uniq -c | sort -rn | head -5 |
-    awk '{print $2}' | tr '\n' ',' | sed 's/,$//'
-}
-
 # Size threshold for ignoring data files (5KB)
 LARGE_FILE_THRESHOLD=5120
 
@@ -158,13 +129,22 @@ get_ignored_files() {
   done
 }
 
-# Get staged changes (excluding large json/sql files)
+# Get staged changes — uses sem diff if available, falls back to git diff
 get_staged_changes() {
+  if command -v sem &>/dev/null; then
+    local sem_out
+    sem_out=$(sem diff --staged 2>/dev/null)
+    if [[ -n "$sem_out" ]] && [[ "$sem_out" != *"No semantic changes detected"* ]] && [[ "$sem_out" != *"No changes detected"* ]]; then
+      echo "$sem_out"
+      return
+    fi
+  fi
+
+  # Fallback: raw git diff (excluding large json/sql files)
   local ignored
   ignored=$(get_ignored_files)
 
   if [[ -n "$ignored" ]]; then
-    # Build exclusion args
     local exclude_args=()
     while IFS= read -r file; do
       exclude_args+=(":(exclude)$file")
@@ -175,19 +155,6 @@ get_staged_changes() {
   fi
 }
 
-# Get Nx project graph if available
-get_nx_graph() {
-  if [[ -f "nx.json" ]] && command -v nx &>/dev/null; then
-    nx graph --file=project-graph.json >/dev/null 2>&1
-    if [[ -f "project-graph.json" ]]; then
-      jq '{
-        nodes: (.graph.nodes | to_entries | map({name: .value.name, type: .value.type})),
-        dependencies: (.graph.dependencies | to_entries | map({source: .key, targets: (.value | map(.target))}))
-      }' project-graph.json 2>/dev/null
-      rm -f project-graph.json
-    fi
-  fi
-}
 
 #############################
 ### API CALL              ###
@@ -249,29 +216,16 @@ call_llm_api() {
 generate_commit_message() {
   local files="$1"
   local diff="$2"
-  local project_structure="$3"
-  local project_languages="$4"
-  local additional_context="$5"
-  local api_url="$6"
-  local model="$7"
-  local auth_header="$8"
-  local debug="${9:-0}"
+  local additional_context="$3"
+  local api_url="$4"
+  local model="$5"
+  local auth_header="$6"
+  local debug="${7:-0}"
 
   # Add context section to prompt if provided
   local context_section=""
   if [[ -n "$additional_context" ]]; then
     context_section="Additional Context: $additional_context
-
-"
-  fi
-
-  # Get Nx graph if available
-  local nx_graph
-  nx_graph=$(get_nx_graph 2>/dev/null || echo "")
-  local nx_section=""
-  if [[ -n "$nx_graph" ]]; then
-    nx_section="Project Graph:
-$nx_graph
 
 "
   fi
@@ -285,12 +239,11 @@ Scope: choose the most meaningful scope based on what changed - a folder (if man
 Description: imperative, lowercase, no period, <72 chars
 
 Add body only for breaking changes or complex multi-file changes.
-${context_section}${nx_section}
+${context_section}
 Files: ${files}
 
-\`\`\`diff
-${diff}
-\`\`\`"
+Changes:
+${diff}"
 
   call_llm_api "$prompt" "$api_url" "$model" "$auth_header" "$debug"
 }
@@ -459,21 +412,11 @@ main() {
   diff_lines=$(echo "$staged_diff" | wc -l | tr -d ' ')
   [[ $debug -eq 1 ]] && log_debug "Staged: $file_count files, diff=$(format_bytes $diff_size) ($diff_lines lines)"
 
-  [[ $debug -eq 1 ]] && step_start=$(now_ms)
-  local project_structure project_languages
-  project_structure=$(get_project_structure)
-  project_languages=$(get_project_languages)
-  [[ $debug -eq 1 ]] && step_end=$(now_ms) && log_debug "Get project info: $((step_end - step_start))ms"
-
-  [[ $debug -eq 1 ]] && log_debug "Languages: $project_languages"
-
   [[ $debug -eq 1 ]] && start_time=$(now_ms)
   local commit_message
   commit_message=$(generate_commit_message \
     "$staged_files" \
     "$staged_diff" \
-    "$project_structure" \
-    "$project_languages" \
     "$context" \
     "$api_url" \
     "$model" \

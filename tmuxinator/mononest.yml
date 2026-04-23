@@ -12,15 +12,17 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: main-vertical
       panes:
-        - nvim
+        - claude --permission-mode bypassPermissions
         -  # api-server: pnpm start:dev
         - lazygit
+        - pm2 status
 
   - agents:
-      root: ~/projects/mononest/mononest-agents/
+      root: ~/projects/mononest/mononest-base/
       layout: main-vertical
       panes:
-        - nvim
+        - claude --permission-mode bypassPermissions
+        - claude --permission-mode bypassPermissions
         -  # api-server: pnpm start:dev
         - lazygit
 

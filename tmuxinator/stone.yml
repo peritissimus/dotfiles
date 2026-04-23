@@ -1,0 +1,102 @@
+name: stone
+root: ~/projects/stone
+
+# Session hotkeys tip: prefix + number to jump windows, prefix + , to rename.
+
+windows:
+  - code:
+      root: ~/projects/stone
+      layout: main-vertical
+      panes:
+        - nvim .
+        - git status
+
+  - dev:
+      root: ~/projects/stone
+      layout: tiled
+      panes:
+        - >
+          clear;
+          echo "Full stack (vite + electron)";
+          echo "";
+          echo "  pnpm run dev";
+        - >
+          clear;
+          echo "Electron logs (alternative to dev)";
+          echo "";
+          echo "  pnpm run start";
+
+  - test:
+      root: ~/projects/stone
+      layout: tiled
+      panes:
+        - >
+          clear;
+          echo "Vitest watch";
+          echo "";
+          echo "  pnpm test -- --watch";
+          echo "  pnpm test:unit";
+          echo "  pnpm test:integration";
+        - >
+          clear;
+          echo "Typecheck watch";
+          echo "";
+          echo "  pnpm typecheck -- --watch";
+
+  - lint:
+      root: ~/projects/stone
+      layout: main-vertical
+      panes:
+        - >
+          clear;
+          echo "Lint";
+          echo "";
+          echo "  pnpm lint";
+          echo "  pnpm lint:fix";
+          echo "  pnpm format";
+        - git status
+
+  - db:
+      root: ~/projects/stone
+      layout: tiled
+      panes:
+        - >
+          clear;
+          echo "Drizzle Studio (DB GUI @ localhost)";
+          echo "";
+          echo "  pnpm db:studio";
+        - >
+          clear;
+          echo "DB CLI / migrations";
+          echo "";
+          echo "  pnpm db:generate   # create migration";
+          echo "  pnpm db:push       # apply schema";
+          echo "  pnpm db:migrate    # run migrations";
+
+  - build:
+      root: ~/projects/stone
+      layout: main-vertical
+      panes:
+        - >
+          clear;
+          echo "Build & package";
+          echo "";
+          echo "  pnpm run build       # vite build main+worker+preload+renderer";
+          echo "  pnpm run package     # electron-builder";
+          echo "  pnpm run package:dir # unpacked .app only (fast)";
+        - >
+          clear;
+          echo "Release";
+          echo "";
+          echo "  ./scripts/release.sh patch";
+          echo "  ./scripts/release.sh minor";
+          echo "  ./scripts/release.sh major";
+
+  - shell:
+      root: ~/projects/stone
+      panes:
+        - >
+          clear;
+          echo "Free shell — current branch:";
+          git rev-parse --abbrev-ref HEAD 2>/dev/null;
+          echo ""

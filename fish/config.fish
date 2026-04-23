@@ -10,6 +10,7 @@ set -gx PATH $HOME/.gem/bin $PATH
 
 set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
 set -gx GROQ_API_KEY (security find-generic-password -a "$USER" -s "GROQ_API_KEY" -w 2>/dev/null)
+set -gx GEMINI_API_KEY (security find-generic-password -a "$USER" -s "GEMINI_API_KEY" -w 2>/dev/null)
 set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
 set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
 set -gx NX_TUI false
@@ -175,6 +176,19 @@ end
 
 # opencode
 fish_add_path /Users/peritissimus/.opencode/bin
+
+
+
+set -l acord_cli "CLAUDE_CODE_TMUX_TOOLS=1 CLAUDE_CODE_MEM0=1 bun $HOME/projects/acord/cli.mjs --permission-mode bypassPermissions"
+# alias acord="ACORD_USE_LITELLM=0 OPENAI_BASE_URL=http://127.0.0.1:4010/v1 LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
+alias acord="LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
+alias kairos="CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
+alias acord-llama="LLM_PROVIDER=groq $acord_cli"
+alias kairos-llama="CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=groq $acord_cli"
+alias acord-gemini="LLM_PROVIDER=gemini OPENAI_MODEL=gemini-3.1-pro-preview $acord_cli"
+alias kairos-gemini="CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=gemini OPENAI_MODEL=gemini-3.1-pro-preview $acord_cli"
+alias acord-local="ACORD_USE_LITELLM=0 LLM_PROVIDER=ollama OPENAI_MODEL=gemma4 $acord_cli"
+alias kairos-local="ACORD_USE_LITELLM=0 CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=ollama OPENAI_MODEL=gemma4 $acord_cli"
 
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.

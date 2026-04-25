@@ -6,7 +6,7 @@ My personal dotfiles for setting up a development environment on macOS and Linux
 
 ## Features
 
-- **Terminal**: Configured with Alacritty for performance and Fish shell for user-friendliness
+- **Terminal**: Ghostty as the primary terminal, with Fish shell for user-friendliness
 - **Editor**: Neovim setup with LSP support and modern plugins
 - **Multiplexer**: Tmux configuration with Tmuxinator profiles
 - **Window Management**: Aerospace for macOS, i3 for Linux
@@ -22,7 +22,7 @@ My personal dotfiles for setting up a development environment on macOS and Linux
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/dotfiles.git
+   git clone https://github.com/peritissimus/dotfiles.git
    cd dotfiles
    ```
 
@@ -52,11 +52,11 @@ The setup script will:
 - Z for directory jumping
 - Custom functions and aliases
 
-### Terminal (Alacritty)
-- Hardware-accelerated terminal emulator
-- Configured for optimal performance
-- Custom color schemes
-- Proper font rendering
+### Terminal (Ghostty)
+- Primary terminal emulator
+- GPU-accelerated with native macOS feel
+- Custom color schemes and font rendering
+- Alacritty, WezTerm, and iTerm2 configs are kept as alternates
 
 ### Editor (Neovim)
 - Modern Neovim configuration in Lua
@@ -85,16 +85,24 @@ The setup script will:
 ```
 dotfiles
 ├── setup.sh                # Main setup script
-├── alacritty/             # Alacritty terminal configuration
+├── ghostty/               # Ghostty (primary terminal) configuration
+├── alacritty/             # Alacritty (alternate terminal)
+├── wezterm/               # WezTerm (alternate terminal)
+├── iterm2/                # iTerm2 color schemes
 ├── nvim/                  # Neovim configuration
 │   ├── init.lua
 │   └── lua/              # Lua configuration files
 ├── fish/                  # Fish shell configuration
+├── starship/              # Starship prompt configuration
+├── eza/                   # eza (modern ls) theme
 ├── tmux/                  # Tmux configuration
 ├── tmuxinator/            # Tmuxinator project profiles
 ├── aerospace/             # Aerospace (macOS) configuration
 ├── i3/                    # i3 (Linux) configuration
-└── raycast/               # Raycast scripts and commands
+├── raycast/               # Raycast scripts and commands
+├── claude/                # Claude Code configuration and agents
+├── scripts/               # Custom CLI scripts and utilities
+└── tools/                 # Tool-specific configs
 ```
 
 ## Customization

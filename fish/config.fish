@@ -26,9 +26,6 @@ set -gx BASH_OO_FRAMEWORK "$HOME/dotfiles/scripts/lib"
 # Add scripts to PATH so they're available as commands
 fish_add_path "$HOME/dotfiles/scripts"
 
-## Docker
-set -gx DOCKER_HOST "unix://$HOME/.colima/default/docker.sock"
-
 ## NVM (Node Version Manager)
 set -gx NVM_DIR ~/.nvm
 function nvm

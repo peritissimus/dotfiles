@@ -202,6 +202,28 @@ PACKAGES=(
   "broot:broot:broot:broot"
   "zoxide:zoxide:zoxide:zoxide"
   "starship:starship:starship:starship"
+  "awscli:awscli:awscli:aws-cli-v2"
+  "pnpm:pnpm:pnpm:pnpm"
+  "yarn:yarn:yarn:yarn"
+  "nvm:nvm:nvm:nvm"
+  "uv:uv:uv:uv"
+  "tfenv:tfenv:tfenv:tfenv"
+  "tmuxinator:tmuxinator:tmuxinator:tmuxinator"
+  "yazi:yazi:yazi:yazi"
+  "pgcli:pgcli:pgcli:pgcli"
+  "redis:redis:redis:redis"
+  "caddy:caddy:caddy:caddy"
+  "htop:htop:htop:htop"
+  "ncdu:ncdu:ncdu:ncdu"
+  "bun:bun:bun:bun"
+  "ansible:ansible:ansible:ansible"
+  "cloudflared:cloudflared:cloudflared:cloudflared"
+  "k6:k6:k6:k6"
+  "llm:llm:llm:llm"
+  "opencode:opencode:opencode:opencode"
+  "postgresql@16:postgresql-16:postgresql-server:postgresql"
+  "git-quick-stats:git-quick-stats:git-quick-stats:git-quick-stats"
+  "f1bonacc1/tap/process-compose:process-compose:process-compose:process-compose"
 )
 
 for package_spec in "${PACKAGES[@]}"; do
@@ -232,13 +254,16 @@ if [ "$OS" = "Darwin" ]; then
 
   # Install cask packages
   log "Installing cask packages..."
-  if ! brew list --cask "wezterm" >/dev/null 2>&1; then
-    log "Installing wezterm..."
-    brew install --cask "wezterm"
-    success "wezterm installed successfully!"
-  else
-    success "wezterm is already installed"
-  fi
+  CASKS=(wezterm ghostty orbstack)
+  for cask in "${CASKS[@]}"; do
+    if ! brew list --cask "$cask" >/dev/null 2>&1; then
+      log "Installing $cask..."
+      brew install --cask "$cask"
+      success "$cask installed successfully!"
+    else
+      success "$cask is already installed"
+    fi
+  done
 fi
 
 # Set Fish as default shell (OS-aware)
@@ -273,6 +298,30 @@ if ! command_exists rustc; then
   success "Rust installed successfully!"
 else
   success "Rust is already installed"
+fi
+
+# Install global npm packages (requires Node.js)
+if command_exists npm; then
+  log "Installing global npm packages..."
+  NPM_GLOBALS=(
+    "@anthropic-ai/claude-code"
+    "@openai/codex"
+    "@google/gemini-cli"
+    "pm2"
+    "prettier"
+    "lighthouse"
+  )
+  for pkg in "${NPM_GLOBALS[@]}"; do
+    if ! npm list -g --depth=0 "$pkg" >/dev/null 2>&1; then
+      log "Installing $pkg..."
+      npm install -g "$pkg"
+      success "$pkg installed successfully!"
+    else
+      success "$pkg is already installed"
+    fi
+  done
+else
+  warn "npm not found; skipping global npm package installation"
 fi
 
 # Setup Fisher (OS-agnostic, requires Fish)

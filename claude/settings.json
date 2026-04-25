@@ -32,6 +32,7 @@
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
   "mcpServers": {
     "puppeteer": {
       "command": "npx",
@@ -44,5 +45,5 @@
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
   },
-  "skipAutoPermissionPrompt": true
+  "editorMode": "vim"
 }

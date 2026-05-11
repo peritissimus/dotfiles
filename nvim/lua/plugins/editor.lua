@@ -17,26 +17,26 @@ return {
 	},
 	{
 		"hat0uma/csvview.nvim",
-		config = function()
-			require("csvview").setup()
-			-- Add a keymapping to toggle CSV view
-			vim.keymap.set("n", "<leader>cv", function()
-				require("csvview").toggle()
-			end, { desc = "Toggle CSV View" })
-		end,
+		ft = { "csv", "tsv" },
+		cmd = { "CsvViewEnable", "CsvViewToggle" },
+		keys = {
+			{
+				"<leader>cv",
+				function()
+					require("csvview").toggle()
+				end,
+				desc = "Toggle CSV View",
+			},
+		},
+		opts = {},
 	},
 	-- Navigator.nvim for seamless navigation between nvim and terminal multiplexer
 	{
 		"numToStr/Navigator.nvim",
-		lazy = false,
-		config = function()
-			require("Navigator").setup({
-				-- Auto save modified files when moving to mux pane
-				auto_save = "current",
-				-- Disable navigation in these filetypes
-				disable_on_zoom = true,
-			})
-		end,
+		opts = {
+			auto_save = "current",
+			disable_on_zoom = true,
+		},
 		keys = {
 			{ "<C-h>", "<CMD>NavigatorLeft<CR>", mode = { "n", "t" }, desc = "Navigator Left" },
 			{ "<C-j>", "<CMD>NavigatorDown<CR>", mode = { "n", "t" }, desc = "Navigator Down" },

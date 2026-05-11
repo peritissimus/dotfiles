@@ -12,12 +12,13 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt.conceallevel = 0
 	end,
 })
--- Add the file types you want line wrapping for
+-- Line wrap and spell check for prose filetypes only
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "text", "markdown", "norg" },
-    callback = function()
-        vim.opt.wrap = true
-    end,
+	pattern = { "text", "markdown", "norg", "gitcommit" },
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.spell = true
+	end,
 })
 
 

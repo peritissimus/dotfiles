@@ -1,17 +1,17 @@
 return {
 	{
 		"brenoprata10/nvim-highlight-colors",
-		config = function()
-			require("nvim-highlight-colors").setup({
-				enable_tailwind = false,
-			})
-		end,
+		event = "VeryLazy",
+		opts = {
+			enable_tailwind = false,
+		},
 	},
 	{
 		"Equilibris/nx.nvim",
 		dependencies = {
 			"nvim-telescope/telescope.nvim",
 		},
+		cmd = { "Nx", "NxActions" },
 		opts = {
 			nx_cmd_root = "npx nx",
 		},

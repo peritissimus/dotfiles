@@ -20,6 +20,32 @@
     "deny": [],
     "defaultMode": "auto"
   },
+  "model": "fable",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph mark-dirty",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph sync-if-dirty"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-context.sh"
@@ -32,6 +58,7 @@
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
+  "editorMode": "vim",
   "skipAutoPermissionPrompt": true,
   "mcpServers": {
     "puppeteer": {
@@ -44,6 +71,5 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "editorMode": "vim"
+  }
 }

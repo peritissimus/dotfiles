@@ -176,9 +176,8 @@ fish_add_path /Users/peritissimus/.opencode/bin
 
 
 
-set -l acord_cli "CLAUDE_CODE_TMUX_TOOLS=1 CLAUDE_CODE_MEM0=1 bun $HOME/projects/acord/cli.mjs --permission-mode bypassPermissions"
-# alias acord="ACORD_USE_LITELLM=0 OPENAI_BASE_URL=http://127.0.0.1:4010/v1 LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
-alias acord="LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
+set -l acord_cli "CLAUDE_CODE_TMUX_TOOLS=1 CLAUDE_CODE_MEM0=1 command acord --permission-mode bypassPermissions"
+# `acord` itself resolves to ~/.local/bin/acord.
 alias kairos="CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=openai OPENAI_MODEL=gpt-5.4 $acord_cli"
 alias acord-llama="LLM_PROVIDER=groq $acord_cli"
 alias kairos-llama="CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNEL_MODE=1 LLM_PROVIDER=groq $acord_cli"

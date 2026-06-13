@@ -63,9 +63,11 @@ return {
 
   {
     "neovim/nvim-lspconfig",
-    opts = {
-      inlay_hints = { enabled = false },
-      diagnostics = {
+    opts = function(_, opts)
+      local root_pattern = require("lspconfig").util.root_pattern
+
+      opts.inlay_hints = { enabled = false }
+      opts.diagnostics = vim.tbl_deep_extend("force", opts.diagnostics or {}, {
         underline = true,
         update_in_insert = false,
         virtual_text = {
@@ -74,40 +76,16 @@ return {
           prefix = "●",
         },
         severity_sort = true,
-      },
-      servers = {
+      })
+
+      opts.servers = vim.tbl_deep_extend("force", opts.servers or {}, {
         terraformls = {},
-        vtsls = {
-          enabled = false,
-          filetypes = {
-            "javascript",
-            "javascriptreact",
-            "typescript",
-            "typescriptreact",
-          },
-          root_dir = require("lspconfig").util.root_pattern("nx.json", "package.json"),
-          settings = {
-            typescript = {
-              maxTsServerMemory = 4096, -- Example setting to increase memory
-            },
-            javascript = {
-              -- Merged settings as per setup function
-            },
-          },
-          on_attach = function(client, buffer)
-            -- Simplified on_attach if necessary
-          end,
-          -- Lazy loading flag (if supported by your plugin manager)
-          lazy = true,
-        },
+        vtsls = { enabled = false },
         ruff_lsp = {
-          enabled = true,
-          settings = {},
-          root_dir = require("lspconfig").util.root_pattern("nx.json", ".git"),
+          root_dir = root_pattern("nx.json", ".git"),
         },
         pyright = {
-          enabled = true,
-          root_dir = require("lspconfig").util.root_pattern("nx.json", ".git"),
+          root_dir = root_pattern("nx.json", ".git"),
           settings = {
             python = {
               analysis = {
@@ -120,18 +98,12 @@ return {
         },
         lua_ls = {
           single_file_support = true,
-          root_dir = require("lspconfig").util.root_pattern("nx.json", ".git"),
+          root_dir = root_pattern("nx.json", ".git"),
           settings = {
             Lua = {
-              workspace = {
-                checkThirdParty = false,
-              },
-              completion = {
-                callSnippet = "Replace",
-              },
-              diagnostics = {
-                globals = { "vim" },
-              },
+              workspace = { checkThirdParty = false },
+              completion = { callSnippet = "Replace" },
+              diagnostics = { globals = { "vim" } },
               hint = {
                 enable = true,
                 arrayIndex = "Enable",
@@ -144,23 +116,17 @@ return {
           },
         },
         eslint = {
-          root_dir = require("lspconfig").util.root_pattern("nx.json", "package.json"),
+          root_dir = root_pattern("nx.json", "package.json"),
           settings = {
             workingDirectory = { mode = "auto" },
           },
         },
-        -- Disable unused servers
         basedpyright = { enabled = false },
         cssls = { enabled = false },
         tailwindcss = { enabled = false },
-      },
-      setup = {
-        vtsls = function(_, opts)
-          -- Ensure merged settings
-          opts.settings.javascript =
-              vim.tbl_deep_extend("force", {}, opts.settings.typescript, opts.settings.javascript or {})
-          -- Optional: Further optimize or remove custom commands
-        end,
+      })
+
+      opts.setup = vim.tbl_deep_extend("force", opts.setup or {}, {
         eslint = function()
           Snacks.util.lsp.on({ name = "eslint" }, function(_, client)
             client.server_capabilities.documentFormattingProvider = true
@@ -169,7 +135,7 @@ return {
             client.server_capabilities.documentFormattingProvider = false
           end)
         end,
-      },
-    },
+      })
+    end,
   },
 }

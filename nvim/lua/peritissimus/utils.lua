@@ -165,19 +165,22 @@ function M.hslToHex(h, s, l)
 end
 
 function M.replaceHexWithHSL()
-	-- Get the current line number
+	if not vim.bo.modifiable then
+		vim.notify("Buffer is not modifiable", vim.log.levels.WARN)
+		return
+	end
+
 	local line_number = vim.api.nvim_win_get_cursor(0)[1]
-
-	-- Get the line content
 	local line_content = vim.api.nvim_buf_get_lines(0, line_number - 1, line_number, false)[1]
+	if not line_content then
+		return
+	end
 
-	-- Find hex code patterns and replace them
 	for hex in line_content:gmatch("#[0-9a-fA-F]+") do
 		local hsl = M.hexToHSL(hex)
 		line_content = line_content:gsub(hex, hsl)
 	end
 
-	-- Set the line content back
 	vim.api.nvim_buf_set_lines(0, line_number - 1, line_number, false, { line_content })
 end
 

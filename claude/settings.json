@@ -20,7 +20,7 @@
     "deny": [],
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "opus[1m]",
   "hooks": {
     "PostToolUse": [
       {
@@ -55,7 +55,8 @@
     "typescript-lsp@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
-    "linear@claude-plugins-official": true
+    "linear@claude-plugins-official": true,
+    "slack@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
@@ -75,5 +76,6 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  }
+  },
+  "tui": "fullscreen"
 }

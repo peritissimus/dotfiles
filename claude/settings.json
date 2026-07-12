@@ -20,7 +20,7 @@
     "deny": [],
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PostToolUse": [
       {
@@ -56,13 +56,24 @@
     "context7@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
     "linear@claude-plugins-official": true,
-    "slack@claude-plugins-official": true
+    "slack@claude-plugins-official": true,
+    "codex@openai-codex": true
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "theme": "dark",
-  "editorMode": "vim",
+  "editorMode": "normal",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "mcpServers": {
@@ -76,6 +87,5 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "tui": "fullscreen"
+  }
 }

@@ -12,7 +12,7 @@ import UI/Color
 
 # Constants
 VERSION="1.0.0"
-DEFAULT_MODEL="meta-llama/llama-4-scout-17b-16e-instruct"
+DEFAULT_MODEL="llama-3.3-70b-versatile"
 
 # Help message
 show_help() {

@@ -99,7 +99,7 @@ alias linear="npm run dev --"
 alias cat="bat"
 alias find="fd"
 alias ls="eza"
-alias ll="eza -l"
+alias ll="eza -l --group-directories-first --sort=name"
 alias la="eza -la"
 alias tree="eza --tree"
 

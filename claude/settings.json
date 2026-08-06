@@ -20,7 +20,7 @@
     "deny": [],
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PostToolUse": [
       {
@@ -41,6 +41,64 @@
           {
             "type": "command",
             "command": "codegraph sync-if-dirty"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh done"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh idle"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh working"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh working"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh blocked"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/peritissimus/dotfiles/tmux/tmux-herd/scripts/hook-update.sh clear"
           }
         ]
       }
@@ -68,7 +126,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
+  "effortLevel": "low",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,

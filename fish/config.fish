@@ -5,18 +5,26 @@ fish_vi_key_bindings
 
 # Group environment variables together
 set -gx EDITOR nvim
-set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 | grep 'java.home' | awk '{print \$3}'")
+# Exported vars are inherited by child shells — only compute them once.
+# (Spawning the JVM for JAVA_HOME costs ~90ms per shell otherwise.)
+if not set -q JAVA_HOME
+    set -gx JAVA_HOME (bash -c "/opt/homebrew/opt/openjdk@17/bin/java -XshowSettings:properties -version 2>&1 | grep 'java.home' | awk '{print \$3}'")
+end
 set -gx PATH $HOME/.gem/bin $PATH
 
-set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
-set -gx GROQ_API_KEY (security find-generic-password -a "$USER" -s "GROQ_API_KEY" -w 2>/dev/null)
-set -gx GEMINI_API_KEY (security find-generic-password -a "$USER" -s "GEMINI_API_KEY" -w 2>/dev/null)
-set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
-set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
+if not set -q OPENAI_API_KEY
+    set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
+    set -gx GROQ_API_KEY (security find-generic-password -a "$USER" -s "GROQ_API_KEY" -w 2>/dev/null)
+    set -gx GEMINI_API_KEY (security find-generic-password -a "$USER" -s "GEMINI_API_KEY" -w 2>/dev/null)
+    set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
+    set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
+end
 set -gx NX_TUI false
 # Development tools setup
 ## Homebrew
-eval "$(/opt/homebrew/bin/brew shellenv)"
+if not set -q HOMEBREW_PREFIX
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+end
 # Ensure Homebrew bash (5.x) is used before system bash (3.2)
 fish_add_path --prepend /opt/homebrew/bin
 
@@ -58,14 +66,22 @@ fish_add_path /usr/local/bin $HOME/.pub-cache/bin
 set -gx CPPFLAGS "-I/opt/homebrew/opt/openjdk@17/include"
 set -x PATH $HOME/.cargo/bin $PATH
 
-# Initialize zoxide
-zoxide init fish | source
+# Interactive-only inits: skip for `fish -c` (scripts, tmux popups, etc.)
+if status is-interactive
+    # Initialize zoxide
+    zoxide init fish | source
 
-# Initialize starship
-starship init fish | source
+    # Initialize starship
+    starship init fish | source
 
-# Initialize atuin
-atuin init fish | source
+    # Initialize atuin
+    atuin init fish | source
+
+    # mise: auto-activation is disabled globally (set -U MISE_FISH_AUTO_ACTIVATE 0,
+    # its vendor conf.d costs ~90ms and runs before this file) — activate
+    # explicitly for interactive shells only.
+    /opt/homebrew/opt/mise/bin/mise activate fish | source
+end
 
 # bat configuration
 set -gx BAT_THEME "Dracula"

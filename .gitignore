@@ -7,11 +7,14 @@ vim/bundle/*
 nvim/plugin/packer_compiled.lua
 .DS_Store
 nvim/lazy-lock.json
-raycast/extensions
 *.swp
 .DS_Store
 node_modules
 *.log
+
+# Raycast config: ignore runtime state (extensions, caches, endpoint token), allow only script commands
+raycast/*
+!raycast/commands/
 
 # Claude config: ignore runtime state, allow only selected repo-owned files
 claude/*

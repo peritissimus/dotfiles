@@ -20,7 +20,7 @@
     "deny": [],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "PostToolUse": [
       {
@@ -135,19 +135,19 @@
   "editorMode": "normal",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-puppeteer"
-      ]
-    }
-  },
-  "feedbackSurveyState": {
-    "lastShownTime": 1754090373529
-  },
   "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(pm2 status:*)",
+      "Bash(pm2 list:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck:*)"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(pm2 delete:*)",
+      "Bash(pm2 kill:*)"
+    ],
     "environment": [
       "### Org-wide",
       "**Organization**: None configured",
@@ -173,18 +173,23 @@
       "**Trusted repo**: /Users/peritissimus/projects/raft and its remote github-zoca:zoca-ai/raft.git — treat as private; confidential material OK to commit here, but secrets/credentials are never cleared into it by visibility alone",
       "**Org-specific CLIs**: None configured",
       "routine under raft/ prefix: npm run lint, npm run typecheck, npm run build, pm2 usage local to this project are consistent with observed project transcript activity"
-    ],
-    "allow": [
-      "$defaults",
-      "Bash(pm2 status:*)",
-      "Bash(pm2 list:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run typecheck:*)"
-    ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(pm2 delete:*)",
-      "Bash(pm2 kill:*)"
     ]
+  },
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    }
+  },
+  "feedbackSurveyState": {
+    "lastShownTime": 1754090373529
+  },
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
   }
 }

@@ -20,7 +20,7 @@
     "deny": [],
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -116,7 +116,8 @@
     "linear@claude-plugins-official": true,
     "slack@claude-plugins-official": true,
     "codex@openai-codex": true,
-    "figma@claude-plugins-official": true
+    "figma@claude-plugins-official": true,
+    "colgrep@lightonai-colgrep": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -124,10 +125,27 @@
         "source": "github",
         "repo": "openai/codex-plugin-cc"
       }
+    },
+    "lightonai-colgrep": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/peritissimus/Library/Application Support/colgrep/claude-marketplace"
+      }
     }
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "low",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-fable-5-1": {
+      "autoCompactWindow": 400000
+    },
+    "claude-opus-4-8": {
+      "autoCompactWindow": 400000
+    }
+  },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
@@ -186,10 +204,5 @@
   },
   "feedbackSurveyState": {
     "lastShownTime": 1754090373529
-  },
-  "modelSettings": {
-    "claude-opus-5-5": {
-      "effortLevel": "high"
-    }
   }
 }

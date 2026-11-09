@@ -12,7 +12,7 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: main-vertical
       panes:
-        - claude --permission-mode bypassPermissions
+        -
         -  # api-server: pnpm start:dev
         - lazygit
         - pm2 status
@@ -21,8 +21,8 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: main-vertical
       panes:
-        - claude --permission-mode bypassPermissions
-        - claude --permission-mode bypassPermissions
+        -
+        -
         -  # api-server: pnpm start:dev
         - lazygit
 
@@ -74,7 +74,7 @@ windows:
       root: ~/projects/mononest/mononest-base/
       layout: tiled
       panes:
-        -  # api-server: pnpm start:dev
+        - pm2 monit
         -  # leads-server: nx serve leads-server
         -  # links-server: nx serve links-server
         -  # public-server: nx serve public-server

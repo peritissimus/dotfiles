@@ -12,14 +12,26 @@ if not set -q JAVA_HOME
 end
 set -gx PATH $HOME/.gem/bin $PATH
 
-if not set -q OPENAI_API_KEY
-    set -gx OPENAI_API_KEY (security find-generic-password -a "$USER" -s "OPENAI_API_KEY" -w 2>/dev/null)
-    set -gx GROQ_API_KEY (security find-generic-password -a "$USER" -s "GROQ_API_KEY" -w 2>/dev/null)
-    set -gx GEMINI_API_KEY (security find-generic-password -a "$USER" -s "GEMINI_API_KEY" -w 2>/dev/null)
-    set -gx CLOUDFLARE_API_TOKEN (security find-generic-password -a "$USER" -s "cloudflare-api-token" -w 2>/dev/null)
-    set -gx CLOUDFLARE_ACCOUNT_ID (security find-generic-password -a "$USER" -s "cloudflare-account-id" -w 2>/dev/null)
+# Each secret is guarded on its own name: one shared guard means a shell that
+# inherits any single key skips fetching every other one. Empty counts as
+# missing, so a lookup that failed once is retried in the next shell.
+function __load_secret --argument-names var service
+    if set -q $var; and test -n "$$var"
+        return
+    end
+    set -gx $var (security find-generic-password -a "$USER" -s "$service" -w 2>/dev/null)
 end
+
+__load_secret OPENAI_API_KEY OPENAI_API_KEY
+__load_secret LINEAR_API_KEY LINEAR_API_KEY
+__load_secret GROQ_API_KEY GROQ_API_KEY
+__load_secret GEMINI_API_KEY GEMINI_API_KEY
+__load_secret CLOUDFLARE_API_TOKEN cloudflare-api-token
+__load_secret CLOUDFLARE_ACCOUNT_ID cloudflare-account-id
+
+functions -e __load_secret
 set -gx NX_TUI false
+
 # Development tools setup
 ## Homebrew
 if not set -q HOMEBREW_PREFIX
@@ -205,3 +217,7 @@ alias kairos-local="ACORD_USE_LITELLM=0 CLAUDE_CODE_KAIROS_ACTIVE=1 SLACK_CHANNE
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.
 source ~/.orbstack/shell/init2.fish 2>/dev/null || :
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/Users/peritissimus/.local/bin" $PATH

@@ -34,7 +34,7 @@ format_number() {
 context_info=""
 if [ -n "$transcript_path" ] && [ -f "$transcript_path" ]; then
   # Get the last line with usage information
-  last_usage=$(tail -100 "$transcript_path" 2>/dev/null | grep '"usage"' | tail -1)
+  last_usage=$(tail -500 "$transcript_path" 2>/dev/null | grep '"usage"' | tail -1)
   
   if [ -n "$last_usage" ]; then
     # Extract token counts
@@ -74,18 +74,6 @@ if [ -n "$transcript_path" ] && [ -f "$transcript_path" ]; then
       done
       
       context_info=" | [${bar}] ${percentage}% (${total_fmt}/${max_fmt})"
-    fi
-  fi
-fi
-
-# If no transcript, try to read from ccusage data
-if [ -z "$context_info" ] && [ -n "$session_id" ]; then
-  # Check if ccusage is available and has data
-  if command -v ccusage &> /dev/null; then
-    # Pass the input to ccusage and extract just the context part
-    ccusage_output=$(echo "$input" | ccusage statusline 2>/dev/null | grep -o '🧠[^|]*' | sed 's/🧠 //')
-    if [ -n "$ccusage_output" ] && [ "$ccusage_output" != "N/A" ]; then
-      context_info=" | 🧠 ${ccusage_output}"
     fi
   fi
 fi
